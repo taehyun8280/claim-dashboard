@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>엣지·보링 설비 날물 교체관리 대시보드</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, "Noto Sans KR", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      line-height: 1.55;
+    }
+
+    .deck {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 36px 20px 80px;
+    }
+
+    .slide {
+      min-height: 820px;
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 54px 72px 64px 64px;
+      margin-bottom: 36px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      border: 1px solid #e5e7eb;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      right: -170px;
+      top: -170px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(14, 165, 233, 0.06));
+      z-index: 0;
+    }
+
+    .slide > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .label {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #e8f1ff;
+      color: #1d4ed8;
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 52px;
+      line-height: 1.18;
+      letter-spacing: -1.8px;
+      color: #111827;
+      margin-bottom: 22px;
+    }
+
+    h2 {
+      font-size: 39px;
+      line-height: 1.25;
+      letter-spacing: -1px;
+      color: #111827;
+      margin-bottom: 28px;
+    }
+
+    h3 {
+      font-size: 23px;
+      color: #111827;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 20px;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 24px;
+      color: #4b5563;
+      max-width: 880px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 22px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 22px;
+      padding: 26px;
+      min-height: 170px;
+    }
+
+    .card.blue {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .card.green {
+      background: #ecfdf5;
+      border-color: #bbf7d0;
+    }
+
+    .card.yellow {
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .card.red {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .card p {
+      font-size: 18px;
+      margin-bottom: 0;
+      word-break: keep-all;
+      line-break: strict;
+    }
+
+    .dashboard-link {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 18px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .dashboard-link:hover {
+      background: #dbeafe;
+    }
+
+    .chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .chip {
+      padding: 13px 18px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      font-size: 20px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .flow.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .step {
+      padding: 23px;
+      border-radius: 20px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      min-height: 170px;
+    }
+
+    .step-number {
+      display: inline-flex;
+      width: 34px;
+      height: 34px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .step p {
+      font-size: 17px;
+      margin-bottom: 0;
+    }
+
+    .quote {
+      font-size: 28px;
+      font-weight: 850;
+      line-height: 1.4;
+      color: #111827;
+      background: #f8fafc;
+      border-left: 7px solid #2563eb;
+      padding: 26px 30px;
+      border-radius: 18px;
+      margin-top: 26px;
+    }
+
+    .highlight {
+      color: #2563eb;
+      font-weight: 900;
+    }
+
+    .danger {
+      color: #dc2626;
+      font-weight: 900;
+    }
+
+    .status-demo {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .status.normal {
+      color: #047857;
+      background: #d1fae5;
+    }
+
+    .status.need {
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+
+    .arrow {
+      font-size: 28px;
+      color: #6b7280;
+      font-weight: 800;
+    }
+
+    .note-box {
+      margin-top: 24px;
+      padding: 22px 26px;
+      border-radius: 20px;
+      background: #111827;
+      color: #f9fafb;
+    }
+
+    .note-box p {
+      color: #d1d5db;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .media-box {
+      margin-top: 22px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 18px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .media-box img {
+      width: 100%;
+      height: 380px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: #ffffff;
+      display: block;
+      cursor: zoom-in;
+    }
+
+    .media-box video {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: #ffffff;
+      display: block;
+    }
+
+    .media-box video {
+      background: #020617;
+      cursor: pointer;
+    }
+
+    .media-caption {
+      margin-top: 10px;
+      color: #475569;
+      font-size: 16px;
+      margin-bottom: 0;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+      align-items: stretch;
+      margin-top: 22px;
+    }
+
+    .process-wrap {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+      gap: 18px;
+    }
+
+    .process-step {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .process-step img {
+      width: 100%;
+      height: 360px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: #ffffff;
+      display: block;
+      cursor: zoom-in;
+    }
+
+    .process-step h4 {
+      font-size: 20px;
+      color: #111827;
+      margin: 12px 0 6px;
+    }
+
+    .process-step p {
+      font-size: 16px;
+      margin-bottom: 0;
+      color: #4b5563;
+    }
+
+    .process-arrow {
+      display: none;
+    }
+
+    .normal-photo-wrap {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+      gap: 18px;
+    }
+
+    .normal-photo-step {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .normal-photo-step img {
+      width: 100%;
+      height: 320px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: #ffffff;
+      display: block;
+      cursor: zoom-in;
+    }
+
+    .image-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 32px;
+    }
+
+    .image-modal.active {
+      display: flex;
+    }
+
+    .image-modal img {
+      max-width: 96vw;
+      max-height: 92vh;
+      object-fit: contain;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      cursor: zoom-out;
+    }
+
+    .image-modal-close {
+      position: fixed;
+      right: 32px;
+      top: 24px;
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #111827;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 10000;
+    }
+
+    .normal-photo-step h4 {
+      font-size: 20px;
+      color: #111827;
+      margin: 12px 0 6px;
+    }
+
+    .normal-photo-step p {
+      font-size: 16px;
+      margin-bottom: 0;
+      color: #4b5563;
+    }
+
+    .normal-photo-arrow {
+      display: none;
+    }
+
+    .footer-note {
+      position: absolute;
+      right: 42px;
+      bottom: 30px;
+      font-size: 15px;
+      color: #9ca3af;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .deck {
+        padding: 0;
+        max-width: none;
+      }
+      .slide {
+        page-break-after: always;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        min-height: 100vh;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .slide {
+        padding: 36px 28px;
+        min-height: auto;
+      }
+
+      .media-box img {
+        height: auto;
+        max-height: 320px;
+      }
+
+      .slide::before {
+        width: 180px;
+        height: 180px;
+        right: -110px;
+        top: -110px;
+      }
+      h1 {
+        font-size: 38px;
+      }
+      h2 {
+        font-size: 30px;
+      }
+      p, .subtitle {
+        font-size: 19px;
+      }
+      .grid.two, .grid.three, .flow, .flow.three, .data-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .process-wrap {
+        flex-direction: column;
+      }
+
+      .process-arrow {
+        margin: 0 auto;
+        transform: rotate(90deg);
+      }
+
+      .process-step img {
+        height: auto;
+        max-height: 280px;
+      }
+
+      .normal-photo-wrap {
+        flex-direction: column;
+      }
+
+      .normal-photo-arrow {
+        margin: 0 auto;
+        transform: rotate(90deg);
+      }
+
+      .normal-photo-step img {
+        height: auto;
+        max-height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <section class="slide">
+      <span class="label">01. 대시보드 설명</span>
+      <h1>엣지·보링 설비<br />날물 교체관리 대시보드</h1>
+      <p class="subtitle">
+        엣지 설비의 <strong>AT날물</strong>과 보링 설비의 <strong>직경별 보링날</strong> 교체 상태를 관리하고<br />
+        교체 이력을 데이터로 축적하기 위한 시스템
+      </p>
+      <div class="grid two" style="margin-top: 34px;">
+        <div class="card blue">
+          <h3>엣지 설비</h3>
+          <p>1. AT날물 관리<br />2. 엣지 공정에서 앞·뒤 끝단을 절삭, 정리하여 엣지 접착 전 마감 상태를 안정화하는 날물<br />3. 날물 마모나 파손 시 끝단 깨짐, 쪽떨어짐 등 외관 품질 문제가 발생할 수 있어 관리가 필요</p>
+        </div>
+        <div class="card green">
+          <h3>보링 설비</h3>
+          <p>1. 5Ø(관통), 8Ø(관통), 12Ø(관통), 15Ø, 20Ø, 35Ø 날물 관리<br />2. 직경별 날물 상태는 보링 깊이, 치수 불량에 영향을 미칠 수 있기에 관리가 필요</p>
+        </div>
+      </div>
+      
+    </section>
+
+    <section class="slide">
+      <span class="label">02. 대시보드 화면</span>
+      <h2>대시보드 주요 화면</h2>
+      <p>
+        설비별 날물 사용률, 교체상태, 데이터 반영 이력, 교체완료 시점을 한 화면에서 확인 가능
+      </p>
+      <a class="dashboard-link" href="https://6nvuy99pssrflkalijieob.streamlit.app/" target="_blank" rel="noopener noreferrer">대시보드 바로가기 ↗</a>
+      <div class="data-grid">
+        <div class="media-box">
+          <img src="assets/dashboard_main.png" alt="날물 교체관리 대시보드 메인 화면" />
+          <p class="media-caption">설비별 날물 사용률과 교체상태를 한눈에 확인</p>
+        </div>
+        <div class="media-box">
+          <img src="/mnt/data/2f694a4b-579e-47cd-9b4e-f3fd8207ef09.png" alt="데이터 반영 이력 및 교체완료 시점 화면" />
+          <p class="media-caption">데이터 반영 이력과 교체완료 시점 기록 관리</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <span class="label">03. 도입 배경</span>
+      <h2>왜 만들었는가?</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>교체 누락 방지</h3>
+          <p>수기 관리와 작업자 경험 의존을 줄이고 교체 시점을 한눈에 확인</p>
+        </div>
+        <div class="card">
+          <h3>품질 불량 예방</h3>
+          <p>엣지 쪽떨어짐, 보링 깊이 불량, 보링 치수 불량 등을 사전에 예방</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <span class="label">04. 데이터 추출</span>
+      <h2>보링 매크로와 ERP 데이터를 통합</h2>
+      <p>
+        보링 매크로 파일에서 날물 정보를 추출하고, ERP 생산 데이터를 함께 연결해 대시보드에 반영
+      </p>
+      <div class="flow">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>보링 매크로 추출</h3>
+          <p>보링 설비의 매크로 파일을 추출해 날물별 사용 정보를 확인</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>ERP 데이터 추출</h3>
+          <p>ERP에서 설비별 생산량과 사용 실적 데이터를 가져옴</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>통합 데이터 생성</h3>
+          <p>매크로 파일과 ERP 데이터를 엮어 날물별 사용량을 정리</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>대시보드 반영</h3>
+          <p>통합 데이터를 기준으로 사용률과 교체상태를 표시</p>
+        </div>
+      </div>
+      <div class="media-box">
+        <video controls preload="metadata" playsinline onclick="this.paused ? this.play() : this.pause()" src="assets/boring_macro.mp4">
+          브라우저에서 영상을 재생할 수 없습니다.
+        </video>
+        <p class="media-caption">보링 매크로 파일 추출 과정 영상</p>
+      </div>
+      <div class="data-grid">
+        <div class="media-box">
+          <img src="assets/erp_data.png" alt="ERP 데이터 추출 화면" />
+          <p class="media-caption">ERP에서 생산·사용 실적 데이터를 추출</p>
+        </div>
+        <div class="media-box">
+          <img src="assets/integrated_data.png" alt="통합 데이터 화면" />
+          <p class="media-caption">ERP 데이터와 보링 매크로 데이터를 연결한 통합 데이터</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <span class="label">05. 사용 방법</span>
+      <h2>날물 이상이 없는 경우</h2>
+      <p>
+        교체상태가 <span class="danger">교체필요</span>이지만 날물 확인 결과 이상이 없을 경우, 비고란에 내용을 남겨 데이터를 축적
+      </p>
+      <div class="process-wrap">
+        <div class="process-step">
+          <img src="/mnt/data/54dd1f61-c70d-4415-ba1c-5057560ae727.png" alt="교체필요 상태 화면" />
+          <h4>1. 교체필요 상태 확인</h4>
+          <p>사용량 100% 도달 설비를 확인하고 담당자를 입력한 뒤 교체 처리</p>
+        </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <img src="/mnt/data/b1fdaff7-60af-45f4-88d2-168807cda1ae.png" alt="교체완료 시점 입력 화면" />
+          <h4>2. 비고 내용 입력</h4>
+          <p>교체완료 시점 입력 영역에서 비고란에 날물 이상 없음 등의 내용을 기록</p>
+        </div>
+        <div class="process-arrow">→</div>
+        <div class="process-step">
+          <img src="/mnt/data/5e5e285a-8786-43f4-89f5-7aaf51628775.png" alt="초기화된 정상 상태 화면" />
+          <h4>3. 사용량 초기화</h4>
+          <p>처리 완료 후 사용량이 0%로 초기화되고 상태는 정상으로 다시 관리</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <span class="label">05. 사용 방법</span>
+      <h2>날물 이상이 있는 경우</h2>
+      <p>
+        교체상태가 <span class="danger">교체필요</span>이고, 현장에서 확인했을 때 실제로 날물 이상이 있는 경우의 처리 방식
+      </p>
+      <div class="flow">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>날물 확인</h3>
+          <p>교체필요 상태의 설비를 확인하고 실제 이상 여부를 판단</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>담당자 입력</h3>
+          <p>교체를 진행하는 담당자를 입력</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>교체필요 클릭</h3>
+          <p>교체필요 버튼을 눌러 즉시 교체 완료 처리</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>이력 저장</h3>
+          <p>사용량은 0%로 초기화되고 교체완료 이력에 기록</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <span class="label">06. 사용 방법</span>
+      <h2>교체상태가 ‘정상’인 경우</h2>
+      <p>
+        사용량이 100%가 아니어도 현장에서 날물 이상이 발생하면 즉시 교체할 수 있음
+      </p>
+      <div class="normal-photo-wrap">
+        <div class="normal-photo-step">
+          <img src="/mnt/data/c55e5b13-e6f9-4f0e-b3ff-20feae1c1e5d.png" alt="정상 상태 화면" />
+          <h4>1. 담당자 입력 후 정상 버튼 클릭</h4>
+          <p>정상 상태의 설비라도 현장에서 이상이 확인되면 담당자를 입력하고 정상 버튼을 눌러 교체 절차를 시작</p>
+        </div>
+        <div class="normal-photo-arrow">→</div>
+        <div class="normal-photo-step">
+          <img src="/mnt/data/e8515873-dc38-47e4-add0-284b13f7f902.png" alt="교체 이유 입력 팝업" />
+          <h4>2. 교체 이유 입력</h4>
+          <p>팝업 창에서 담당자와 교체 이유를 입력한 뒤 교체 처리 버튼을 눌러 완료</p>
+        </div>
+        <div class="normal-photo-arrow">→</div>
+        <div class="normal-photo-step">
+          <img src="/mnt/data/4630b903-b277-4c26-a7f2-11e066da57da.png" alt="교체 완료 후 화면" />
+          <h4>3. 교체완료 및 사용량 초기화</h4>
+          <p>처리 완료 후 사용량이 0%로 초기화되고 교체완료 상태로 반영</p>
+        </div>
+        <div class="normal-photo-arrow">→</div>
+        <div class="normal-photo-step">
+          <img src="/mnt/data/77d16237-9d5c-43ff-bad0-751be8f3174e.png" alt="교체완료 시점 이력" />
+          <h4>4. 교체 이력 저장</h4>
+          <p>교체완료 시점 영역에 담당자와 비고 내용이 저장되어 이후 이력 관리와 분석에 활용</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <span class="label">07. 마무리</span>
+      <h2>기대 효과</h2>
+      <div class="grid two">
+        <div class="card green">
+          <h3>품질 문제 사전 대응</h3>
+          <p>날물 이상으로 인한 엣지 마감 불량, 보링 깊이·치수 불량을 사전에 파악하고 대응</p>
+        </div>
+        <div class="card yellow">
+          <h3>관리 효율 향상</h3>
+          <p>설비별 교체 현황과 교체 이력을 한 화면에서 확인하여 관리 시간을 줄임</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="image-modal" id="imageModal" aria-hidden="true">
+    <button class="image-modal-close" type="button" aria-label="닫기">×</button>
+    <img id="modalImage" src="" alt="확대 이미지" />
+  </div>
+
+  <script>
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeButton = document.querySelector('.image-modal-close');
+
+    document.querySelectorAll('.media-box img, .process-step img, .normal-photo-step img').forEach((img) => {
+      img.addEventListener('dblclick', () => {
+        modalImage.src = img.src;
+        modalImage.alt = img.alt || '확대 이미지';
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+      });
+    });
+
+    function closeModal() {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      modalImage.src = '';
+    }
+
+    closeButton.addEventListener('click', closeModal);
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal || event.target === modalImage) closeModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
