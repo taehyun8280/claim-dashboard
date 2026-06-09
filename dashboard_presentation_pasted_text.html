@@ -10,17 +10,17 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* ── 탭바 ── */
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
-.tab-bar{background:#f0f2f5;position:sticky;top:0;z-index:100;padding:20px 20px 0}
-.tab-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;background:#fff;border-bottom:2px solid #2f80ff;border-radius:10px 10px 0 0;overflow:hidden}
-.tab-bar button{flex:1;background:#fff;border:none;color:#888;padding:17px 20px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;text-align:center}
-.tab-bar button.active{color:#1a56db;font-weight:700}
+.tab-bar{background:#fff;border-bottom:1px solid #dfe3ea;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tab-inner{max-width:520px;margin:0 auto;display:flex;justify-content:center}
+.tab-bar button{width:260px;background:#fff;border:none;border-bottom:3px solid transparent;color:#888;padding:17px 20px 15px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;text-align:center}
+.tab-bar button.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
 .tab-bar button:hover:not(.active){color:#333;background:#f8f8f8}
 
 /* ── 패널 ── */
 .panel{display:none}.panel.active{display:block}
 
 /* ══ 보고서 미리보기 ══ */
-.preview-page{width:calc(100% - 40px);max-width:1100px;margin:0 auto 20px;padding:32px 32px 24px;background:#fff;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.preview-page{max-width:1100px;margin:0 auto;padding:20px}
 .preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:26px}
 .btn-img-copy{background:#166534;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .btn-img-copy:hover{background:#14532d}
@@ -28,7 +28,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .sync-pill .dot{width:7px;height:7px;background:#16a34a;border-radius:50%}
 
 /* 보고서 카드 */
-.report-paper{background:#fff;border:none;border-radius:0;padding:0;box-shadow:none}
+.report-paper{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:24px 28px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
 .report-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px}
 .report-main-title{font-size:18px;font-weight:700;color:#111}
 .report-date{font-size:12px;color:#6b7280}
@@ -71,9 +71,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* 특이사항 / 첨부 */
 .note-box{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-height:60px;font-size:12px;color:#555;line-height:1.7}
-.attach-box{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:10px 14px;font-size:12px;line-height:2}
+.attach-box{background:transparent;border:none;border-radius:0;padding:4px 0 0;font-size:13px;line-height:2}
 .attach-box li{list-style:none;color:#374151}
-.attach-box li::before{content:'• ';color:#1a56db;font-weight:700}
+.attach-box li::before{content:'•';display:inline-block;margin-right:8px;color:#2f80ff;font-weight:700}
 .report-footer{text-align:right;font-size:11px;color:#9ca3af;margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0}
 
 /* ══ 데이터 입력 ══ */
@@ -238,8 +238,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     <!-- 4. 첨부 -->
     <div class="sec-title">4. 첨부</div>
     <ul class="attach-box" id="pvAttach">
-      <li>4-1. 수출건 검사 세부내역</li>
-      <li>4-2. 생산지시서</li>
+      <li>4-1. 목제품 품질검사 기준서</li>
+      <li>4-2. 일일 품질점검 일지</li>
     </ul>
 
     <div class="report-footer" id="pvOrg">충주공장 품질보증팀</div>
@@ -357,8 +357,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
   <div class="inp-card">
     <div class="inp-card-hd">4. 첨부 항목</div>
     <div class="inp-card-bd">
-      <textarea id="in_attach" class="inp-textarea" rows="2">4-1. 수출건 검사 세부내역
-4-2. 생산지시서</textarea>
+      <textarea id="in_attach" class="inp-textarea" rows="2">4-1. 목제품 품질검사 기준서
+4-2. 일일 품질점검 일지</textarea>
     </div>
   </div>
 
