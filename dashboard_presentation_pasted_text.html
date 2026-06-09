@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일일 품질 검사 보고서</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:12px;background:#f0f2f5;color:#111}
@@ -58,7 +59,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .st td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff}
 .st .gh{background:#e8e8e8;font-weight:600;color:#333}
 .st .tr-total td{background:#e8f0fe;font-weight:700;color:#1a56db;border-color:#c7d7f5}
-.ng-red{color:#dc2626;font-weight:700}
+.ng-red{color:#111;font-weight:400}
 
 /* 검사내용 테이블 */
 .ct{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e5e7eb}
@@ -131,7 +132,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 <div class="preview-page">
 
   <div class="preview-topbar no-print">
-    <button class="btn-img-copy" onclick="window.print()">📋 대시보드 이미지 복사</button>
+    <button class="btn-img-copy" id="copyBtn" onclick="copyDashboard()">📋 대시보드 이미지 복사</button>
     <div class="sync-pill"><span class="dot"></span>실시간 동기화 중</div>
   </div>
 
@@ -318,6 +319,15 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
             <td><input type="number" id="s1_yi" value="0" min="0" oninput="calcS()"></td>
             <td><input type="number" id="s1_yq" value="0" min="0" oninput="calcS()"></td>
           </tr>
+          <tr>
+            <td class="inp-t-name">양지</td>
+            <td><input type="number" id="s2_ti" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_tq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_mi" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_mq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_yi" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_yq" value="0" min="0" oninput="calcS()"></td>
+          </tr>
         </tbody>
         <tfoot>
           <tr class="inp-t-total">
@@ -344,12 +354,13 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
       <table class="inp-t">
         <thead>
           <tr>
-            <th style="width:30px">번호</th>
-            <th>건명</th><th>단품코드</th>
-            <th style="width:52px">색상</th>
-            <th style="width:48px">수량</th>
-            <th>검사자</th>
-            <th style="width:56px">결과</th>
+            <th style="width:36px">번호</th>
+            <th>건명</th>
+            <th>단품코드</th>
+            <th style="width:80px">색상</th>
+            <th style="width:70px">수량</th>
+            <th style="width:100px">검사자</th>
+            <th style="width:80px">결과</th>
             <th style="width:100px">사진</th>
           </tr>
         </thead>
@@ -408,7 +419,7 @@ function addAttachRow(){
 function delAttachRow(){
   if(attachItems.length>0){attachItems.pop();renderAttach();}
 }
-const S_NAMES=['충주1','충주2'];
+const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
 
 (function(){
@@ -433,7 +444,7 @@ function switchTab(t){
 function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
 function calcS(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
-  [0,1].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
+  [0,1,2].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
   S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k]);
 }
 function getSRows(){
@@ -451,9 +462,9 @@ function addCRow(){
   const tr=document.createElement('tr');
   tr.innerHTML=`
     <td style="text-align:center">${idx+1}</td>
-    <td><input type="text" placeholder="건명" oninput="syncC(this,'name',${idx})"></td>
+    <td><input type="text" placeholder="예) FAM-12(미국)" oninput="syncC(this,'name',${idx})"></td>
     <td><input type="text" placeholder="단품코드" oninput="syncC(this,'code',${idx})"></td>
-    <td><input type="text" placeholder="색상" oninput="syncC(this,'color',${idx})"></td>
+    <td><input type="text" placeholder="예) WW" oninput="syncC(this,'color',${idx})"></td>
     <td><input type="number" value="0" min="0" oninput="syncC(this,'qty',${idx})"></td>
     <td><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})"></td>
     <td><input type="text" value="적합" oninput="syncC(this,'result',${idx})"></td>
@@ -567,7 +578,7 @@ function applyAll(){
 
 function resetAll(){
   if(!confirm('모든 내용을 초기화할까요?'))return;
-  [0,1].forEach(i=>S_FIELDS.forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
+  [0,1,2].forEach(i=>S_FIELDS.forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
   calcS();
   document.getElementById('inCBody').innerHTML='';
   cRows=[];
@@ -575,6 +586,47 @@ function resetAll(){
   renderAttach();
   document.getElementById('in_note').value='';
   calcC(); addCRow();
+}
+
+async function copyDashboard(){
+  const btn=document.getElementById('copyBtn');
+  const target=document.querySelector('.report-paper');
+  if(!target){alert('보고서 영역을 찾을 수 없습니다.');return;}
+  btn.textContent='⏳ 캡처 중...';
+  btn.disabled=true;
+  try{
+    const canvas=await html2canvas(target,{
+      scale:2,
+      useCORS:true,
+      backgroundColor:'#ffffff',
+      logging:false
+    });
+    canvas.toBlob(async blob=>{
+      try{
+        await navigator.clipboard.write([
+          new ClipboardItem({'image/png':blob})
+        ]);
+        btn.textContent='✅ 복사 완료!';
+        btn.style.background='#166534';
+      }catch(e){
+        // 클립보드 API 미지원 시 다운로드로 대체
+        const a=document.createElement('a');
+        a.href=canvas.toDataURL('image/png');
+        a.download='보고서_'+new Date().toISOString().slice(0,10)+'.png';
+        a.click();
+        btn.textContent='💾 이미지 저장됨';
+      }
+      setTimeout(()=>{
+        btn.textContent='📋 대시보드 이미지 복사';
+        btn.style.background='';
+        btn.disabled=false;
+      },2500);
+    },'image/png');
+  }catch(e){
+    alert('캡처에 실패했습니다: '+e.message);
+    btn.textContent='📋 대시보드 이미지 복사';
+    btn.disabled=false;
+  }
 }
 </script>
 </body>
