@@ -11,8 +11,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 /* ── 탭바 ── */
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
 .tab-bar{background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.tab-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex}
-.tab-bar button{background:none;border:none;border-bottom:3px solid transparent;color:#888;padding:14px 22px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;margin-bottom:-1px;white-space:nowrap;flex:1;max-width:200px}
+.tab-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;justify-content:center}
+.tab-bar button{background:none;border:none;border-bottom:3px solid transparent;color:#888;padding:14px 60px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;margin-bottom:-1px;white-space:nowrap}
 .tab-bar button.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
 .tab-bar button:hover:not(.active){color:#333;background:#f8f8f8}
 
@@ -261,8 +261,6 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <div class="inp-f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly class="ro"></div>
         <div class="inp-f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
         <div class="inp-f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
-        <div class="inp-f"><label>월 누적 표시</label><input id="in_lbl_month" placeholder="예: 6월 누적"></div>
-        <div class="inp-f"><label>연 누적 표시</label><input id="in_lbl_year" placeholder="예: 26년 누적"></div>
       </div>
     </div>
   </div>
@@ -383,8 +381,8 @@ const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
   document.getElementById('in_date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  document.getElementById('in_lbl_month').value=`${d.getMonth()+1}월 누적`;
-  document.getElementById('in_lbl_year').value=`${String(d.getFullYear()).slice(2)}년 누적`;
+  document.getElementById('in_lbl_month_val') || (window._lbl_month = `${d.getMonth()+1}월 누적`);
+  window._lbl_year = `${String(d.getFullYear()).slice(2)}년 누적`;
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   document.getElementById('kpi_today_lbl').textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   addCRow();
@@ -472,8 +470,10 @@ function applyAll(){
   }
 
   const todayLbl=v('in_date')?(()=>{const d=new Date(v('in_date'));return `${d.getMonth()+1}월 ${d.getDate()}일`;})():'금일';
+  const monthLbl = v('in_date') ? (()=>{const d=new Date(v('in_date')); return `${d.getMonth()+1}월 누적`;})() : (window._lbl_month||'월 누적');
+  const yearLbl = window._lbl_year || '26년 누적';
   document.getElementById('pv_lbl_today').textContent=todayLbl;
-  document.getElementById('pv_lbl_month').textContent=v('in_lbl_month')||'월 누적';
+  document.getElementById('pv_lbl_month').textContent=monthLbl;
 
   const rows=getSRows();
   const sb=document.getElementById('pvSBody');
