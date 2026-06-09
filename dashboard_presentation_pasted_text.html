@@ -374,8 +374,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     </div>
   </div>
 
-  <div class="btn-row">
-    <button class="apply-btn" onclick="applyAll()">보고서에 적용 및 저장 →</button>
+  <div class="btn-row" style="justify-content:flex-start">
+    <button class="apply-btn" onclick="applyAll()">보고서에 적용 및 저장</button>
     <button class="reset-btn" onclick="resetAll()">초기화</button>
   </div>
 
@@ -450,14 +450,13 @@ function addCRow(){
   cRows.push({name:'',code:'',color:'',qty:0,inspector:'',result:'적합',photo:null,uid});
   const tr=document.createElement('tr');
   tr.innerHTML=`
-    <td>${idx+1}</td>
+    <td style="text-align:center">${idx+1}</td>
     <td><input type="text" placeholder="건명" oninput="syncC(this,'name',${idx})"></td>
     <td><input type="text" placeholder="단품코드" oninput="syncC(this,'code',${idx})"></td>
     <td><input type="text" placeholder="색상" oninput="syncC(this,'color',${idx})"></td>
     <td><input type="number" value="0" min="0" oninput="syncC(this,'qty',${idx})"></td>
     <td><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})"></td>
-    <td><select oninput="syncC(this,'result',${idx})">
-      <option>적합</option><option>부적합</option><option>–</option></select></td>
+    <td><input type="text" value="적합" oninput="syncC(this,'result',${idx})"></td>
     <td><div class="ph-cell" id="${uid}" onclick="trigPh('${uid}',${idx})">📷<br>사진 업로드</div></td>`;
   document.getElementById('inCBody').appendChild(tr);
   calcC();
