@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일일 품질 검사 보고서</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a5276;--blue-light:#d6e4f0;--blue-mid:#a9cce3;
+  --gray:#f5f5f5;--border:#000;--accent:#2874a6;
+}
+body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:12px;background:#e8e8e8;color:#000}
+
+/* ── 탭 네비게이션 ── */
+.tab-bar{background:var(--blue);display:flex;gap:0;padding:0 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.tab-bar button{background:none;border:none;color:rgba(255,255,255,.65);padding:12px 18px;font-size:13px;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;transition:.2s}
+.tab-bar button.active{color:#fff;border-bottom:3px solid #fff;font-weight:700}
+.tab-bar button:hover:not(.active){color:#fff;background:rgba(255,255,255,.1)}
+.tab-title{color:#fff;font-size:13px;font-weight:700;padding:12px 16px;border-right:1px solid rgba(255,255,255,.2);margin-right:6px;letter-spacing:.5px;white-space:nowrap}
+
+/* ── 탭 패널 ── */
+.panel{display:none}.panel.active{display:block}
+
+/* ── 대시보드 ── */
+.dashboard{padding:16px;max-width:900px;margin:0 auto}
+.dash-title{font-size:16px;font-weight:700;color:var(--blue);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--blue)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid #ccc;border-radius:6px;padding:12px;text-align:center}
+.kpi-label{font-size:11px;color:#666;margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:700;color:var(--blue)}
+.kpi-sub{font-size:10px;color:#999;margin-top:2px}
+.dash-section{background:#fff;border:1px solid #ccc;border-radius:6px;margin-bottom:12px;overflow:hidden}
+.dash-section-header{background:var(--blue-light);padding:8px 14px;font-weight:700;font-size:12px;border-bottom:1px solid #ccc}
+.dash-table{width:100%;border-collapse:collapse;font-size:11px}
+.dash-table th{background:#eef3fa;padding:6px 8px;border:0.5px solid #ccc;text-align:center}
+.dash-table td{padding:5px 8px;border:0.5px solid #ccc;text-align:center}
+.dash-table tr:nth-child(even) td{background:#fafafa}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.badge.ok{background:#d5f5e3;color:#1e8449}
+.badge.ng{background:#fadbd8;color:#c0392b}
+.copy-btn{background:var(--blue);color:#fff;border:none;padding:6px 14px;font-size:12px;border-radius:4px;cursor:pointer;float:right;margin-top:-32px;margin-right:8px;font-family:inherit}
+.copy-btn:hover{background:var(--accent)}
+
+/* ── 입력 패널 ── */
+.input-panel{padding:16px;max-width:900px;margin:0 auto}
+.form-section{background:#fff;border:1px solid #ccc;border-radius:6px;margin-bottom:12px;overflow:hidden}
+.form-section-header{background:var(--blue-light);padding:8px 14px;font-weight:700;font-size:12px;border-bottom:1px solid #ccc;display:flex;justify-content:space-between;align-items:center}
+.form-section-body{padding:12px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:#555;font-weight:600}
+.field input,.field select,.field textarea{border:1px solid #ccc;padding:5px 7px;font-size:12px;font-family:inherit;border-radius:3px;background:#fffde7}
+.field textarea{resize:vertical;min-height:60px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(40,116,166,.15)}
+.sub-table{width:100%;border-collapse:collapse;font-size:11px}
+.sub-table th{background:#eef3fa;padding:5px 6px;border:1px solid #ccc;text-align:center}
+.sub-table td{padding:4px 5px;border:1px solid #ccc;text-align:center}
+.sub-table input,.sub-table select{border:1px solid #ccc;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fffde7;border-radius:2px}
+.sub-table input[type=number]{text-align:center}
+.sub-table .total-row td{background:#d6e4f0;font-weight:700}
+.row-btn{background:none;border:1px solid #aaa;padding:3px 10px;font-size:11px;cursor:pointer;border-radius:3px;font-family:inherit}
+.row-btn:hover{background:#f0f0f0}
+.photo-cell{width:110px;height:75px;background:#f5f5f5;cursor:pointer;border-radius:2px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;text-align:center;border:1px dashed #bbb}
+.photo-cell img{width:100%;height:100%;object-fit:cover}
+.apply-btn{background:var(--blue);color:#fff;border:none;padding:8px 20px;font-size:12px;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:700}
+.apply-btn:hover{background:var(--accent)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+
+/* ── 보고서 미리보기 ── */
+.preview-wrap{padding:16px;max-width:900px;margin:0 auto}
+.report-paper{background:#fff;padding:24px;border:1px solid #ccc;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.report-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.report-main-title{font-size:22px;font-weight:700;letter-spacing:2px}
+.approval-table{border-collapse:collapse;font-size:11px}
+.approval-table td,.approval-table th{border:1px solid #000;padding:4px 8px;text-align:center;min-width:58px}
+.approval-table th{background:var(--blue-light)}
+.info-table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:12px}
+.info-table td,.info-table th{border:1px solid #000;padding:5px 8px}
+.info-table th{background:var(--blue-light);width:15%;white-space:nowrap}
+.r-section{font-weight:700;font-size:13px;margin:12px 0 5px}
+.r-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px}
+.r-table td,.r-table th{border:1px solid #000;padding:4px 6px;text-align:center}
+.r-table th{background:var(--blue-light)}
+.r-table .rh{background:#eef3fa;font-weight:600}
+.r-table .total{background:var(--blue-light);font-weight:700}
+.r-note{width:100%;border:1px solid #000;min-height:60px;padding:6px;font-size:12px;background:#fff}
+.org{text-align:right;font-size:12px;margin-top:8px;color:#444}
+.print-btn-row{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+
+/* ── 엑셀 붙여넣기 탭 ── */
+.excel-panel{padding:16px;max-width:900px;margin:0 auto}
+.excel-guide{background:#fff;border:1px solid #ccc;border-radius:6px;padding:14px;margin-bottom:12px;font-size:12px;line-height:1.8}
+.excel-guide code{background:#f0f0f0;padding:2px 5px;border-radius:2px;font-family:monospace;font-size:11px}
+.paste-area{width:100%;height:120px;border:1px solid #ccc;padding:8px;font-family:monospace;font-size:11px;border-radius:4px;background:#fafafa;resize:vertical}
+.paste-area:focus{outline:none;border-color:var(--accent)}
+
+@media print{
+  .tab-bar,.print-btn-row,.btn-row,.no-print{display:none!important}
+  .panel{display:block!important}
+  .preview-wrap{padding:0}
+  .report-paper{border:none;box-shadow:none;padding:0}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <span class="tab-title">📋 일일 품질 검사 보고서</span>
+  <button class="active" onclick="switchTab('preview')">보고서 미리보기</button>
+  <button onclick="switchTab('input')">수동 입력</button>
+  <button onclick="switchTab('excel')">엑셀 붙여넣기</button>
+  <button onclick="switchTab('dashboard')">대시보드 이미지 복사</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     탭 1: 보고서 미리보기
+══════════════════════════════════════ -->
+<div class="panel active" id="tab-preview">
+<div class="preview-wrap">
+  <div class="print-btn-row no-print">
+    <button class="apply-btn" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
+  </div>
+  <div class="report-paper" id="reportPaper">
+
+    <div class="report-top">
+      <div class="report-main-title">일일 품질 검사 보고서</div>
+      <table class="approval-table">
+        <tr>
+          <th rowspan="2">작성</th>
+          <th colspan="4">검 토</th>
+          <th rowspan="2">승인</th>
+        </tr>
+        <tr><th>Ⅰ</th><th>Ⅱ</th><th>Ⅲ</th><th>Ⅳ</th></tr>
+        <tr>
+          <td id="pv_ap_writer" style="min-height:30px">&nbsp;</td>
+          <td id="pv_ap_r1">&nbsp;</td>
+          <td id="pv_ap_r2">&nbsp;</td>
+          <td id="pv_ap_r3">&nbsp;</td>
+          <td id="pv_ap_r4">&nbsp;</td>
+          <td id="pv_ap_approver">&nbsp;</td>
+        </tr>
+        <tr>
+          <td id="pv_ap_writer_d" style="font-size:10px">&nbsp;</td>
+          <td id="pv_ap_r1_d" style="font-size:10px">&nbsp;</td>
+          <td id="pv_ap_r2_d" style="font-size:10px">&nbsp;</td>
+          <td id="pv_ap_r3_d" style="font-size:10px">&nbsp;</td>
+          <td id="pv_ap_r4_d" style="font-size:10px">&nbsp;</td>
+          <td id="pv_ap_approver_d" style="font-size:10px">&nbsp;</td>
+        </tr>
+      </table>
+    </div>
+
+    <table class="info-table">
+      <tr>
+        <th>문서번호</th><td id="pv_docNo">&nbsp;</td>
+        <th>작성일</th><td id="pv_docDate">&nbsp;</td>
+      </tr>
+      <tr>
+        <th>작성부서</th><td id="pv_dept">&nbsp;</td>
+        <th>작성자</th><td id="pv_writer">&nbsp;</td>
+      </tr>
+      <tr>
+        <th>제목</th><td id="pv_subject">&nbsp;</td>
+        <th>열람권한</th><td id="pv_auth">&nbsp;</td>
+      </tr>
+    </table>
+
+    <div style="text-align:center;font-size:12px;margin:8px 0 12px">
+      아래와 같이 목제품 수출건에 대한 검사현황을 보고드립니다.<br>
+      <span style="letter-spacing:6px;display:inline-block;margin-top:4px">------- 아&nbsp;&nbsp;&nbsp;래 -------</span>
+    </div>
+
+    <div class="r-section">1. 검사현황</div>
+    <table class="r-table" id="pvStatusTable">
+      <thead>
+        <tr>
+          <th rowspan="2">구분</th>
+          <th colspan="2" id="pv_todayLabel">금일</th>
+          <th colspan="2" id="pv_monthLabel">월 누적</th>
+          <th colspan="2" id="pv_yearLabel">26년 누적</th>
+        </tr>
+        <tr><th>품목</th><th>수량</th><th>품목</th><th>수량</th><th>품목</th><th>수량</th></tr>
+      </thead>
+      <tbody id="pvStatusBody"></tbody>
+      <tfoot>
+        <tr class="total">
+          <td>합계</td>
+          <td id="pv_t1">0</td><td id="pv_t2">0</td>
+          <td id="pv_t3">0</td><td id="pv_t4">0</td>
+          <td id="pv_t5">0</td><td id="pv_t6">0</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="r-section">2. 검사내용</div>
+    <table class="r-table" id="pvContentTable">
+      <thead>
+        <tr>
+          <th style="width:28px">번호</th>
+          <th>건명</th>
+          <th>다품코드</th>
+          <th style="width:45px">색상</th>
+          <th style="width:40px">수량</th>
+          <th>검사자</th>
+          <th style="width:50px">결과</th>
+          <th style="width:120px">검사 사진</th>
+        </tr>
+      </thead>
+      <tbody id="pvContentBody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" style="font-weight:600">합계</td>
+          <td id="pv_c_item">0 품목</td>
+          <td id="pv_c_qty" colspan="2">0 박스</td>
+          <td>–</td><td>–</td><td>–</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="r-section">3. 특이사항</div>
+    <div class="r-note" id="pvNote">&nbsp;</div>
+    <div class="org" id="pvOrg">충주공장 품질보증팀</div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     탭 2: 수동 입력
+══════════════════════════════════════ -->
+<div class="panel" id="tab-input">
+<div class="input-panel">
+
+  <!-- 기본 정보 -->
+  <div class="form-section">
+    <div class="form-section-header">기본 정보</div>
+    <div class="form-section-body">
+      <div class="field-grid">
+        <div class="field"><label>문서번호</label><input id="in_docNo" placeholder="예: 퍼시스-신청26-06-00262"></div>
+        <div class="field"><label>작성일</label><input id="in_docDate" type="date"></div>
+        <div class="field"><label>작성부서</label><input id="in_dept" placeholder="예: 퍼시스 제조사업부 > 충주공장 > 품질보증팀"></div>
+        <div class="field"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
+        <div class="field"><label>제목</label><input id="in_subject" placeholder="예: 6월 2일 수출건 검사현황 보고"></div>
+        <div class="field"><label>열람권한</label><input id="in_auth" placeholder="예: 부서"></div>
+        <div class="field"><label>소속 (보고서 하단)</label><input id="in_org" placeholder="예: 충주공장 품질보증팀"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 작성/검토/승인 -->
+  <div class="form-section">
+    <div class="form-section-header">작성 / 검토 / 승인</div>
+    <div class="form-section-body">
+      <div class="field-grid" style="grid-template-columns:repeat(6,1fr)">
+        <div class="field"><label>작성</label><input id="in_ap_writer" placeholder="성명"></div>
+        <div class="field"><label>검토 Ⅰ</label><input id="in_ap_r1" placeholder="성명"></div>
+        <div class="field"><label>검토 Ⅱ</label><input id="in_ap_r2" placeholder="성명"></div>
+        <div class="field"><label>검토 Ⅲ</label><input id="in_ap_r3" placeholder="성명"></div>
+        <div class="field"><label>검토 Ⅳ</label><input id="in_ap_r4" placeholder="성명"></div>
+        <div class="field"><label>승인</label><input id="in_ap_approver" placeholder="성명"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 날짜 라벨 -->
+  <div class="form-section">
+    <div class="form-section-header">검사현황 열 헤더 설정</div>
+    <div class="form-section-body">
+      <div class="field-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="field"><label>금일 라벨</label><input id="in_todayLbl" placeholder="예: 6월 2일"></div>
+        <div class="field"><label>월 누적 라벨</label><input id="in_monthLbl" placeholder="예: 6월 누적"></div>
+        <div class="field"><label>연 누적 라벨</label><input id="in_yearLbl" placeholder="예: 26년 누적"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 검사현황 -->
+  <div class="form-section">
+    <div class="form-section-header">
+      1. 검사현황
+      <div style="display:flex;gap:6px">
+        <button class="row-btn" onclick="addStatusRow()">+ 행 추가</button>
+        <button class="row-btn" onclick="removeStatusRow()">- 삭제</button>
+      </div>
+    </div>
+    <div class="form-section-body" style="overflow-x:auto">
+      <table class="sub-table">
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>금일 품목</th><th>금일 수량</th>
+            <th>월누적 품목</th><th>월누적 수량</th>
+            <th>연누적 품목</th><th>연누적 수량</th>
+          </tr>
+        </thead>
+        <tbody id="inStatusBody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td>합계</td>
+            <td id="in_t1">0</td><td id="in_t2">0</td>
+            <td id="in_t3">0</td><td id="in_t4">0</td>
+            <td id="in_t5">0</td><td id="in_t6">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. 검사내용 -->
+  <div class="form-section">
+    <div class="form-section-header">
+      2. 검사내용
+      <div style="display:flex;gap:6px">
+        <button class="row-btn" onclick="addContentRow()">+ 항목 추가</button>
+        <button class="row-btn" onclick="removeContentRow()">- 삭제</button>
+      </div>
+    </div>
+    <div class="form-section-body" style="overflow-x:auto">
+      <table class="sub-table">
+        <thead>
+          <tr>
+            <th style="width:28px">번호</th>
+            <th>건명</th><th>다품코드</th><th style="width:55px">색상</th>
+            <th style="width:50px">수량</th><th>검사자</th>
+            <th style="width:55px">결과</th>
+            <th style="width:120px">검사 사진</th>
+          </tr>
+        </thead>
+        <tbody id="inContentBody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2">합계</td>
+            <td id="in_c_item">0 품목</td>
+            <td id="in_c_qty" colspan="2">0 박스</td>
+            <td>–</td><td>–</td><td>–</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. 특이사항 -->
+  <div class="form-section">
+    <div class="form-section-header">3. 특이사항</div>
+    <div class="form-section-body">
+      <div class="field"><textarea id="in_note" rows="4" placeholder="특이사항을 입력하세요..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="row-btn" onclick="resetAll()">초기화</button>
+    <button class="apply-btn" onclick="applyToPreview()">보고서에 적용 →</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     탭 3: 엑셀 붙여넣기
+══════════════════════════════════════ -->
+<div class="panel" id="tab-excel">
+<div class="excel-panel">
+  <div class="form-section">
+    <div class="form-section-header">기본 정보 입력</div>
+    <div class="form-section-body">
+      <div class="field-grid">
+        <div class="field"><label>6월 누적(적합)</label><input id="ex_m_ok" type="number" min="0" value="0"></div>
+        <div class="field"><label>6월 누적(부적합)</label><input id="ex_m_ng" type="number" min="0" value="0"></div>
+        <div class="field"><label>26년 누적(적합)</label><input id="ex_y_ok" type="number" min="0" value="0"></div>
+        <div class="field"><label>26년 누적(부적합)</label><input id="ex_y_ng" type="number" min="0" value="0"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-header">엑셀 데이터 붙여넣기</div>
+    <div class="form-section-body">
+      <div class="excel-guide">
+        <b>붙여넣기 형식 (탭 구분, 엑셀에서 복사 후 붙여넣기)</b><br>
+        <code>구분명 | 금일품목 | 금일수량 | 월누적품목 | 월누적수량 | 연누적품목 | 연누적수량</code><br><br>
+        <b>예시:</b><br>
+        <code>충주1	0	0	5	59	215	3349</code><br>
+        <code>충주2	1	2	1	2	58	211</code>
+      </div>
+      <textarea class="paste-area" id="excelPaste" placeholder="여기에 엑셀 데이터를 붙여넣으세요..."></textarea>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="row-btn" id="exClearBtn" onclick="clearExcel()">지우기</button>
+        <button class="apply-btn" onclick="applyExcel()">데이터 적용 후 보고서 이동 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     탭 4: 대시보드
+══════════════════════════════════════ -->
+<div class="panel" id="tab-dashboard">
+<div class="dashboard">
+  <div class="dash-title">📊 일일 품질 검사 현황 대시보드</div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">금일 검사 건수</div>
+      <div class="kpi-value" id="db_today_total">0</div>
+      <div class="kpi-sub">품목 수</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">금일 수량</div>
+      <div class="kpi-value" id="db_today_qty">0</div>
+      <div class="kpi-sub">박스</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">월 누적 품목</div>
+      <div class="kpi-value" id="db_month_item">0</div>
+      <div class="kpi-sub">품목</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">26년 누적</div>
+      <div class="kpi-value" id="db_year_qty">0</div>
+      <div class="kpi-sub">수량</div>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-header">검사현황 요약</div>
+    <table class="dash-table" id="dbStatusTable">
+      <thead>
+        <tr>
+          <th>구분</th>
+          <th>금일 품목</th><th>금일 수량</th>
+          <th>월누적 품목</th><th>월누적 수량</th>
+          <th>연누적 품목</th><th>연누적 수량</th>
+        </tr>
+      </thead>
+      <tbody id="dbStatusBody">
+        <tr><td colspan="7" style="color:#aaa;padding:16px">입력 데이터 없음</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-header">검사내용 요약</div>
+    <table class="dash-table">
+      <thead>
+        <tr>
+          <th>번호</th><th>건명</th><th>다품코드</th>
+          <th>색상</th><th>수량</th><th>검사자</th><th>결과</th>
+        </tr>
+      </thead>
+      <tbody id="dbContentBody">
+        <tr><td colspan="7" style="color:#aaa;padding:16px">입력 데이터 없음</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="btn-row no-print">
+    <button class="apply-btn" onclick="copyDashboard()">📋 대시보드 이미지 복사</button>
+  </div>
+</div>
+</div>
+
+<!-- 숨김 파일 인풋 -->
+<input type="file" id="photoInput" accept="image/*" style="display:none">
+
+<script>
+/* ─────────────────────────────────────────
+   전역 상태
+───────────────────────────────────────── */
+let statusRows = [];   // [{name, td_i, td_q, tm_i, tm_q, ty_i, ty_q}]
+let contentRows = [];  // [{name, code, color, qty, inspector, result, photoDataUrl}]
+let photoTarget = null;
+
+/* ─────────────────────────────────────────
+   탭 전환
+───────────────────────────────────────── */
+function switchTab(t){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  const idx = {preview:0,input:1,excel:2,dashboard:3}[t];
+  document.querySelectorAll('.tab-bar button')[idx].classList.add('active');
+  if(t==='dashboard') updateDashboard();
+}
+
+/* ─────────────────────────────────────────
+   초기화
+───────────────────────────────────────── */
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+document.getElementById('in_docDate').value = todayStr();
+document.getElementById('in_todayLbl').value = (new Date().getMonth()+1)+'월 '+new Date().getDate()+'일';
+document.getElementById('in_monthLbl').value = (new Date().getMonth()+1)+'월 누적';
+document.getElementById('in_yearLbl').value  = String(new Date().getFullYear()).slice(2)+'년 누적';
+document.getElementById('in_org').value = '충주공장 품질보증팀';
+
+addStatusRow(); addContentRow();
+
+/* ─────────────────────────────────────────
+   검사현황 행 관리
+───────────────────────────────────────── */
+function addStatusRow(){
+  const idx = document.getElementById('inStatusBody').rows.length;
+  const tr = document.createElement('tr');
+  tr.dataset.idx = idx;
+  tr.innerHTML = `
+    <td><input type="text" placeholder="구분명" oninput="syncStatus(this,'name',${idx})" style="width:80px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncStatus(this,'td_i',${idx})" style="width:48px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncStatus(this,'td_q',${idx})" style="width:48px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncStatus(this,'tm_i',${idx})" style="width:55px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncStatus(this,'tm_q',${idx})" style="width:55px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncStatus(this,'ty_i',${idx})" style="width:60px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncStatus(this,'ty_q',${idx})" style="width:60px"></td>`;
+  document.getElementById('inStatusBody').appendChild(tr);
+  statusRows.push({name:'',td_i:0,td_q:0,tm_i:0,tm_q:0,ty_i:0,ty_q:0});
+  calcStatusTotals();
+}
+function removeStatusRow(){
+  const tbody=document.getElementById('inStatusBody');
+  if(tbody.rows.length>0){tbody.deleteRow(tbody.rows.length-1);statusRows.pop();calcStatusTotals();}
+}
+function syncStatus(el,field,idx){
+  if(!statusRows[idx])return;
+  statusRows[idx][field]=(field==='name')?el.value:(parseInt(el.value)||0);
+  calcStatusTotals();
+}
+function calcStatusTotals(){
+  const sums={td_i:0,td_q:0,tm_i:0,tm_q:0,ty_i:0,ty_q:0};
+  statusRows.forEach(r=>{for(const k in sums)sums[k]+=(r[k]||0);});
+  ['1','2','3','4','5','6'].forEach((n,i)=>{
+    const keys=['td_i','td_q','tm_i','tm_q','ty_i','ty_q'];
+    document.getElementById('in_t'+n).textContent=sums[keys[i]];
+  });
+}
+
+/* ─────────────────────────────────────────
+   검사내용 행 관리
+───────────────────────────────────────── */
+function addContentRow(){
+  const idx = document.getElementById('inContentBody').rows.length;
+  const uid = 'photo_'+Date.now();
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="text-align:center">${idx+1}</td>
+    <td><input type="text" placeholder="건명" oninput="syncContent(this,'name',${idx})" style="min-width:80px"></td>
+    <td><input type="text" placeholder="코드" oninput="syncContent(this,'code',${idx})" style="width:100px"></td>
+    <td><input type="text" placeholder="색상" oninput="syncContent(this,'color',${idx})" style="width:50px"></td>
+    <td><input type="number" value="0" min="0" oninput="syncContent(this,'qty',${idx})" style="width:44px"></td>
+    <td><input type="text" placeholder="검사자" oninput="syncContent(this,'inspector',${idx})" style="width:70px"></td>
+    <td><select oninput="syncContent(this,'result',${idx})" style="width:54px;font-size:11px">
+      <option value="적합">적합</option>
+      <option value="부적합">부적합</option>
+      <option value="–">–</option>
+    </select></td>
+    <td>
+      <div class="photo-cell" id="${uid}" onclick="triggerPhoto('${uid}',${idx})">
+        📷<br>클릭하여<br>사진 업로드
+      </div>
+    </td>`;
+  document.getElementById('inContentBody').appendChild(tr);
+  contentRows.push({name:'',code:'',color:'',qty:0,inspector:'',result:'적합',photo:null,photoId:uid});
+  calcContentTotals();
+}
+function removeContentRow(){
+  const tbody=document.getElementById('inContentBody');
+  if(tbody.rows.length>0){tbody.deleteRow(tbody.rows.length-1);contentRows.pop();reindexContent();calcContentTotals();}
+}
+function reindexContent(){
+  document.querySelectorAll('#inContentBody tr').forEach((r,i)=>{r.cells[0].textContent=i+1;});
+}
+function syncContent(el,field,idx){
+  if(!contentRows[idx])return;
+  contentRows[idx][field]=(field==='qty')?(parseInt(el.value)||0):el.value;
+  calcContentTotals();
+}
+function calcContentTotals(){
+  const items=contentRows.length;
+  const qty=contentRows.reduce((s,r)=>s+(r.qty||0),0);
+  document.getElementById('in_c_item').textContent=items+' 품목';
+  document.getElementById('in_c_qty').textContent=qty+' 박스';
+}
+
+/* ─────────────────────────────────────────
+   사진 업로드
+───────────────────────────────────────── */
+function triggerPhoto(uid,idx){
+  photoTarget={uid,idx};
+  document.getElementById('photoInput').click();
+}
+document.getElementById('photoInput').addEventListener('change',function(){
+  if(!this.files.length||!photoTarget)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const cell=document.getElementById(photoTarget.uid);
+    if(cell){cell.innerHTML=`<img src="${e.target.result}">`;cell.style.border='none';}
+    if(contentRows[photoTarget.idx])contentRows[photoTarget.idx].photo=e.target.result;
+    photoTarget=null;
+  };
+  reader.readAsDataURL(this.files[0]);
+  this.value='';
+});
+
+/* ─────────────────────────────────────────
+   보고서 미리보기 적용
+───────────────────────────────────────── */
+function applyToPreview(){
+  function v(id){const el=document.getElementById(id);return el?el.value:'';}
+
+  // 기본 정보
+  ['docNo','docDate','dept','writer','subject','auth'].forEach(k=>{
+    const el=document.getElementById('pv_'+k);
+    if(el)el.textContent=v('in_'+k)||'\u00a0';
+  });
+  document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
+
+  // 작성/검토/승인
+  ['ap_writer','ap_r1','ap_r2','ap_r3','ap_r4','ap_approver'].forEach(k=>{
+    const el=document.getElementById('pv_'+k);
+    if(el)el.textContent=v('in_'+k)||'\u00a0';
+    const d=document.getElementById('pv_'+k+'_d');
+    if(d&&v('in_'+k)){
+      const dt=new Date();d.textContent=(dt.getMonth()+1)+'/'+(dt.getDate());
+    }
+  });
+
+  // 헤더 라벨
+  document.getElementById('pv_todayLabel').textContent=v('in_todayLbl')||'금일';
+  document.getElementById('pv_monthLabel').textContent=v('in_monthLbl')||'월 누적';
+  document.getElementById('pv_yearLabel').textContent=v('in_yearLbl')||'연 누적';
+
+  // 검사현황
+  const sbody=document.getElementById('pvStatusBody');
+  sbody.innerHTML='';
+  statusRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="rh">${r.name||'–'}</td>
+      <td>${r.td_i}</td><td>${r.td_q}</td>
+      <td>${r.tm_i}</td><td>${r.tm_q}</td>
+      <td>${r.ty_i}</td><td>${r.ty_q}</td>`;
+    sbody.appendChild(tr);
+  });
+  const st={t1:0,t2:0,t3:0,t4:0,t5:0,t6:0};
+  statusRows.forEach(r=>{st.t1+=r.td_i;st.t2+=r.td_q;st.t3+=r.tm_i;st.t4+=r.tm_q;st.t5+=r.ty_i;st.t6+=r.ty_q;});
+  for(const k in st)document.getElementById('pv_'+k).textContent=st[k];
+
+  // 검사내용
+  const cbody=document.getElementById('pvContentBody');
+  cbody.innerHTML='';
+  contentRows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const photo=r.photo?`<img src="${r.photo}" style="width:110px;height:75px;object-fit:cover;display:block">`:'–';
+    tr.innerHTML=`<td>${i+1}</td>
+      <td style="text-align:left">${r.name||'–'}</td>
+      <td>${r.code||'–'}</td><td>${r.color||'–'}</td>
+      <td>${r.qty}</td><td>${r.inspector||'–'}</td>
+      <td>${r.result||'–'}</td><td>${photo}</td>`;
+    cbody.appendChild(tr);
+  });
+  const cqty=contentRows.reduce((s,r)=>s+(r.qty||0),0);
+  document.getElementById('pv_c_item').textContent=contentRows.length+' 품목';
+  document.getElementById('pv_c_qty').textContent=cqty+' 박스';
+
+  // 특이사항
+  document.getElementById('pvNote').textContent=v('in_note')||'\u00a0';
+
+  switchTab('preview');
+}
+
+/* ─────────────────────────────────────────
+   엑셀 붙여넣기 적용
+───────────────────────────────────────── */
+function applyExcel(){
+  const raw=document.getElementById('excelPaste').value.trim();
+  if(!raw){alert('데이터를 붙여넣어 주세요.');return;}
+
+  // 기존 행 초기화
+  document.getElementById('inStatusBody').innerHTML='';
+  statusRows=[];
+
+  raw.split('\n').forEach(line=>{
+    const cols=line.split('\t');
+    if(cols.length<1)return;
+    const idx=statusRows.length;
+    statusRows.push({
+      name:cols[0]||'',
+      td_i:parseInt(cols[1])||0,td_q:parseInt(cols[2])||0,
+      tm_i:parseInt(cols[3])||0,tm_q:parseInt(cols[4])||0,
+      ty_i:parseInt(cols[5])||0,ty_q:parseInt(cols[6])||0
+    });
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${cols[0]||''}" oninput="syncStatus(this,'name',${idx})" style="width:80px"></td>
+      <td><input type="number" value="${parseInt(cols[1])||0}" min="0" oninput="syncStatus(this,'td_i',${idx})" style="width:48px"></td>
+      <td><input type="number" value="${parseInt(cols[2])||0}" min="0" oninput="syncStatus(this,'td_q',${idx})" style="width:48px"></td>
+      <td><input type="number" value="${parseInt(cols[3])||0}" min="0" oninput="syncStatus(this,'tm_i',${idx})" style="width:55px"></td>
+      <td><input type="number" value="${parseInt(cols[4])||0}" min="0" oninput="syncStatus(this,'tm_q',${idx})" style="width:55px"></td>
+      <td><input type="number" value="${parseInt(cols[5])||0}" min="0" oninput="syncStatus(this,'ty_i',${idx})" style="width:60px"></td>
+      <td><input type="number" value="${parseInt(cols[6])||0}" min="0" oninput="syncStatus(this,'ty_q',${idx})" style="width:60px"></td>`;
+    document.getElementById('inStatusBody').appendChild(tr);
+  });
+  calcStatusTotals();
+  applyToPreview();
+}
+function clearExcel(){document.getElementById('excelPaste').value='';}
+
+/* ─────────────────────────────────────────
+   대시보드 업데이트
+───────────────────────────────────────── */
+function updateDashboard(){
+  const todayItem=statusRows.reduce((s,r)=>s+(r.td_i||0),0);
+  const todayQty=statusRows.reduce((s,r)=>s+(r.td_q||0),0);
+  const monthItem=statusRows.reduce((s,r)=>s+(r.tm_i||0),0);
+  const yearQty=statusRows.reduce((s,r)=>s+(r.ty_q||0),0);
+  document.getElementById('db_today_total').textContent=todayItem;
+  document.getElementById('db_today_qty').textContent=todayQty;
+  document.getElementById('db_month_item').textContent=monthItem;
+  document.getElementById('db_year_qty').textContent=yearQty;
+
+  const sb=document.getElementById('dbStatusBody');
+  if(statusRows.length){
+    sb.innerHTML='';
+    statusRows.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${r.name||'–'}</td>
+        <td>${r.td_i}</td><td>${r.td_q}</td>
+        <td>${r.tm_i}</td><td>${r.tm_q}</td>
+        <td>${r.ty_i}</td><td>${r.ty_q}</td>`;
+      sb.appendChild(tr);
+    });
+  }else{
+    sb.innerHTML='<tr><td colspan="7" style="color:#aaa;padding:16px">입력 데이터 없음</td></tr>';
+  }
+
+  const cb=document.getElementById('dbContentBody');
+  if(contentRows.length){
+    cb.innerHTML='';
+    contentRows.forEach((r,i)=>{
+      const tr=document.createElement('tr');
+      const badge=r.result==='부적합'
+        ?`<span class="badge ng">부적합</span>`
+        :r.result==='적합'?`<span class="badge ok">적합</span>`:'–';
+      tr.innerHTML=`<td>${i+1}</td><td style="text-align:left">${r.name||'–'}</td>
+        <td>${r.code||'–'}</td><td>${r.color||'–'}</td>
+        <td>${r.qty}</td><td>${r.inspector||'–'}</td><td>${badge}</td>`;
+      cb.appendChild(tr);
+    });
+  }else{
+    cb.innerHTML='<tr><td colspan="7" style="color:#aaa;padding:16px">입력 데이터 없음</td></tr>';
+  }
+}
+
+function copyDashboard(){
+  alert('브라우저 캡처 기능을 사용하거나\nCtrl+Shift+S (스크린샷)으로 대시보드를 저장하세요.\n\n또는 인쇄(Ctrl+P)로 PDF 저장이 가능합니다.');
+}
+
+/* ─────────────────────────────────────────
+   전체 초기화
+───────────────────────────────────────── */
+function resetAll(){
+  if(!confirm('모든 입력 내용을 초기화하시겠습니까?'))return;
+  ['in_docNo','in_dept','in_writer','in_subject','in_auth','in_note',
+   'in_ap_writer','in_ap_r1','in_ap_r2','in_ap_r3','in_ap_r4','in_ap_approver'
+  ].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('in_docDate').value=todayStr();
+  document.getElementById('inStatusBody').innerHTML='';
+  document.getElementById('inContentBody').innerHTML='';
+  statusRows=[];contentRows=[];
+  calcStatusTotals();calcContentTotals();
+  addStatusRow();addContentRow();
+}
+</script>
+</body>
+</html>
