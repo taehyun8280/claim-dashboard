@@ -78,30 +78,35 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 /* 하단 소속 */
 .report-footer{text-align:right;font-size:12px;color:#6b7280;margin-top:18px;padding-top:12px;border-top:1px solid #e5e7eb}
 
-/* ══ 입력 패널 ══ */
-.form-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:12px;overflow:hidden}
-.form-card-hd{background:#f8faff;padding:9px 16px;font-weight:700;font-size:12px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;color:#1e3a8a}
-.form-card-bd{padding:14px 16px}
-.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.f{display:flex;flex-direction:column;gap:4px}
-.f label{font-size:11px;color:#6b7280;font-weight:600}
-.f input,.f select,.f textarea{border:1px solid #d1d5db;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff}
-.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 2px rgba(26,86,219,.1)}
-.f textarea{resize:vertical;min-height:65px}
-.sub-t{width:100%;border-collapse:collapse;font-size:11px}
-.sub-t th{background:#f0f5ff;padding:6px 7px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a}
-.sub-t td{padding:4px 5px;border:1px solid #e5e7eb;text-align:center}
-.sub-t input,.sub-t select{border:1px solid #d1d5db;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:2px;text-align:center}
-.sub-t .total-row td{background:#e8f0fe;font-weight:700;color:#1e3a8a}
+/* ══ 입력 패널 (컴팩트) ══ */
+.inp-page{max-width:1100px;margin:0 auto;padding:16px 20px}
+.inp-section{margin-bottom:18px}
+.inp-sec-title{font-size:13px;font-weight:700;color:#1a56db;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #dbeafe}
+.inp-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.inp-f{display:flex;flex-direction:column;gap:3px}
+.inp-f label{font-size:11px;color:#6b7280;font-weight:600}
+.inp-f input{border:1px solid #d1d5db;padding:4px 7px;font-size:12px;font-family:inherit;border-radius:3px;background:#fff;height:28px}
+.inp-f input:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 2px rgba(26,86,219,.1)}
+.inp-f input.readonly{background:#f3f4f6;color:#6b7280;cursor:default}
+.inp-t{width:100%;border-collapse:collapse;font-size:12px}
+.inp-t th{background:#f0f5ff;padding:5px 7px;border:1px solid #c7d7f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
+.inp-t td{padding:3px 4px;border:1px solid #e5e7eb;text-align:center}
+.inp-t-name{font-weight:600;background:#e8e8e8;color:#333;font-size:12px}
+.inp-t input{border:1px solid #d1d5db;padding:3px 4px;font-size:12px;font-family:inherit;width:100%;background:#fff;border-radius:2px;text-align:center;height:26px}
+.inp-t input:focus{outline:none;border-color:#1a56db}
+.inp-t select{border:1px solid #d1d5db;padding:2px 3px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:2px;height:26px}
+.inp-t-total td{background:#e8f0fe;font-weight:700;color:#1e3a8a;padding:4px 7px;border:1px solid #c7d7f5;font-size:12px;text-align:center}
+.inp-textarea{width:100%;border:1px solid #d1d5db;padding:6px 8px;font-size:12px;font-family:inherit;border-radius:3px;background:#fff;resize:vertical}
+.inp-textarea:focus{outline:none;border-color:#1a56db}
+.inp-btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.ph-cell{width:90px;height:60px;background:#f9fafb;cursor:pointer;border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto}
+.ph-cell img{width:100%;height:100%;object-fit:cover}
 .rbt{background:#fff;border:1px solid #d1d5db;padding:4px 11px;font-size:11px;cursor:pointer;border-radius:4px;font-family:inherit;color:#374151}
 .rbt:hover{background:#f3f4f6}
-.apply-btn{background:#1a56db;color:#fff;border:none;padding:9px 22px;font-size:13px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:700}
+.apply-btn{background:#1a56db;color:#fff;border:none;padding:8px 20px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:700}
 .apply-btn:hover{background:#1e40af}
-.reset-btn{background:#fff;border:1px solid #d1d5db;padding:8px 16px;font-size:12px;border-radius:6px;cursor:pointer;font-family:inherit;color:#6b7280}
-.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-.ph-cell{width:100px;height:68px;background:#f9fafb;cursor:pointer;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto}
-.ph-cell img{width:100%;height:100%;object-fit:cover}
+.reset-btn{background:#fff;border:1px solid #d1d5db;padding:7px 14px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit;color:#6b7280}
+@media(max-width:700px){.inp-grid4{grid-template-columns:1fr 1fr}}
 
 
 
@@ -240,125 +245,114 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 </div>
 </div>
 
-<!-- ══════════════ 탭2: 수동 입력 ══════════════ -->
+<!-- ══════════════ 탭2: 데이터 입력 ══════════════ -->
 <div class="panel" id="tab-input">
+<div class="inp-page">
 
   <!-- 기본 정보 -->
-  <div class="form-card">
-    <div class="form-card-hd">기본 정보</div>
-    <div class="form-card-bd">
-      <div class="fg" style="margin-bottom:10px">
-        <div class="f"><label>보고서 제목</label><input id="in_title" value="일일 품질 검사 보고서"></div>
-        <div class="f"><label>작성일</label><input id="in_date" type="date"></div>
-        <div class="f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly style="background:#f3f4f6;color:#6b7280;cursor:default"></div>
-        <div class="f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
-        <div class="f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
-      </div>
-      <div class="fg">
-        <div class="f"><label>월 누적 표시</label><input id="in_lbl_month" placeholder="예: 6월 누적"></div>
-        <div class="f"><label>연 누적 표시</label><input id="in_lbl_year" placeholder="예: 26년 누적"></div>
-      </div>
+  <div class="inp-section">
+    <div class="inp-sec-title">기본 정보</div>
+    <div class="inp-grid4">
+      <div class="inp-f"><label>보고서 제목</label><input id="in_title" value="일일 품질 검사 보고서"></div>
+      <div class="inp-f"><label>작성일</label><input id="in_date" type="date"></div>
+      <div class="inp-f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly class="readonly"></div>
+      <div class="inp-f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
+      <div class="inp-f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
+      <div class="inp-f"><label>월 누적 표시</label><input id="in_lbl_month" placeholder="예: 6월 누적"></div>
+      <div class="inp-f"><label>연 누적 표시</label><input id="in_lbl_year" placeholder="예: 26년 누적"></div>
     </div>
   </div>
 
   <!-- 1. 검사현황 -->
-  <div class="form-card">
-    <div class="form-card-hd">1. 검사현황</div>
-    <div class="form-card-bd" style="overflow-x:auto">
-      <table class="sub-t">
-        <thead>
-          <tr>
-            <th style="width:72px">구분</th>
-            <th>금일 품목</th><th>금일 수량</th>
-            <th>월누적 품목</th><th>월누적 수량</th>
-            <th>26년 누적품목</th><th>26년 누적수량</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;background:#e8e8e8;color:#333">충주1</td>
-            <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()" style="width:52px"></td>
-            <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()" style="width:56px"></td>
-            <td><input type="number" id="s0_mi" value="0" min="0" oninput="calcS()" style="width:56px"></td>
-            <td><input type="number" id="s0_mq" value="0" min="0" oninput="calcS()" style="width:62px"></td>
-            <td><input type="number" id="s0_yi" value="0" min="0" oninput="calcS()" style="width:62px"></td>
-            <td><input type="number" id="s0_yq" value="0" min="0" oninput="calcS()" style="width:68px"></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;background:#e8e8e8;color:#333">충주2</td>
-            <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()" style="width:52px"></td>
-            <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()" style="width:56px"></td>
-            <td><input type="number" id="s1_mi" value="0" min="0" oninput="calcS()" style="width:56px"></td>
-            <td><input type="number" id="s1_mq" value="0" min="0" oninput="calcS()" style="width:62px"></td>
-            <td><input type="number" id="s1_yi" value="0" min="0" oninput="calcS()" style="width:62px"></td>
-            <td><input type="number" id="s1_yq" value="0" min="0" oninput="calcS()" style="width:68px"></td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr class="total-row">
-            <td>합계</td>
-            <td id="in_t1">0</td><td id="in_t2">0</td>
-            <td id="in_t3">0</td><td id="in_t4">0</td>
-            <td id="in_t5">0</td><td id="in_t6">0</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+  <div class="inp-section">
+    <div class="inp-sec-title">1. 검사현황</div>
+    <table class="inp-t">
+      <thead>
+        <tr>
+          <th style="width:72px">구분</th>
+          <th>금일 품목</th><th>금일 수량</th>
+          <th>월누적 품목</th><th>월누적 수량</th>
+          <th>26년 누적품목</th><th>26년 누적수량</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="inp-t-name">충주1</td>
+          <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s0_mi" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s0_mq" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s0_yi" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s0_yq" value="0" min="0" oninput="calcS()"></td>
+        </tr>
+        <tr>
+          <td class="inp-t-name">충주2</td>
+          <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s1_mi" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s1_mq" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s1_yi" value="0" min="0" oninput="calcS()"></td>
+          <td><input type="number" id="s1_yq" value="0" min="0" oninput="calcS()"></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="inp-t-total">
+          <td>합계</td>
+          <td id="in_t1">0</td><td id="in_t2">0</td>
+          <td id="in_t3">0</td><td id="in_t4">0</td>
+          <td id="in_t5">0</td><td id="in_t6">0</td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
 
   <!-- 2. 검사내용 -->
-  <div class="form-card">
-    <div class="form-card-hd">
+  <div class="inp-section">
+    <div class="inp-sec-title" style="display:flex;justify-content:space-between;align-items:center">
       2. 검사내용
       <div style="display:flex;gap:6px">
         <button class="rbt" onclick="addCRow()">+ 항목 추가</button>
         <button class="rbt" onclick="delCRow()">− 삭제</button>
       </div>
     </div>
-    <div class="form-card-bd" style="overflow-x:auto">
-      <table class="sub-t">
-        <thead>
-          <tr>
-            <th style="width:28px">번호</th>
-            <th>건명</th><th>단품코드</th>
-            <th style="width:50px">색상</th>
-            <th style="width:46px">수량</th>
-            <th>검사자</th>
-            <th style="width:54px">결과</th>
-            <th style="width:115px">사진</th>
-          </tr>
-        </thead>
-        <tbody id="inCBody"></tbody>
-        <tfoot>
-          <tr class="total-row">
-            <td colspan="2">합계</td>
-            <td id="in_c_item">0 품목</td>
-            <td id="in_c_qty" colspan="2">0 박스</td>
-            <td>–</td><td>–</td><td>–</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+    <table class="inp-t">
+      <thead>
+        <tr>
+          <th style="width:30px">번호</th>
+          <th>건명</th><th>단품코드</th>
+          <th style="width:52px">색상</th>
+          <th style="width:48px">수량</th>
+          <th>검사자</th>
+          <th style="width:56px">결과</th>
+          <th style="width:110px">사진</th>
+        </tr>
+      </thead>
+      <tbody id="inCBody"></tbody>
+      <tfoot>
+        <tr class="inp-t-total">
+          <td colspan="2">합계</td>
+          <td id="in_c_item">0 품목</td>
+          <td id="in_c_qty" colspan="2">0 박스</td>
+          <td>–</td><td>–</td><td>–</td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
 
   <!-- 3. 특이사항 -->
-  <div class="form-card">
-    <div class="form-card-hd">3. 특이사항</div>
-    <div class="form-card-bd">
-      <div class="f"><textarea id="in_note" rows="4" placeholder="특이사항을 입력하세요..."></textarea></div>
-    </div>
+  <div class="inp-section">
+    <div class="inp-sec-title">3. 특이사항</div>
+    <textarea id="in_note" class="inp-textarea" rows="3" placeholder="특이사항을 입력하세요..."></textarea>
   </div>
 
   <!-- 4. 첨부 -->
-  <div class="form-card">
-    <div class="form-card-hd">4. 첨부 항목</div>
-    <div class="form-card-bd">
-      <div class="f"><textarea id="in_attach" rows="3" placeholder="한 줄에 하나씩&#10;예) 4-1. 수출건 검사 세부내역">4-1. 수출건 검사 세부내역
-4-2. 생산지시서</textarea></div>
-    </div>
+  <div class="inp-section">
+    <div class="inp-sec-title">4. 첨부 항목</div>
+    <textarea id="in_attach" class="inp-textarea" rows="2" placeholder="한 줄에 하나씩">4-1. 수출건 검사 세부내역
+4-2. 생산지시서</textarea>
   </div>
 
-  <div class="btn-row">
+  <div class="inp-btn-row">
     <button class="reset-btn" onclick="resetAll()">초기화</button>
     <button class="apply-btn" onclick="applyAll()">보고서에 적용 →</button>
   </div>
