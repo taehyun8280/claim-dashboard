@@ -10,18 +10,19 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* ── 탭바 ── */
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
-.tab-bar{background:#fff;border-bottom:1px solid #dfe3ea;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.tab-inner{max-width:520px;margin:0 auto;display:flex;justify-content:center}
-.tab-bar button{width:260px;background:#fff;border:none;border-bottom:3px solid transparent;color:#888;padding:17px 20px 15px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;text-align:center}
-.tab-bar button.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
-.tab-bar button:hover:not(.active){color:#333;background:#f8f8f8}
+.tab-bar{background:#f0f2f5;position:sticky;top:0;z-index:100}
+.tab-inner{max-width:1100px;margin:0 auto;display:flex}
+.tab-bar button{background:#f0f2f5;border:none;border-bottom:2px solid transparent;color:#888;padding:14px 0;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;flex:1;border-right:1px solid #e0e0e0}
+.tab-bar button:last-child{border-right:none}
+.tab-bar button.active{background:#fff;color:#1a56db;border-bottom:2px solid #1a56db;font-weight:700}
+.tab-bar button:hover:not(.active){background:#f8f8f8;color:#333}
 
 /* ── 패널 ── */
 .panel{display:none}.panel.active{display:block}
 
 /* ══ 보고서 미리보기 ══ */
 .preview-page{max-width:1100px;margin:0 auto;padding:20px}
-.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:26px}
+.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
 .btn-img-copy{background:#166534;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .btn-img-copy:hover{background:#14532d}
 .sync-pill{background:#fff;color:#16a34a;border:1px solid #86efac;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
@@ -71,9 +72,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* 특이사항 / 첨부 */
 .note-box{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-height:60px;font-size:12px;color:#555;line-height:1.7}
-.attach-box{background:transparent;border:none;border-radius:0;padding:4px 0 0;font-size:13px;line-height:2}
+.attach-box{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:10px 14px;font-size:12px;line-height:2}
 .attach-box li{list-style:none;color:#374151}
-.attach-box li::before{content:'•';display:inline-block;margin-right:8px;color:#2f80ff;font-weight:700}
+.attach-box li::before{content:'• ';color:#1a56db;font-weight:700}
 .report-footer{text-align:right;font-size:11px;color:#9ca3af;margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0}
 
 /* ══ 데이터 입력 ══ */
@@ -157,24 +158,44 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
           </div>
         </div>
       </div>
-      <!-- 카드2: 전일 대비 증감 -->
+      <!-- 카드2: 고객클레임 현황 -->
       <div class="kpi kpi-red">
-        <div class="kpi-lbl">전일 대비 증감</div>
+        <div class="kpi-lbl">고객클레임 현황</div>
         <div class="kpi-row">
-          <div>
-            <div class="kpi-sub-lbl">품목</div>
-            <div class="kpi-val red" id="db_diff_item">–</div>
+          <div style="flex:1">
+            <div class="kpi-sub-lbl" style="margin-bottom:8px;font-weight:600;color:#dc2626">일별</div>
+            <div style="display:flex;gap:0;align-items:center">
+              <div>
+                <div class="kpi-sub-lbl">품목</div>
+                <div class="kpi-val red" id="db_diff_item">–</div>
+              </div>
+              <div class="kpi-divider"></div>
+              <div>
+                <div class="kpi-sub-lbl">수량</div>
+                <div class="kpi-val red" id="db_diff_qty">–</div>
+              </div>
+            </div>
           </div>
-          <div class="kpi-divider"></div>
-          <div>
-            <div class="kpi-sub-lbl">수량</div>
-            <div class="kpi-val red" id="db_diff_qty">–</div>
+          <div class="kpi-divider" style="height:60px"></div>
+          <div style="flex:1">
+            <div class="kpi-sub-lbl" style="margin-bottom:8px;font-weight:600;color:#dc2626">월별</div>
+            <div style="display:flex;gap:0;align-items:center">
+              <div>
+                <div class="kpi-sub-lbl">품목</div>
+                <div class="kpi-val red" id="db_claim_m_item">–</div>
+              </div>
+              <div class="kpi-divider"></div>
+              <div>
+                <div class="kpi-sub-lbl">수량</div>
+                <div class="kpi-val red" id="db_claim_m_qty">–</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <!-- 카드3: 금일 품질점검 이슈 -->
+      <!-- 카드3: 특이사항 -->
       <div class="kpi kpi-gray">
-        <div class="kpi-lbl">금일 품질점검 이슈</div>
+        <div class="kpi-lbl">특이사항</div>
         <div class="kpi-issue" id="db_issue">&nbsp;</div>
       </div>
     </div>
@@ -238,8 +259,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     <!-- 4. 첨부 -->
     <div class="sec-title">4. 첨부</div>
     <ul class="attach-box" id="pvAttach">
-      <li>4-1. 목제품 품질검사 기준서</li>
-      <li>4-2. 일일 품질점검 일지</li>
+      <li>4-1. 수출건 검사 세부내역</li>
+      <li>4-2. 생산지시서</li>
     </ul>
 
     <div class="report-footer" id="pvOrg">충주공장 품질보증팀</div>
@@ -353,18 +374,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     </div>
   </div>
 
-  <!-- 4. 첨부 -->
-  <div class="inp-card">
-    <div class="inp-card-hd">4. 첨부 항목</div>
-    <div class="inp-card-bd">
-      <textarea id="in_attach" class="inp-textarea" rows="2">4-1. 목제품 품질검사 기준서
-4-2. 일일 품질점검 일지</textarea>
-    </div>
-  </div>
-
   <div class="btn-row">
+    <button class="apply-btn" onclick="applyAll()">보고서에 적용 및 저장 →</button>
     <button class="reset-btn" onclick="resetAll()">초기화</button>
-    <button class="apply-btn" onclick="applyAll()">보고서에 적용 →</button>
   </div>
 
 </div>
@@ -373,7 +385,29 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 <input type="file" id="photoInput" accept="image/*" style="display:none">
 
 <script>
-let cRows=[], photoTarget=null;
+let attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
+
+function renderAttach(){
+  const list=document.getElementById('attachList');
+  if(!list)return;
+  list.innerHTML='';
+  attachItems.forEach((text,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px';
+    row.innerHTML=`
+      <span style="font-size:12px;color:#6b7280;min-width:20px">${i+1}.</span>
+      <input type="text" value="${text}" oninput="attachItems[${i}]=this.value"
+        style="flex:1;border:1px solid #e5e7eb;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;height:30px">`;
+    list.appendChild(row);
+  });
+}
+function addAttachRow(){
+  attachItems.push(`${attachItems.length+1}. `);
+  renderAttach();
+}
+function delAttachRow(){
+  if(attachItems.length>0){attachItems.pop();renderAttach();}
+}
 const S_NAMES=['충주1','충주2'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
 
@@ -386,6 +420,7 @@ const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   document.getElementById('kpi_today_lbl').textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   addCRow();
+  renderAttach();
 })();
 
 function switchTab(t){
@@ -496,9 +531,11 @@ function applyAll(){
   document.getElementById('db_today_item').textContent=s.ti.toLocaleString();
   document.getElementById('db_today_qty').textContent=s.tq.toLocaleString();
 
-  // KPI 카드2 - 전일 대비 (현재는 입력값 없으므로 – 표시)
+  // KPI 카드2 - 고객클레임 (별도 입력 없음, – 유지)
   document.getElementById('db_diff_item').textContent='–';
   document.getElementById('db_diff_qty').textContent='–';
+  document.getElementById('db_claim_m_item').textContent='–';
+  document.getElementById('db_claim_m_qty').textContent='–';
 
   // KPI 카드3 - 이슈 (특이사항에서 가져오기)
   const issueText=v('in_note').trim();
@@ -522,7 +559,7 @@ function applyAll(){
 
   document.getElementById('pvNote').textContent=v('in_note')||'\u00a0';
 
-  const lines=v('in_attach').split('\n').filter(s=>s.trim());
+  const lines=attachItems.filter(s=>s.trim());
   document.getElementById('pvAttach').innerHTML=
     lines.length?lines.map(s=>`<li>${s.trim()}</li>`).join(''):'<li>첨부 없음</li>';
 
@@ -535,7 +572,8 @@ function resetAll(){
   calcS();
   document.getElementById('inCBody').innerHTML='';
   cRows=[];
-  document.getElementById('in_title').value='일일 품질 검사 보고서';
+  attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
+  renderAttach();
   document.getElementById('in_note').value='';
   calcC(); addCRow();
 }
