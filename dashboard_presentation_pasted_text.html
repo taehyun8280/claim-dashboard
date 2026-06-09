@@ -9,191 +9,195 @@
 body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-serif;font-size:12px;background:#f0f2f5;color:#111}
 
 /* ── 탭바 ── */
-.tab-bar{background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.tab-bar button{background:none;border:none;border-bottom:3px solid transparent;color:#888;padding:14px 18px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;margin-bottom:-1px;white-space:nowrap}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.tab-bar{background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tab-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex}
+.tab-bar button{background:none;border:none;border-bottom:3px solid transparent;color:#888;padding:14px 22px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;margin-bottom:-1px;white-space:nowrap;flex:1;max-width:200px}
 .tab-bar button.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
 .tab-bar button:hover:not(.active){color:#333;background:#f8f8f8}
 
 /* ── 패널 ── */
 .panel{display:none}.panel.active{display:block}
-.page{max-width:860px;margin:0 auto;padding:24px 16px}
 
 /* ══ 보고서 미리보기 ══ */
-.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:20px}
-.btn-img-copy{background:#166534;color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
+.preview-page{max-width:1100px;margin:0 auto;padding:20px}
+.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.btn-img-copy{background:#166534;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .btn-img-copy:hover{background:#14532d}
-.sync-pill{background:#16a34a;color:#fff;padding:7px 13px;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:6px;border:none}
-.sync-pill .dot{width:7px;height:7px;background:#86efac;border-radius:50%}
+.sync-pill{background:#fff;color:#16a34a;border:1px solid #86efac;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
+.sync-pill .dot{width:7px;height:7px;background:#16a34a;border-radius:50%}
 
-/* 보고서 종이 */
-.report-paper{background:#fff;border:1px solid #ddd;border-radius:8px;padding:28px 32px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+/* 보고서 카드 */
+.report-paper{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:24px 28px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.report-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px}
+.report-main-title{font-size:18px;font-weight:700;color:#111}
+.report-date{font-size:12px;color:#6b7280}
 
-/* 보고서 제목 영역 */
-.report-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #1a56db}
-.report-main-title{font-size:20px;font-weight:700;letter-spacing:1px;color:#111}
-.report-meta{text-align:right;font-size:12px;color:#555;line-height:1.8}
-.report-meta span{display:block}
-.report-meta .date-val{font-size:13px;font-weight:600;color:#1a56db}
-
-/* KPI 줄 */
-.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
-.kpi{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:12px 14px}
-.kpi-lbl{font-size:11px;color:#6b7280;margin-bottom:4px}
-.kpi-val{font-size:22px;font-weight:700;color:#1e3a8a;line-height:1}
+/* KPI */
+.kpi-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.kpi{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 18px}
+.kpi-blue{border-top:3px solid #1a56db}
+.kpi-red{border-top:3px solid #dc2626}
+.kpi-gray{border-top:3px solid #d1d5db}
+.kpi-lbl{font-size:11px;color:#9ca3af;margin-bottom:10px}
+.kpi-row{display:flex;align-items:center;gap:0}
+.kpi-divider{width:1px;background:#e5e7eb;height:40px;margin:0 20px}
+.kpi-sub-lbl{font-size:11px;color:#9ca3af;margin-bottom:4px}
+.kpi-val{font-size:26px;font-weight:700;color:#111;line-height:1.1}
 .kpi-val.red{color:#dc2626}
-.kpi-sub{font-size:10px;color:#9ca3af;margin-top:3px}
-.kpi-list{font-size:11px;line-height:1.9;margin-top:4px}
-.kpi-list .ng{color:#dc2626;font-weight:700}
+.kpi-issue{font-size:13px;color:#555;line-height:1.7;margin-top:4px;min-height:40px}
 
-/* 섹션 제목 */
-.sec-title{font-size:13px;font-weight:700;margin:18px 0 8px;color:#111;display:flex;align-items:center;gap:5px}
-.sec-num{background:#1a56db;color:#fff;width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+/* 섹션 */
+.sec-title{font-size:13px;font-weight:700;margin:18px 0 8px;color:#111;display:flex;align-items:center;gap:6px}
+.sec-title::before{content:'';display:inline-block;width:3px;height:14px;background:#1a56db;border-radius:2px}
 
 /* 검사현황 테이블 */
-.status-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px}
-.status-table th{background:#f0f5ff;padding:7px 8px;border:1px solid #c7d7f5;text-align:center;font-weight:600;color:#1e3a8a}
-.status-table td{padding:6px 8px;border:1px solid #dde5f5;text-align:center;background:#fff}
-.status-table .g-header{background:#e8e8e8;font-weight:600;color:#333}
-.status-table .total-row td{background:#e8f0fe;font-weight:700;color:#1e3a8a;border-color:#c7d7f5}
+.st{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px;border:1px solid #e5e7eb}
+.st th{background:#f8faff;padding:7px 10px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
+.st td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff}
+.st .gh{background:#e8e8e8;font-weight:600;color:#333}
+.st .tr-total td{background:#e8f0fe;font-weight:700;color:#1a56db;border-color:#c7d7f5}
 .ng-red{color:#dc2626;font-weight:700}
 
 /* 검사내용 테이블 */
-.content-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px}
-.content-table th{background:#f0f5ff;padding:7px 8px;border:1px solid #c7d7f5;text-align:center;font-weight:600;color:#1e3a8a}
-.content-table td{padding:8px 8px;border:1px solid #dde5f5;text-align:center;background:#fff;vertical-align:middle}
-.content-table .total-row td{background:#f8faff;font-weight:700;border-color:#c7d7f5}
+.ct{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e5e7eb}
+.ct th{background:#f8faff;padding:7px 10px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
+.ct td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff;vertical-align:middle}
+.ct .tr-total td{background:#f8faff;font-weight:700;border-color:#dde5f5}
 .badge-ok{background:#dcfce7;color:#166534;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}
 .badge-ng{background:#fee2e2;color:#991b1b;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}
-.photo-thumb{width:115px;height:78px;object-fit:cover;border-radius:4px;border:1px solid #e5e7eb;display:block;margin:0 auto}
-.photo-empty{width:115px;height:78px;background:#f9fafb;border:1px dashed #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;margin:0 auto}
+.photo-thumb{width:110px;height:74px;object-fit:cover;border-radius:4px;border:1px solid #e5e7eb;display:block;margin:0 auto}
+.photo-empty{width:110px;height:74px;background:#f9fafb;border:1px dashed #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;margin:0 auto}
 
-/* 특이사항 */
-.note-box{background:#fff;border:1px solid #dde5f5;border-radius:6px;padding:12px;min-height:72px;font-size:12px;color:#555;line-height:1.7}
-
-/* 첨부 */
-.attach-box{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:12px 16px;font-size:12px;line-height:2}
-.attach-box li{list-style:none;padding-left:2px;color:#374151}
+/* 특이사항 / 첨부 */
+.note-box{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-height:60px;font-size:12px;color:#555;line-height:1.7}
+.attach-box{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:10px 14px;font-size:12px;line-height:2}
+.attach-box li{list-style:none;color:#374151}
 .attach-box li::before{content:'• ';color:#1a56db;font-weight:700}
+.report-footer{text-align:right;font-size:11px;color:#9ca3af;margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0}
 
-/* 하단 소속 */
-.report-footer{text-align:right;font-size:12px;color:#6b7280;margin-top:18px;padding-top:12px;border-top:1px solid #e5e7eb}
-
-/* ══ 입력 패널 (컴팩트) ══ */
-.inp-page{max-width:1100px;margin:0 auto;padding:16px 20px}
-.inp-section{margin-bottom:18px}
-.inp-sec-title{font-size:13px;font-weight:700;color:#1a56db;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #dbeafe}
-.inp-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+/* ══ 데이터 입력 ══ */
+.inp-page{max-width:1100px;margin:0 auto;padding:20px}
+.inp-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.inp-card-hd{padding:9px 16px;font-weight:700;font-size:12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;color:#1e3a8a;border-left:3px solid #1a56db}
+.inp-card-bd{padding:12px 16px}
+.inp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
 .inp-f{display:flex;flex-direction:column;gap:3px}
 .inp-f label{font-size:11px;color:#6b7280;font-weight:600}
-.inp-f input{border:1px solid #d1d5db;padding:4px 7px;font-size:12px;font-family:inherit;border-radius:3px;background:#fff;height:28px}
-.inp-f input:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 2px rgba(26,86,219,.1)}
-.inp-f input.readonly{background:#f3f4f6;color:#6b7280;cursor:default}
+.inp-f input{border:1px solid #e5e7eb;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff;height:30px;width:100%}
+.inp-f input:focus{outline:none;border-color:#1a56db}
+.inp-f input.ro{background:#f5f5f5;color:#9ca3af;cursor:default}
 .inp-t{width:100%;border-collapse:collapse;font-size:12px}
-.inp-t th{background:#f0f5ff;padding:5px 7px;border:1px solid #c7d7f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
-.inp-t td{padding:3px 4px;border:1px solid #e5e7eb;text-align:center}
-.inp-t-name{font-weight:600;background:#e8e8e8;color:#333;font-size:12px}
-.inp-t input{border:1px solid #d1d5db;padding:3px 4px;font-size:12px;font-family:inherit;width:100%;background:#fff;border-radius:2px;text-align:center;height:26px}
+.inp-t th{background:#f8faff;padding:6px 8px;border:1px solid #e5e7eb;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
+.inp-t td{padding:4px 5px;border:1px solid #f0f0f0;text-align:center}
+.inp-t-name{font-weight:600;background:#e8e8e8;color:#333}
+.inp-t input[type=number],
+.inp-t input[type=text]{border:1px solid #e5e7eb;padding:4px 6px;font-size:12px;font-family:inherit;width:100%;background:#fff;border-radius:3px;text-align:center;height:28px}
 .inp-t input:focus{outline:none;border-color:#1a56db}
-.inp-t select{border:1px solid #d1d5db;padding:2px 3px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:2px;height:26px}
-.inp-t-total td{background:#e8f0fe;font-weight:700;color:#1e3a8a;padding:4px 7px;border:1px solid #c7d7f5;font-size:12px;text-align:center}
-.inp-textarea{width:100%;border:1px solid #d1d5db;padding:6px 8px;font-size:12px;font-family:inherit;border-radius:3px;background:#fff;resize:vertical}
+.inp-t select{border:1px solid #e5e7eb;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:3px;height:28px}
+.inp-t-total td{background:#e8f0fe;font-weight:700;color:#1a56db;padding:5px 8px;border:1px solid #dde5f5;font-size:12px;text-align:center}
+.inp-textarea{width:100%;border:1px solid #e5e7eb;padding:7px 9px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff;resize:vertical}
 .inp-textarea:focus{outline:none;border-color:#1a56db}
-.inp-btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-.ph-cell{width:90px;height:60px;background:#f9fafb;cursor:pointer;border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto}
+.ph-cell{width:86px;height:58px;background:#f9fafb;cursor:pointer;border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto}
 .ph-cell img{width:100%;height:100%;object-fit:cover}
-.rbt{background:#fff;border:1px solid #d1d5db;padding:4px 11px;font-size:11px;cursor:pointer;border-radius:4px;font-family:inherit;color:#374151}
+.rbt{background:#fff;border:1px solid #d1d5db;padding:4px 12px;font-size:11px;cursor:pointer;border-radius:4px;font-family:inherit;color:#374151}
 .rbt:hover{background:#f3f4f6}
-.apply-btn{background:#1a56db;color:#fff;border:none;padding:8px 20px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:700}
+.apply-btn{background:#1a56db;color:#fff;border:none;padding:8px 22px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:700}
 .apply-btn:hover{background:#1e40af}
-.reset-btn{background:#fff;border:1px solid #d1d5db;padding:7px 14px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit;color:#6b7280}
-@media(max-width:700px){.inp-grid4{grid-template-columns:1fr 1fr}}
+.reset-btn{background:#fff;border:1px solid #d1d5db;padding:7px 16px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit;color:#6b7280}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-
-
-@media(max-width:600px){
-  .kpi-strip{grid-template-columns:1fr 1fr}
-  .fg,.fg3{grid-template-columns:1fr}
-  .report-paper{padding:16px}
-}
 @media print{
   .tab-bar,.preview-topbar,.btn-row,.no-print{display:none!important}
   .panel{display:block!important}
   body{background:#fff}
-  .report-paper{border:none;box-shadow:none;border-radius:0;padding:0}
-  .page{padding:0;max-width:100%}
+  .report-paper{border:none;box-shadow:none}
+  .preview-page{padding:0}
 }
 </style>
 </head>
 <body>
 
 <div class="tab-bar">
-  <button class="active" onclick="switchTab('preview')">보고서 미리보기</button>
-  <button onclick="switchTab('input')">데이터 입력</button>
+  <div class="tab-inner">
+    <button class="active" onclick="switchTab('preview')">보고서 미리보기</button>
+    <button onclick="switchTab('input')">데이터 입력</button>
+  </div>
 </div>
 
-<!-- ══════════════ 탭1: 보고서 미리보기 ══════════════ -->
+<!-- ══ 탭1: 보고서 미리보기 ══ -->
 <div class="panel active" id="tab-preview">
-<div class="page">
+<div class="preview-page">
 
   <div class="preview-topbar no-print">
     <button class="btn-img-copy" onclick="window.print()">📋 대시보드 이미지 복사</button>
-    <div class="sync-pill"><span class="dot"></span>시트 동기화 완료</div>
+    <div class="sync-pill"><span class="dot"></span>실시간 동기화 중</div>
   </div>
 
-  <div class="report-paper" id="reportPaper">
-
-    <!-- 보고서 헤더 -->
+  <div class="report-paper">
     <div class="report-head">
       <div class="report-main-title" id="pv_title">일일 품질 검사 보고서</div>
-      <div class="report-meta">
-        <span id="pv_dept"></span>
-        <span id="pv_writer"></span>
-        <span class="date-val" id="pv_date"></span>
-      </div>
+      <div class="report-date" id="pv_date"></div>
     </div>
 
-    <!-- KPI 4개 -->
+    <!-- KPI -->
     <div class="kpi-strip">
-      <div class="kpi">
-        <div class="kpi-lbl">금일 점검</div>
-        <div class="kpi-val" id="db_today">0</div>
-        <div class="kpi-sub">전체 품목 수</div>
+      <!-- 카드1: 금일 -->
+      <div class="kpi kpi-blue">
+        <div class="kpi-lbl" id="kpi_today_lbl">금일</div>
+        <div class="kpi-row">
+          <div>
+            <div class="kpi-sub-lbl">품목</div>
+            <div class="kpi-val" id="db_today_item">0</div>
+          </div>
+          <div class="kpi-divider"></div>
+          <div>
+            <div class="kpi-sub-lbl">수량</div>
+            <div class="kpi-val" id="db_today_qty">0</div>
+          </div>
+        </div>
       </div>
-      <div class="kpi">
-        <div class="kpi-lbl">금일 부적합</div>
-        <div class="kpi-val red" id="db_ng">0 <span id="db_ng_pct" style="font-size:14px">(0%)</span></div>
-        <div class="kpi-sub">부적합 품목</div>
+      <!-- 카드2: 전일 대비 증감 -->
+      <div class="kpi kpi-red">
+        <div class="kpi-lbl">전일 대비 증감</div>
+        <div class="kpi-row">
+          <div>
+            <div class="kpi-sub-lbl">품목</div>
+            <div class="kpi-val red" id="db_diff_item">–</div>
+          </div>
+          <div class="kpi-divider"></div>
+          <div>
+            <div class="kpi-sub-lbl">수량</div>
+            <div class="kpi-val red" id="db_diff_qty">–</div>
+          </div>
+        </div>
       </div>
-      <div class="kpi">
-        <div class="kpi-lbl">6월 부적합 품목</div>
-        <div class="kpi-list" id="db_month_ng"><span style="color:#aaa;font-size:11px">데이터 없음</span></div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-lbl">26년 누적 부적합</div>
-        <div class="kpi-val red" id="db_year_ng">0</div>
-        <div class="kpi-sub">수량 합계</div>
+      <!-- 카드3: 금일 품질점검 이슈 -->
+      <div class="kpi kpi-gray">
+        <div class="kpi-lbl">금일 품질점검 이슈</div>
+        <div class="kpi-issue" id="db_issue">&nbsp;</div>
       </div>
     </div>
 
     <!-- 1. 검사현황 -->
-    <div class="sec-title"><span class="sec-num">1</span>검사현황</div>
-    <table class="status-table">
+    <div class="sec-title">1. 검사현황</div>
+    <table class="st">
       <thead>
         <tr>
           <th rowspan="2" style="width:80px">구분</th>
           <th colspan="2" id="pv_lbl_today">금일</th>
           <th colspan="2" id="pv_lbl_month">6월 누적</th>
-          <th colspan="2" id="pv_lbl_year">26년 누적</th>
+          <th colspan="2">26년 누적</th>
         </tr>
         <tr>
           <th>품목</th><th>수량</th>
           <th>품목</th><th>수량</th>
-          <th>26년 누적품목</th><th>26년 누적수량</th>
+          <th>품목</th><th>수량</th>
         </tr>
       </thead>
       <tbody id="pvSBody"></tbody>
       <tfoot>
-        <tr class="total-row">
+        <tr class="tr-total">
           <td>합계</td>
           <td id="pv_t1">0</td><td id="pv_t2">0</td>
           <td id="pv_t3">0</td><td id="pv_t4">0</td>
@@ -203,24 +207,23 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     </table>
 
     <!-- 2. 검사내용 -->
-    <div class="sec-title"><span class="sec-num">2</span>검사내용</div>
-    <table class="content-table">
+    <div class="sec-title">2. 검사내용</div>
+    <table class="ct">
       <thead>
         <tr>
           <th style="width:34px">번호</th>
-          <th>건명</th>
-          <th>단품코드</th>
+          <th>건명</th><th>단품코드</th>
           <th style="width:48px">색상</th>
           <th style="width:44px">수량</th>
           <th>검사자</th>
           <th style="width:58px">결과</th>
-          <th style="width:130px">검사 사진</th>
+          <th style="width:125px">검사 사진</th>
         </tr>
       </thead>
       <tbody id="pvCBody"></tbody>
       <tfoot>
-        <tr class="total-row">
-          <td colspan="2" style="font-weight:700">합계</td>
+        <tr class="tr-total">
+          <td colspan="2">합계</td>
           <td id="pv_c_item">0 품목</td>
           <td id="pv_c_qty" colspan="2">0 박스</td>
           <td>–</td><td>–</td><td>–</td>
@@ -229,130 +232,139 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     </table>
 
     <!-- 3. 특이사항 -->
-    <div class="sec-title"><span class="sec-num">3</span>특이사항</div>
+    <div class="sec-title">3. 특이사항</div>
     <div class="note-box" id="pvNote">&nbsp;</div>
 
     <!-- 4. 첨부 -->
-    <div class="sec-title"><span class="sec-num">4</span>첨부</div>
+    <div class="sec-title">4. 첨부</div>
     <ul class="attach-box" id="pvAttach">
       <li>4-1. 수출건 검사 세부내역</li>
       <li>4-2. 생산지시서</li>
     </ul>
 
     <div class="report-footer" id="pvOrg">충주공장 품질보증팀</div>
-
   </div>
 </div>
 </div>
 
-<!-- ══════════════ 탭2: 데이터 입력 ══════════════ -->
+<!-- ══ 탭2: 데이터 입력 ══ -->
 <div class="panel" id="tab-input">
 <div class="inp-page">
 
   <!-- 기본 정보 -->
-  <div class="inp-section">
-    <div class="inp-sec-title">기본 정보</div>
-    <div class="inp-grid4">
-      <div class="inp-f"><label>보고서 제목</label><input id="in_title" value="일일 품질 검사 보고서"></div>
-      <div class="inp-f"><label>작성일</label><input id="in_date" type="date"></div>
-      <div class="inp-f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly class="readonly"></div>
-      <div class="inp-f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
-      <div class="inp-f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
-      <div class="inp-f"><label>월 누적 표시</label><input id="in_lbl_month" placeholder="예: 6월 누적"></div>
-      <div class="inp-f"><label>연 누적 표시</label><input id="in_lbl_year" placeholder="예: 26년 누적"></div>
+  <div class="inp-card">
+    <div class="inp-card-hd">기본 정보</div>
+    <div class="inp-card-bd">
+      <div class="inp-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:8px 14px">
+        <div class="inp-f"><label>보고서 제목</label><input id="in_title" value="일일 품질 검사 보고서"></div>
+        <div class="inp-f"><label>작성일</label><input id="in_date" type="date"></div>
+        <div class="inp-f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly class="ro"></div>
+        <div class="inp-f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
+        <div class="inp-f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
+        <div class="inp-f"><label>월 누적 표시</label><input id="in_lbl_month" placeholder="예: 6월 누적"></div>
+        <div class="inp-f"><label>연 누적 표시</label><input id="in_lbl_year" placeholder="예: 26년 누적"></div>
+      </div>
     </div>
   </div>
 
   <!-- 1. 검사현황 -->
-  <div class="inp-section">
-    <div class="inp-sec-title">1. 검사현황</div>
-    <table class="inp-t">
-      <thead>
-        <tr>
-          <th style="width:72px">구분</th>
-          <th>금일 품목</th><th>금일 수량</th>
-          <th>월누적 품목</th><th>월누적 수량</th>
-          <th>26년 누적품목</th><th>26년 누적수량</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="inp-t-name">충주1</td>
-          <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s0_mi" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s0_mq" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s0_yi" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s0_yq" value="0" min="0" oninput="calcS()"></td>
-        </tr>
-        <tr>
-          <td class="inp-t-name">충주2</td>
-          <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s1_mi" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s1_mq" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s1_yi" value="0" min="0" oninput="calcS()"></td>
-          <td><input type="number" id="s1_yq" value="0" min="0" oninput="calcS()"></td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr class="inp-t-total">
-          <td>합계</td>
-          <td id="in_t1">0</td><td id="in_t2">0</td>
-          <td id="in_t3">0</td><td id="in_t4">0</td>
-          <td id="in_t5">0</td><td id="in_t6">0</td>
-        </tr>
-      </tfoot>
-    </table>
+  <div class="inp-card">
+    <div class="inp-card-hd">1. 검사현황</div>
+    <div class="inp-card-bd" style="overflow-x:auto">
+      <table class="inp-t">
+        <thead>
+          <tr>
+            <th style="width:72px">구분</th>
+            <th>금일 품목</th><th>금일 수량</th>
+            <th>월누적 품목</th><th>월누적 수량</th>
+            <th>26년 누적품목</th><th>26년 누적수량</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="inp-t-name">충주1</td>
+            <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_mi" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_mq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_yi" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_yq" value="0" min="0" oninput="calcS()"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">충주2</td>
+            <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_mi" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_mq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_yi" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_yq" value="0" min="0" oninput="calcS()"></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="inp-t-total">
+            <td>합계</td>
+            <td id="in_t1">0</td><td id="in_t2">0</td>
+            <td id="in_t3">0</td><td id="in_t4">0</td>
+            <td id="in_t5">0</td><td id="in_t6">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 
   <!-- 2. 검사내용 -->
-  <div class="inp-section">
-    <div class="inp-sec-title" style="display:flex;justify-content:space-between;align-items:center">
+  <div class="inp-card">
+    <div class="inp-card-hd">
       2. 검사내용
       <div style="display:flex;gap:6px">
         <button class="rbt" onclick="addCRow()">+ 항목 추가</button>
         <button class="rbt" onclick="delCRow()">− 삭제</button>
       </div>
     </div>
-    <table class="inp-t">
-      <thead>
-        <tr>
-          <th style="width:30px">번호</th>
-          <th>건명</th><th>단품코드</th>
-          <th style="width:52px">색상</th>
-          <th style="width:48px">수량</th>
-          <th>검사자</th>
-          <th style="width:56px">결과</th>
-          <th style="width:110px">사진</th>
-        </tr>
-      </thead>
-      <tbody id="inCBody"></tbody>
-      <tfoot>
-        <tr class="inp-t-total">
-          <td colspan="2">합계</td>
-          <td id="in_c_item">0 품목</td>
-          <td id="in_c_qty" colspan="2">0 박스</td>
-          <td>–</td><td>–</td><td>–</td>
-        </tr>
-      </tfoot>
-    </table>
+    <div class="inp-card-bd" style="overflow-x:auto">
+      <table class="inp-t">
+        <thead>
+          <tr>
+            <th style="width:30px">번호</th>
+            <th>건명</th><th>단품코드</th>
+            <th style="width:52px">색상</th>
+            <th style="width:48px">수량</th>
+            <th>검사자</th>
+            <th style="width:56px">결과</th>
+            <th style="width:100px">사진</th>
+          </tr>
+        </thead>
+        <tbody id="inCBody"></tbody>
+        <tfoot>
+          <tr class="inp-t-total">
+            <td colspan="2">합계</td>
+            <td id="in_c_item">0 품목</td>
+            <td id="in_c_qty" colspan="2">0 박스</td>
+            <td>–</td><td>–</td><td>–</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 
   <!-- 3. 특이사항 -->
-  <div class="inp-section">
-    <div class="inp-sec-title">3. 특이사항</div>
-    <textarea id="in_note" class="inp-textarea" rows="3" placeholder="특이사항을 입력하세요..."></textarea>
+  <div class="inp-card">
+    <div class="inp-card-hd">3. 특이사항</div>
+    <div class="inp-card-bd">
+      <textarea id="in_note" class="inp-textarea" rows="3" placeholder="특이사항을 입력하세요..."></textarea>
+    </div>
   </div>
 
   <!-- 4. 첨부 -->
-  <div class="inp-section">
-    <div class="inp-sec-title">4. 첨부 항목</div>
-    <textarea id="in_attach" class="inp-textarea" rows="2" placeholder="한 줄에 하나씩">4-1. 수출건 검사 세부내역
+  <div class="inp-card">
+    <div class="inp-card-hd">4. 첨부 항목</div>
+    <div class="inp-card-bd">
+      <textarea id="in_attach" class="inp-textarea" rows="2">4-1. 수출건 검사 세부내역
 4-2. 생산지시서</textarea>
+    </div>
   </div>
 
-  <div class="inp-btn-row">
+  <div class="btn-row">
     <button class="reset-btn" onclick="resetAll()">초기화</button>
     <button class="apply-btn" onclick="applyAll()">보고서에 적용 →</button>
   </div>
@@ -363,12 +375,10 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 <input type="file" id="photoInput" accept="image/*" style="display:none">
 
 <script>
-/* ─── 상태 ─── */
 let cRows=[], photoTarget=null;
 const S_NAMES=['충주1','충주2'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
 
-/* ─── 초기화 ─── */
 (function(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
@@ -376,10 +386,10 @@ const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
   document.getElementById('in_lbl_month').value=`${d.getMonth()+1}월 누적`;
   document.getElementById('in_lbl_year').value=`${String(d.getFullYear()).slice(2)}년 누적`;
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+  document.getElementById('kpi_today_lbl').textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   addCRow();
 })();
 
-/* ─── 탭 전환 ─── */
 function switchTab(t){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
@@ -387,23 +397,20 @@ function switchTab(t){
   document.querySelectorAll('.tab-bar button')[{preview:0,input:1}[t]].classList.add('active');
 }
 
-/* ─── 검사현황 (충주1·충주2 고정) ─── */
-function getS(rowIdx,field){return parseInt(document.getElementById(`s${rowIdx}_${field}`)?.value)||0;}
+function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
 function calcS(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   [0,1].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
-  ['ti','tq','mi','mq','yi','yq'].forEach((k,i)=>
-    document.getElementById('in_t'+(i+1)).textContent=s[k]);
+  S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k]);
 }
 function getSRows(){
   return S_NAMES.map((name,i)=>({
-    name, ti:getS(i,'ti'), tq:getS(i,'tq'),
-    mi:getS(i,'mi'), mq:getS(i,'mq'),
-    yi:getS(i,'yi'), yq:getS(i,'yq')
+    name,ti:getS(i,'ti'),tq:getS(i,'tq'),
+    mi:getS(i,'mi'),mq:getS(i,'mq'),
+    yi:getS(i,'yi'),yq:getS(i,'yq')
   }));
 }
 
-/* ─── 검사내용 행 ─── */
 function addCRow(){
   const idx=cRows.length;
   const uid='ph_'+Date.now();
@@ -411,12 +418,12 @@ function addCRow(){
   const tr=document.createElement('tr');
   tr.innerHTML=`
     <td>${idx+1}</td>
-    <td><input type="text" placeholder="건명" oninput="syncC(this,'name',${idx})" style="min-width:65px"></td>
-    <td><input type="text" placeholder="단품코드" oninput="syncC(this,'code',${idx})" style="width:90px"></td>
-    <td><input type="text" placeholder="색상" oninput="syncC(this,'color',${idx})" style="width:44px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncC(this,'qty',${idx})" style="width:42px"></td>
-    <td><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})" style="width:65px"></td>
-    <td><select oninput="syncC(this,'result',${idx})" style="width:52px">
+    <td><input type="text" placeholder="건명" oninput="syncC(this,'name',${idx})"></td>
+    <td><input type="text" placeholder="단품코드" oninput="syncC(this,'code',${idx})"></td>
+    <td><input type="text" placeholder="색상" oninput="syncC(this,'color',${idx})"></td>
+    <td><input type="number" value="0" min="0" oninput="syncC(this,'qty',${idx})"></td>
+    <td><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})"></td>
+    <td><select oninput="syncC(this,'result',${idx})">
       <option>적합</option><option>부적합</option><option>–</option></select></td>
     <td><div class="ph-cell" id="${uid}" onclick="trigPh('${uid}',${idx})">📷<br>사진 업로드</div></td>`;
   document.getElementById('inCBody').appendChild(tr);
@@ -441,7 +448,6 @@ function calcC(){
   document.getElementById('in_c_qty').textContent=qty+' 박스';
 }
 
-/* ─── 사진 ─── */
 function trigPh(uid,idx){photoTarget={uid,idx};document.getElementById('photoInput').click();}
 document.getElementById('photoInput').addEventListener('change',function(){
   if(!this.files.length||!photoTarget)return;
@@ -455,36 +461,26 @@ document.getElementById('photoInput').addEventListener('change',function(){
   r.readAsDataURL(this.files[0]);this.value='';
 });
 
-/* ─── 보고서 적용 ─── */
 function applyAll(){
   const v=id=>document.getElementById(id)?.value||'';
 
-  // 기본 정보
   document.getElementById('pv_title').textContent=v('in_title')||'일일 품질 검사 보고서';
-  document.getElementById('pv_dept').textContent=v('in_dept');
-  document.getElementById('pv_writer').textContent=v('in_writer');
   document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
   if(v('in_date')){
     const d=new Date(v('in_date'));
-    document.getElementById('pv_date').textContent=
-      `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   }
 
-  // 헤더 라벨 — 금일은 작성일 기준 자동 생성
-  const todayLbl = v('in_date')
-    ? (()=>{ const d=new Date(v('in_date')); return `${d.getMonth()+1}월 ${d.getDate()}일`; })()
-    : '금일';
+  const todayLbl=v('in_date')?(()=>{const d=new Date(v('in_date'));return `${d.getMonth()+1}월 ${d.getDate()}일`;})():'금일';
   document.getElementById('pv_lbl_today').textContent=todayLbl;
   document.getElementById('pv_lbl_month').textContent=v('in_lbl_month')||'월 누적';
-  document.getElementById('pv_lbl_year').textContent=v('in_lbl_year')||'26년 누적';
 
-  // 검사현황
   const rows=getSRows();
   const sb=document.getElementById('pvSBody');
   sb.innerHTML='';
   rows.forEach(r=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="g-header">${r.name}</td>
+    tr.innerHTML=`<td class="gh">${r.name}</td>
       <td>${r.ti}</td><td class="${r.tq>0?'ng-red':''}">${r.tq}</td>
       <td>${r.mi}</td><td class="${r.mq>0?'ng-red':''}">${r.mq}</td>
       <td>${r.yi}</td><td class="${r.yq>0?'ng-red':''}">${r.yq}</td>`;
@@ -492,30 +488,28 @@ function applyAll(){
   });
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
-  ['ti','tq','mi','mq','yi','yq'].forEach((k,i)=>
-    document.getElementById('pv_t'+(i+1)).textContent=s[k]);
+  S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k]);
 
-  // KPI 업데이트
-  document.getElementById('db_today').textContent=s.ti;
-  document.getElementById('db_ng').innerHTML=
-    `${s.tq} <span id="db_ng_pct" style="font-size:14px">(${s.ti>0?Math.round(s.tq/s.ti*100):0}%)</span>`;
-  const ngItems=rows.filter(r=>r.mq>0);
-  document.getElementById('db_month_ng').innerHTML=ngItems.length
-    ? ngItems.map((r,i)=>`<span>${i+1}. ${r.name} <span class="ng">(${r.mq}건)</span></span>`).join('<br>')
-    : '<span style="color:#aaa;font-size:11px">부적합 없음</span>';
-  document.getElementById('db_year_ng').textContent=s.yq;
+  // KPI 카드1 - 금일
+  const todayLbl2=v('in_date')?(()=>{const d=new Date(v('in_date'));return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;})():'금일';
+  document.getElementById('kpi_today_lbl').textContent=todayLbl2;
+  document.getElementById('db_today_item').textContent=s.ti.toLocaleString();
+  document.getElementById('db_today_qty').textContent=s.tq.toLocaleString();
 
-  // 검사내용
+  // KPI 카드2 - 전일 대비 (현재는 입력값 없으므로 – 표시)
+  document.getElementById('db_diff_item').textContent='–';
+  document.getElementById('db_diff_qty').textContent='–';
+
+  // KPI 카드3 - 이슈 (특이사항에서 가져오기)
+  const issueText=v('in_note').trim();
+  document.getElementById('db_issue').textContent=issueText||'이슈 없음';
+
   const cb=document.getElementById('pvCBody');
   cb.innerHTML='';
   cRows.forEach((r,i)=>{
     const tr=document.createElement('tr');
-    const photo=r.photo
-      ?`<img src="${r.photo}" class="photo-thumb">`
-      :`<div class="photo-empty">사진 없음</div>`;
-    const badge=r.result==='부적합'
-      ?`<span class="badge-ng">부적합</span>`
-      :r.result==='적합'?`<span class="badge-ok">적합</span>`:'–';
+    const photo=r.photo?`<img src="${r.photo}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
+    const badge=r.result==='부적합'?`<span class="badge-ng">부적합</span>`:r.result==='적합'?`<span class="badge-ok">적합</span>`:'–';
     tr.innerHTML=`<td>${i+1}</td><td style="text-align:left;padding-left:10px">${r.name||'–'}</td>
       <td>${r.code||'–'}</td><td>${r.color||'–'}</td>
       <td>${r.qty}</td><td>${r.inspector||'–'}</td>
@@ -526,32 +520,24 @@ function applyAll(){
   document.getElementById('pv_c_item').textContent=cRows.length+' 품목';
   document.getElementById('pv_c_qty').textContent=cqty+' 박스';
 
-  // 특이사항
   document.getElementById('pvNote').textContent=v('in_note')||'\u00a0';
 
-  // 첨부
   const lines=v('in_attach').split('\n').filter(s=>s.trim());
   document.getElementById('pvAttach').innerHTML=
-    lines.length ? lines.map(s=>`<li>${s.trim()}</li>`).join('') : '<li>첨부 없음</li>';
+    lines.length?lines.map(s=>`<li>${s.trim()}</li>`).join(''):'<li>첨부 없음</li>';
 
   switchTab('preview');
 }
 
-/* ─── 초기화 ─── */
 function resetAll(){
   if(!confirm('모든 내용을 초기화할까요?'))return;
-  // 검사현황 고정 행 숫자 0으로 리셋
-  [0,1].forEach(i=>S_FIELDS.forEach(f=>{
-    const el=document.getElementById(`s${i}_${f}`);
-    if(el)el.value=0;
-  }));
+  [0,1].forEach(i=>S_FIELDS.forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
   calcS();
   document.getElementById('inCBody').innerHTML='';
   cRows=[];
   document.getElementById('in_title').value='일일 품질 검사 보고서';
   document.getElementById('in_note').value='';
-  calcC();
-  addCRow();
+  calcC(); addCRow();
 }
 </script>
 </body>
