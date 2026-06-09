@@ -10,12 +10,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* ── 탭바 ── */
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
-.tab-bar{background:#f0f2f5;position:sticky;top:0;z-index:100}
-.tab-inner{max-width:1100px;margin:0 auto;display:flex}
-.tab-bar button{background:#f0f2f5;border:none;border-bottom:2px solid transparent;color:#888;padding:14px 0;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;flex:1;border-right:1px solid #e0e0e0}
+.tab-bar{background:#e8eaed;position:sticky;top:0;z-index:100;border-bottom:1px solid #d0d3d8}
+.tab-inner{display:flex;width:100%}
+.tab-bar button{background:#e8eaed;border:none;border-bottom:3px solid transparent;color:#777;padding:14px 0;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;flex:1;border-right:1px solid #d0d3d8}
 .tab-bar button:last-child{border-right:none}
-.tab-bar button.active{background:#fff;color:#1a56db;border-bottom:2px solid #1a56db;font-weight:700}
-.tab-bar button:hover:not(.active){background:#f8f8f8;color:#333}
+.tab-bar button.active{background:#fff;color:#1a56db;border-bottom:3px solid #1a56db;font-weight:700}
+.tab-bar button:hover:not(.active){background:#dde0e5;color:#333}
 
 /* ── 패널 ── */
 .panel{display:none}.panel.active{display:block}
