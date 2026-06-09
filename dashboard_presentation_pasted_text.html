@@ -53,7 +53,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .status-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px}
 .status-table th{background:#f0f5ff;padding:7px 8px;border:1px solid #c7d7f5;text-align:center;font-weight:600;color:#1e3a8a}
 .status-table td{padding:6px 8px;border:1px solid #dde5f5;text-align:center;background:#fff}
-.status-table .g-header{background:#f8faff;font-weight:600;color:#374151}
+.status-table .g-header{background:#e8e8e8;font-weight:600;color:#333}
 .status-table .total-row td{background:#e8f0fe;font-weight:700;color:#1e3a8a;border-color:#c7d7f5}
 .ng-red{color:#dc2626;font-weight:700}
 
@@ -86,13 +86,13 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .f{display:flex;flex-direction:column;gap:4px}
 .f label{font-size:11px;color:#6b7280;font-weight:600}
-.f input,.f select,.f textarea{border:1px solid #d1d5db;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;background:#fffbeb}
+.f input,.f select,.f textarea{border:1px solid #d1d5db;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff}
 .f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 2px rgba(26,86,219,.1)}
 .f textarea{resize:vertical;min-height:65px}
 .sub-t{width:100%;border-collapse:collapse;font-size:11px}
 .sub-t th{background:#f0f5ff;padding:6px 7px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a}
 .sub-t td{padding:4px 5px;border:1px solid #e5e7eb;text-align:center}
-.sub-t input,.sub-t select{border:1px solid #d1d5db;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fffbeb;border-radius:2px;text-align:center}
+.sub-t input,.sub-t select{border:1px solid #d1d5db;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:2px;text-align:center}
 .sub-t .total-row td{background:#e8f0fe;font-weight:700;color:#1e3a8a}
 .rbt{background:#fff;border:1px solid #d1d5db;padding:4px 11px;font-size:11px;cursor:pointer;border-radius:4px;font-family:inherit;color:#374151}
 .rbt:hover{background:#f3f4f6}
@@ -103,11 +103,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .ph-cell{width:100px;height:68px;background:#f9fafb;cursor:pointer;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto}
 .ph-cell img{width:100%;height:100%;object-fit:cover}
 
-/* ══ 엑셀 붙여넣기 ══ */
-.ex-guide{background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:12px 14px;font-size:12px;line-height:1.9;margin-bottom:10px;color:#1e40af}
-.ex-guide code{background:#dbeafe;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:11px}
-.paste-area{width:100%;height:130px;border:1px solid #d1d5db;padding:10px;font-family:monospace;font-size:11px;border-radius:5px;background:#fafafa;resize:vertical}
-.paste-area:focus{outline:none;border-color:#1a56db}
+
 
 @media(max-width:600px){
   .kpi-strip{grid-template-columns:1fr 1fr}
@@ -127,8 +123,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 <div class="tab-bar">
   <button class="active" onclick="switchTab('preview')">보고서 미리보기</button>
-  <button onclick="switchTab('input')">수동 입력</button>
-  <button onclick="switchTab('excel')">엑셀 붙여넣기</button>
+  <button onclick="switchTab('input')">데이터 입력</button>
 </div>
 
 <!-- ══════════════ 탭1: 보고서 미리보기 ══════════════ -->
@@ -188,7 +183,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <tr>
           <th>품목</th><th>수량</th>
           <th>품목</th><th>수량</th>
-          <th>품목</th><th>수량</th>
+          <th>26년 누적품목</th><th>26년 누적수량</th>
         </tr>
       </thead>
       <tbody id="pvSBody"></tbody>
@@ -247,7 +242,6 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 <!-- ══════════════ 탭2: 수동 입력 ══════════════ -->
 <div class="panel" id="tab-input">
-<div class="page">
 
   <!-- 기본 정보 -->
   <div class="form-card">
@@ -256,12 +250,11 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
       <div class="fg" style="margin-bottom:10px">
         <div class="f"><label>보고서 제목</label><input id="in_title" value="일일 품질 검사 보고서"></div>
         <div class="f"><label>작성일</label><input id="in_date" type="date"></div>
-        <div class="f"><label>작성부서</label><input id="in_dept" placeholder="예: 퍼시스 제조사업부 > 충주공장"></div>
+        <div class="f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly style="background:#f3f4f6;color:#6b7280;cursor:default"></div>
         <div class="f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
         <div class="f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
       </div>
-      <div class="fg3">
-        <div class="f"><label>금일 날짜 표시</label><input id="in_lbl_today" placeholder="예: 6월 2일"></div>
+      <div class="fg">
         <div class="f"><label>월 누적 표시</label><input id="in_lbl_month" placeholder="예: 6월 누적"></div>
         <div class="f"><label>연 누적 표시</label><input id="in_lbl_year" placeholder="예: 26년 누적"></div>
       </div>
@@ -270,24 +263,37 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
   <!-- 1. 검사현황 -->
   <div class="form-card">
-    <div class="form-card-hd">
-      1. 검사현황
-      <div style="display:flex;gap:6px">
-        <button class="rbt" onclick="addSRow()">+ 행 추가</button>
-        <button class="rbt" onclick="delSRow()">− 삭제</button>
-      </div>
-    </div>
+    <div class="form-card-hd">1. 검사현황</div>
     <div class="form-card-bd" style="overflow-x:auto">
       <table class="sub-t">
         <thead>
           <tr>
-            <th>구분</th>
+            <th style="width:72px">구분</th>
             <th>금일 품목</th><th>금일 수량</th>
             <th>월누적 품목</th><th>월누적 수량</th>
-            <th>연누적 품목</th><th>연누적 수량</th>
+            <th>26년 누적품목</th><th>26년 누적수량</th>
           </tr>
         </thead>
-        <tbody id="inSBody"></tbody>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;background:#e8e8e8;color:#333">충주1</td>
+            <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()" style="width:52px"></td>
+            <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()" style="width:56px"></td>
+            <td><input type="number" id="s0_mi" value="0" min="0" oninput="calcS()" style="width:56px"></td>
+            <td><input type="number" id="s0_mq" value="0" min="0" oninput="calcS()" style="width:62px"></td>
+            <td><input type="number" id="s0_yi" value="0" min="0" oninput="calcS()" style="width:62px"></td>
+            <td><input type="number" id="s0_yq" value="0" min="0" oninput="calcS()" style="width:68px"></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;background:#e8e8e8;color:#333">충주2</td>
+            <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()" style="width:52px"></td>
+            <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()" style="width:56px"></td>
+            <td><input type="number" id="s1_mi" value="0" min="0" oninput="calcS()" style="width:56px"></td>
+            <td><input type="number" id="s1_mq" value="0" min="0" oninput="calcS()" style="width:62px"></td>
+            <td><input type="number" id="s1_yi" value="0" min="0" oninput="calcS()" style="width:62px"></td>
+            <td><input type="number" id="s1_yq" value="0" min="0" oninput="calcS()" style="width:68px"></td>
+          </tr>
+        </tbody>
         <tfoot>
           <tr class="total-row">
             <td>합계</td>
@@ -360,46 +366,23 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 </div>
 </div>
 
-<!-- ══════════════ 탭3: 엑셀 붙여넣기 ══════════════ -->
-<div class="panel" id="tab-excel">
-<div class="page">
-  <div class="form-card">
-    <div class="form-card-hd">엑셀 데이터 붙여넣기</div>
-    <div class="form-card-bd">
-      <div class="ex-guide">
-        <b>붙여넣기 형식 (탭 구분 — 엑셀에서 범위 선택 후 Ctrl+C → 여기 붙여넣기)</b><br>
-        <code>구분명 | 금일품목 | 금일수량 | 월누적품목 | 월누적수량 | 연누적품목 | 연누적수량</code><br><br>
-        <b>예시:</b><br>
-        <code>충주1	0	0	5	59	215	3349</code><br>
-        <code>충주2	1	2	1	2	58	211</code><br>
-        <code>양지	0	0	0	0	0	0</code>
-      </div>
-      <textarea class="paste-area" id="exPaste" placeholder="여기에 엑셀 데이터를 붙여넣으세요..."></textarea>
-      <div class="btn-row" style="margin-top:10px">
-        <button class="reset-btn" onclick="document.getElementById('exPaste').value=''">지우기</button>
-        <button class="apply-btn" onclick="applyExcel()">데이터 적용 후 보고서 이동 →</button>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-
 <input type="file" id="photoInput" accept="image/*" style="display:none">
 
 <script>
 /* ─── 상태 ─── */
-let sRows=[], cRows=[], photoTarget=null;
+let cRows=[], photoTarget=null;
+const S_NAMES=['충주1','충주2'];
+const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
 
 /* ─── 초기화 ─── */
 (function(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
   document.getElementById('in_date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  document.getElementById('in_lbl_today').value=`${d.getMonth()+1}월 ${d.getDate()}일`;
   document.getElementById('in_lbl_month').value=`${d.getMonth()+1}월 누적`;
   document.getElementById('in_lbl_year').value=`${String(d.getFullYear()).slice(2)}년 누적`;
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
-  addSRow(); addCRow();
+  addCRow();
 })();
 
 /* ─── 탭 전환 ─── */
@@ -407,39 +390,23 @@ function switchTab(t){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
-  document.querySelectorAll('.tab-bar button')[{preview:0,input:1,excel:2}[t]].classList.add('active');
+  document.querySelectorAll('.tab-bar button')[{preview:0,input:1}[t]].classList.add('active');
 }
 
-/* ─── 검사현황 행 ─── */
-function addSRow(){
-  const idx=sRows.length;
-  sRows.push({name:'',ti:0,tq:0,mi:0,mq:0,yi:0,yq:0});
-  const tr=document.createElement('tr');
-  tr.innerHTML=`
-    <td><input type="text" placeholder="구분명" oninput="syncS(this,'name',${idx})" style="width:68px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncS(this,'ti',${idx})" style="width:46px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncS(this,'tq',${idx})" style="width:50px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncS(this,'mi',${idx})" style="width:52px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncS(this,'mq',${idx})" style="width:58px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncS(this,'yi',${idx})" style="width:58px"></td>
-    <td><input type="number" value="0" min="0" oninput="syncS(this,'yq',${idx})" style="width:65px"></td>`;
-  document.getElementById('inSBody').appendChild(tr);
-  calcS();
-}
-function delSRow(){
-  const b=document.getElementById('inSBody');
-  if(b.rows.length){b.deleteRow(b.rows.length-1);sRows.pop();calcS();}
-}
-function syncS(el,f,i){
-  if(!sRows[i])return;
-  sRows[i][f]=(f==='name')?el.value:(parseInt(el.value)||0);
-  calcS();
-}
+/* ─── 검사현황 (충주1·충주2 고정) ─── */
+function getS(rowIdx,field){return parseInt(document.getElementById(`s${rowIdx}_${field}`)?.value)||0;}
 function calcS(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
-  sRows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
+  [0,1].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
   ['ti','tq','mi','mq','yi','yq'].forEach((k,i)=>
     document.getElementById('in_t'+(i+1)).textContent=s[k]);
+}
+function getSRows(){
+  return S_NAMES.map((name,i)=>({
+    name, ti:getS(i,'ti'), tq:getS(i,'tq'),
+    mi:getS(i,'mi'), mq:getS(i,'mq'),
+    yi:getS(i,'yi'), yq:getS(i,'yq')
+  }));
 }
 
 /* ─── 검사내용 행 ─── */
@@ -509,24 +476,28 @@ function applyAll(){
       `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   }
 
-  // 헤더 라벨
-  document.getElementById('pv_lbl_today').textContent=v('in_lbl_today')||'금일';
+  // 헤더 라벨 — 금일은 작성일 기준 자동 생성
+  const todayLbl = v('in_date')
+    ? (()=>{ const d=new Date(v('in_date')); return `${d.getMonth()+1}월 ${d.getDate()}일`; })()
+    : '금일';
+  document.getElementById('pv_lbl_today').textContent=todayLbl;
   document.getElementById('pv_lbl_month').textContent=v('in_lbl_month')||'월 누적';
   document.getElementById('pv_lbl_year').textContent=v('in_lbl_year')||'26년 누적';
 
   // 검사현황
+  const rows=getSRows();
   const sb=document.getElementById('pvSBody');
   sb.innerHTML='';
-  sRows.forEach(r=>{
+  rows.forEach(r=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="g-header">${r.name||'–'}</td>
+    tr.innerHTML=`<td class="g-header">${r.name}</td>
       <td>${r.ti}</td><td class="${r.tq>0?'ng-red':''}">${r.tq}</td>
       <td>${r.mi}</td><td class="${r.mq>0?'ng-red':''}">${r.mq}</td>
       <td>${r.yi}</td><td class="${r.yq>0?'ng-red':''}">${r.yq}</td>`;
     sb.appendChild(tr);
   });
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
-  sRows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
+  rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
   ['ti','tq','mi','mq','yi','yq'].forEach((k,i)=>
     document.getElementById('pv_t'+(i+1)).textContent=s[k]);
 
@@ -534,9 +505,9 @@ function applyAll(){
   document.getElementById('db_today').textContent=s.ti;
   document.getElementById('db_ng').innerHTML=
     `${s.tq} <span id="db_ng_pct" style="font-size:14px">(${s.ti>0?Math.round(s.tq/s.ti*100):0}%)</span>`;
-  const ngItems=sRows.filter(r=>r.mq>0);
+  const ngItems=rows.filter(r=>r.mq>0);
   document.getElementById('db_month_ng').innerHTML=ngItems.length
-    ? ngItems.map((r,i)=>`<span>${i+1}. ${r.name||'–'} <span class="ng">(${r.mq}건)</span></span>`).join('<br>')
+    ? ngItems.map((r,i)=>`<span>${i+1}. ${r.name} <span class="ng">(${r.mq}건)</span></span>`).join('<br>')
     : '<span style="color:#aaa;font-size:11px">부적합 없음</span>';
   document.getElementById('db_year_ng').textContent=s.yq;
 
@@ -572,43 +543,21 @@ function applyAll(){
   switchTab('preview');
 }
 
-/* ─── 엑셀 붙여넣기 ─── */
-function applyExcel(){
-  const raw=document.getElementById('exPaste').value.trim();
-  if(!raw){alert('데이터를 붙여넣어 주세요.');return;}
-  document.getElementById('inSBody').innerHTML='';
-  sRows=[];
-  raw.split('\n').forEach(line=>{
-    const c=line.split('\t');
-    if(!c[0]?.trim())return;
-    const idx=sRows.length;
-    const row={name:c[0].trim(),ti:+c[1]||0,tq:+c[2]||0,mi:+c[3]||0,mq:+c[4]||0,yi:+c[5]||0,yq:+c[6]||0};
-    sRows.push(row);
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><input type="text" value="${row.name}" oninput="syncS(this,'name',${idx})" style="width:68px"></td>
-      <td><input type="number" value="${row.ti}" min="0" oninput="syncS(this,'ti',${idx})" style="width:46px"></td>
-      <td><input type="number" value="${row.tq}" min="0" oninput="syncS(this,'tq',${idx})" style="width:50px"></td>
-      <td><input type="number" value="${row.mi}" min="0" oninput="syncS(this,'mi',${idx})" style="width:52px"></td>
-      <td><input type="number" value="${row.mq}" min="0" oninput="syncS(this,'mq',${idx})" style="width:58px"></td>
-      <td><input type="number" value="${row.yi}" min="0" oninput="syncS(this,'yi',${idx})" style="width:58px"></td>
-      <td><input type="number" value="${row.yq}" min="0" oninput="syncS(this,'yq',${idx})" style="width:65px"></td>`;
-    document.getElementById('inSBody').appendChild(tr);
-  });
-  calcS();
-  applyAll();
-}
-
 /* ─── 초기화 ─── */
 function resetAll(){
   if(!confirm('모든 내용을 초기화할까요?'))return;
-  document.getElementById('inSBody').innerHTML='';
+  // 검사현황 고정 행 숫자 0으로 리셋
+  [0,1].forEach(i=>S_FIELDS.forEach(f=>{
+    const el=document.getElementById(`s${i}_${f}`);
+    if(el)el.value=0;
+  }));
+  calcS();
   document.getElementById('inCBody').innerHTML='';
-  sRows=[];cRows=[];
+  cRows=[];
   document.getElementById('in_title').value='일일 품질 검사 보고서';
   document.getElementById('in_note').value='';
-  calcS();calcC();
-  addSRow();addCRow();
+  calcC();
+  addCRow();
 }
 </script>
 </body>
