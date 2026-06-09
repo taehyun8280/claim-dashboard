@@ -10,25 +10,25 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* ── 탭바 ── */
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
-.tab-bar{background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.tab-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;justify-content:center}
-.tab-bar button{background:none;border:none;border-bottom:3px solid transparent;color:#888;padding:14px 60px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;margin-bottom:-1px;white-space:nowrap}
-.tab-bar button.active{color:#1a56db;border-bottom-color:#1a56db;font-weight:700}
+.tab-bar{background:#f0f2f5;position:sticky;top:0;z-index:100;padding:20px 20px 0}
+.tab-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;background:#fff;border-bottom:2px solid #2f80ff;border-radius:10px 10px 0 0;overflow:hidden}
+.tab-bar button{flex:1;background:#fff;border:none;color:#888;padding:17px 20px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;white-space:nowrap;text-align:center}
+.tab-bar button.active{color:#1a56db;font-weight:700}
 .tab-bar button:hover:not(.active){color:#333;background:#f8f8f8}
 
 /* ── 패널 ── */
 .panel{display:none}.panel.active{display:block}
 
 /* ══ 보고서 미리보기 ══ */
-.preview-page{max-width:1100px;margin:0 auto;padding:20px}
-.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.preview-page{width:calc(100% - 40px);max-width:1100px;margin:0 auto 20px;padding:32px 32px 24px;background:#fff;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:26px}
 .btn-img-copy{background:#166534;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .btn-img-copy:hover{background:#14532d}
 .sync-pill{background:#fff;color:#16a34a;border:1px solid #86efac;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
 .sync-pill .dot{width:7px;height:7px;background:#16a34a;border-radius:50%}
 
 /* 보고서 카드 */
-.report-paper{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:24px 28px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.report-paper{background:#fff;border:none;border-radius:0;padding:0;box-shadow:none}
 .report-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px}
 .report-main-title{font-size:18px;font-weight:700;color:#111}
 .report-date{font-size:12px;color:#6b7280}
