@@ -78,6 +78,31 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .attach-box li::before{content:'• ';color:#1a56db;font-weight:700}
 .report-footer{text-align:right;font-size:11px;color:#9ca3af;margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0}
 
+/* 이미지 복사 시 가독성 강화 */
+.report-paper.capture-mode{color:#000}
+.report-paper.capture-mode .report-main-title{font-weight:800}
+.report-paper.capture-mode .report-date,
+.report-paper.capture-mode .kpi-lbl,
+.report-paper.capture-mode .kpi-sub-lbl,
+.report-paper.capture-mode .kpi-issue,
+.report-paper.capture-mode .note-box,
+.report-paper.capture-mode .attach-box,
+.report-paper.capture-mode .report-footer{color:#374151;font-weight:600}
+.report-paper.capture-mode .sec-title{font-weight:800;color:#000}
+.report-paper.capture-mode .kpi{border-color:#aeb8c6;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.report-paper.capture-mode .kpi-divider{background:#b8c2d1}
+.report-paper.capture-mode .st,
+.report-paper.capture-mode .ct{border:1.5px solid #8f9bad}
+.report-paper.capture-mode .st th,
+.report-paper.capture-mode .ct th{background:#eaf1ff;border-color:#9eacc0;color:#102a56;font-weight:700}
+.report-paper.capture-mode .st td,
+.report-paper.capture-mode .ct td{border-color:#b2bdcc;color:#111;font-weight:600}
+.report-paper.capture-mode .st .gh{background:#e2e6eb;font-weight:700}
+.report-paper.capture-mode .st .tr-total td,
+.report-paper.capture-mode .ct .tr-total td{background:#dce8fb;border-color:#94a8c5;font-weight:800}
+.report-paper.capture-mode .note-box{border-color:#aeb8c6}
+.report-paper.capture-mode .attach-box{border-color:#a5b7d3;background:#f3f7ff}
+
 /* ══ 데이터 입력 ══ */
 .inp-page{max-width:1100px;margin:0 auto;padding:20px}
 .inp-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px;overflow:hidden}
@@ -636,6 +661,7 @@ async function copyDashboard(){
   if(!target){alert('보고서 영역을 찾을 수 없습니다.');return;}
   btn.textContent='⏳ 캡처 중...';
   btn.disabled=true;
+  target.classList.add('capture-mode');
   try{
     const canvas=await html2canvas(target,{
       scale:2,
@@ -643,6 +669,7 @@ async function copyDashboard(){
       backgroundColor:'#ffffff',
       logging:false
     });
+    target.classList.remove('capture-mode');
     canvas.toBlob(async blob=>{
       try{
         await navigator.clipboard.write([
@@ -665,6 +692,7 @@ async function copyDashboard(){
       },2500);
     },'image/png');
   }catch(e){
+    target.classList.remove('capture-mode');
     alert('캡처에 실패했습니다: '+e.message);
     btn.textContent='📋 대시보드 이미지 복사';
     btn.disabled=false;
