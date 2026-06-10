@@ -459,7 +459,7 @@ function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)
 function calcS(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
-  S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k]);
+  S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k].toLocaleString());
 }
 function getSRows(){
   return S_NAMES.map((name,i)=>({
@@ -564,15 +564,16 @@ function applyAll(){
   sb.innerHTML='';
   rows.forEach(r=>{
     const tr=document.createElement('tr');
+    const fmt=n=>n.toLocaleString();
     tr.innerHTML=`<td class="gh">${r.name}</td>
-      <td>${r.ti}</td><td class="${r.tq>0?'ng-red':''}">${r.tq}</td>
-      <td>${r.mi}</td><td class="${r.mq>0?'ng-red':''}">${r.mq}</td>
-      <td>${r.yi}</td><td class="${r.yq>0?'ng-red':''}">${r.yq}</td>`;
+      <td>${fmt(r.ti)}</td><td class="${r.tq>0?'ng-red':''}">${fmt(r.tq)}</td>
+      <td>${fmt(r.mi)}</td><td class="${r.mq>0?'ng-red':''}">${fmt(r.mq)}</td>
+      <td>${fmt(r.yi)}</td><td class="${r.yq>0?'ng-red':''}">${fmt(r.yq)}</td>`;
     sb.appendChild(tr);
   });
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
-  S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k]);
+  S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k].toLocaleString());
 
   // KPI 카드1 - 금일 (보고서와 동일한 날짜 기준)
   const todayLbl2=v('in_date')?(()=>{
