@@ -343,33 +343,48 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
   <!-- 2. 검사내용 -->
   <div class="inp-card">
-    <div class="inp-card-hd">
-      2. 검사내용
-      <div style="display:flex;gap:6px">
-        <button class="rbt" onclick="addCRow()">+ 항목 추가</button>
-        <button class="rbt" onclick="delCRow()">− 삭제</button>
-      </div>
-    </div>
+    <div class="inp-card-hd">2. 검사내용</div>
     <div class="inp-card-bd" style="overflow-x:auto">
       <table class="inp-t">
         <thead>
           <tr>
-            <th style="width:36px">번호</th>
+            <th style="width:44px">번호</th>
             <th>건명</th>
             <th>단품코드</th>
             <th style="width:80px">색상</th>
             <th style="width:70px">수량</th>
             <th style="width:100px">검사자</th>
             <th style="width:80px">결과</th>
-            <th style="width:100px">사진</th>
+            <th style="width:90px">사진</th>
           </tr>
         </thead>
-        <tbody id="inCBody"></tbody>
+        <tbody>
+          <tr><td class="inp-t-name">1번</td><td><input type="text" id="c0_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c0_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c0_color" placeholder="WW"></td><td><input type="number" id="c0_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c0_inspector" placeholder="검사자"></td><td><input type="text" id="c0_result" placeholder="적합"></td><td><div id="c0_photo" onclick="trigPhFixed(0)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">2번</td><td><input type="text" id="c1_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c1_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c1_color" placeholder="WW"></td><td><input type="number" id="c1_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c1_inspector" placeholder="검사자"></td><td><input type="text" id="c1_result" placeholder="적합"></td><td><div id="c1_photo" onclick="trigPhFixed(1)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">3번</td><td><input type="text" id="c2_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c2_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c2_color" placeholder="WW"></td><td><input type="number" id="c2_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c2_inspector" placeholder="검사자"></td><td><input type="text" id="c2_result" placeholder="적합"></td><td><div id="c2_photo" onclick="trigPhFixed(2)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">4번</td><td><input type="text" id="c3_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c3_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c3_color" placeholder="WW"></td><td><input type="number" id="c3_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c3_inspector" placeholder="검사자"></td><td><input type="text" id="c3_result" placeholder="적합"></td><td><div id="c3_photo" onclick="trigPhFixed(3)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">5번</td><td><input type="text" id="c4_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c4_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c4_color" placeholder="WW"></td><td><input type="number" id="c4_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c4_inspector" placeholder="검사자"></td><td><input type="text" id="c4_result" placeholder="적합"></td><td><div id="c4_photo" onclick="trigPhFixed(4)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">6번</td><td><input type="text" id="c5_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c5_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c5_color" placeholder="WW"></td><td><input type="number" id="c5_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c5_inspector" placeholder="검사자"></td><td><input type="text" id="c5_result" placeholder="적합"></td><td><div id="c5_photo" onclick="trigPhFixed(5)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">7번</td><td><input type="text" id="c6_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c6_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c6_color" placeholder="WW"></td><td><input type="number" id="c6_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c6_inspector" placeholder="검사자"></td><td><input type="text" id="c6_result" placeholder="적합"></td><td><div id="c6_photo" onclick="trigPhFixed(6)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">8번</td><td><input type="text" id="c7_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c7_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c7_color" placeholder="WW"></td><td><input type="number" id="c7_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c7_inspector" placeholder="검사자"></td><td><input type="text" id="c7_result" placeholder="적합"></td><td><div id="c7_photo" onclick="trigPhFixed(7)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">9번</td><td><input type="text" id="c8_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c8_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c8_color" placeholder="WW"></td><td><input type="number" id="c8_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c8_inspector" placeholder="검사자"></td><td><input type="text" id="c8_result" placeholder="적합"></td><td><div id="c8_photo" onclick="trigPhFixed(8)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">10번</td><td><input type="text" id="c9_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c9_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c9_color" placeholder="WW"></td><td><input type="number" id="c9_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c9_inspector" placeholder="검사자"></td><td><input type="text" id="c9_result" placeholder="적합"></td><td><div id="c9_photo" onclick="trigPhFixed(9)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">11번</td><td><input type="text" id="c10_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c10_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c10_color" placeholder="WW"></td><td><input type="number" id="c10_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c10_inspector" placeholder="검사자"></td><td><input type="text" id="c10_result" placeholder="적합"></td><td><div id="c10_photo" onclick="trigPhFixed(10)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">12번</td><td><input type="text" id="c11_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c11_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c11_color" placeholder="WW"></td><td><input type="number" id="c11_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c11_inspector" placeholder="검사자"></td><td><input type="text" id="c11_result" placeholder="적합"></td><td><div id="c11_photo" onclick="trigPhFixed(11)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">13번</td><td><input type="text" id="c12_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c12_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c12_color" placeholder="WW"></td><td><input type="number" id="c12_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c12_inspector" placeholder="검사자"></td><td><input type="text" id="c12_result" placeholder="적합"></td><td><div id="c12_photo" onclick="trigPhFixed(12)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">14번</td><td><input type="text" id="c13_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c13_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c13_color" placeholder="WW"></td><td><input type="number" id="c13_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c13_inspector" placeholder="검사자"></td><td><input type="text" id="c13_result" placeholder="적합"></td><td><div id="c13_photo" onclick="trigPhFixed(13)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">15번</td><td><input type="text" id="c14_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c14_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c14_color" placeholder="WW"></td><td><input type="number" id="c14_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c14_inspector" placeholder="검사자"></td><td><input type="text" id="c14_result" placeholder="적합"></td><td><div id="c14_photo" onclick="trigPhFixed(14)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">16번</td><td><input type="text" id="c15_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c15_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c15_color" placeholder="WW"></td><td><input type="number" id="c15_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c15_inspector" placeholder="검사자"></td><td><input type="text" id="c15_result" placeholder="적합"></td><td><div id="c15_photo" onclick="trigPhFixed(15)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">17번</td><td><input type="text" id="c16_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c16_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c16_color" placeholder="WW"></td><td><input type="number" id="c16_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c16_inspector" placeholder="검사자"></td><td><input type="text" id="c16_result" placeholder="적합"></td><td><div id="c16_photo" onclick="trigPhFixed(16)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">18번</td><td><input type="text" id="c17_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c17_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c17_color" placeholder="WW"></td><td><input type="number" id="c17_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c17_inspector" placeholder="검사자"></td><td><input type="text" id="c17_result" placeholder="적합"></td><td><div id="c17_photo" onclick="trigPhFixed(17)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">19번</td><td><input type="text" id="c18_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c18_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c18_color" placeholder="WW"></td><td><input type="number" id="c18_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c18_inspector" placeholder="검사자"></td><td><input type="text" id="c18_result" placeholder="적합"></td><td><div id="c18_photo" onclick="trigPhFixed(18)" class="ph-cell">📷<br>사진</div></td></tr>
+          <tr><td class="inp-t-name">20번</td><td><input type="text" id="c19_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c19_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c19_color" placeholder="WW"></td><td><input type="number" id="c19_qty" placeholder="0" min="0" oninput="calcC()"></td><td><input type="text" id="c19_inspector" placeholder="검사자"></td><td><input type="text" id="c19_result" placeholder="적합"></td><td><div id="c19_photo" onclick="trigPhFixed(19)" class="ph-cell">📷<br>사진</div></td></tr>
+        </tbody>
         <tfoot>
           <tr class="inp-t-total">
             <td colspan="2">합계</td>
-            <td id="in_c_item">0 품목</td>
-            <td id="in_c_qty" colspan="2">0 박스</td>
+            <td id="in_c_item" colspan="2">0 품목</td>
+            <td id="in_c_qty">0 박스</td>
             <td>–</td><td>–</td><td>–</td>
           </tr>
         </tfoot>
@@ -430,7 +445,6 @@ const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
   window._lbl_year = `${String(d.getFullYear()).slice(2)}년 누적`;
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   document.getElementById('kpi_today_lbl').textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
-  addCRow();
   renderAttach();
 })();
 
@@ -455,42 +469,23 @@ function getSRows(){
   }));
 }
 
-function addCRow(){
-  const idx=cRows.length;
-  const uid='ph_'+Date.now();
-  cRows.push({name:'',code:'',color:'',qty:0,inspector:'',result:'적합',photo:null,uid});
-  const tr=document.createElement('tr');
-  tr.innerHTML=`
-    <td>${idx+1}</td>
-    <td><input type="text" placeholder="예) FAM-CLEV-01(미국)" oninput="syncC(this,'name',${idx})" style="text-align:left"></td>
-    <td><input type="text" placeholder="예) XCRE181200A" oninput="syncC(this,'code',${idx})"></td>
-    <td><input type="text" placeholder="WW" oninput="syncC(this,'color',${idx})"></td>
-    <td><input type="number" value="" placeholder="0" min="0" oninput="syncC(this,'qty',${idx})"></td>
-    <td><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})"></td>
-    <td><input type="text" value="적합" oninput="syncC(this,'result',${idx})"></td>
-    <td>
-      <div id="${uid}" onclick="trigPh('${uid}',${idx})" class="ph-cell">📷<br>사진 업로드</div>
-    </td>`;
-  document.getElementById('inCBody').appendChild(tr);
-  calcC();
-}
-function delCRow(){
-  const b=document.getElementById('inCBody');
-  if(b.rows.length){
-    b.deleteRow(b.rows.length-1);cRows.pop();
-    [...b.rows].forEach((r,i)=>r.cells[0].textContent=i+1);
-    calcC();
-  }
-}
-function syncC(el,f,i){
-  if(!cRows[i])return;
-  cRows[i][f]=(f==='qty')?(parseInt(el.value)||0):el.value;
-  calcC();
-}
+const C_COUNT=20;
+function gC(i,f){return document.getElementById(`c${i}_${f}`);}
 function calcC(){
-  const qty=cRows.reduce((s,r)=>s+(r.qty||0),0);
-  document.getElementById('in_c_item').textContent=cRows.length+' 품목';
+  let items=0,qty=0;
+  for(let i=0;i<C_COUNT;i++){
+    const name=gC(i,'name')?.value.trim()||'';
+    const code=gC(i,'code')?.value.trim()||'';
+    const q=parseInt(gC(i,'qty')?.value)||0;
+    if(name!==''||code!==''||q>0) items++;
+    qty+=q;
+  }
+  document.getElementById('in_c_item').textContent=items+' 품목';
   document.getElementById('in_c_qty').textContent=qty+' 박스';
+}
+function trigPhFixed(idx){
+  photoTarget={uid:`c${idx}_photo`,idx};
+  document.getElementById('photoInput').click();
 }
 
 function trigPh(uid,idx){photoTarget={uid,idx};document.getElementById('photoInput').click();}
@@ -500,7 +495,6 @@ document.getElementById('photoInput').addEventListener('change',function(){
   r.onload=e=>{
     const c=document.getElementById(photoTarget.uid);
     if(c){c.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;c.style.border='none';}
-    if(cRows[photoTarget.idx])cRows[photoTarget.idx].photo=e.target.result;
     photoTarget=null;
   };
   r.readAsDataURL(this.files[0]);this.value='';
@@ -555,26 +549,34 @@ function applyAll(){
 
   const cb=document.getElementById('pvCBody');
   cb.innerHTML='';
-  const filledRows=cRows.filter(r=>r.name.trim()!==''||r.code.trim()!==''||r.qty>0);
-  if(filledRows.length===0){
+  let pvNum=0, pvQty=0;
+  for(let i=0;i<C_COUNT;i++){
+    const name=gC(i,'name')?.value.trim()||'';
+    const code=gC(i,'code')?.value.trim()||'';
+    const color=gC(i,'color')?.value.trim()||'';
+    const qty=parseInt(gC(i,'qty')?.value)||0;
+    const inspector=gC(i,'inspector')?.value.trim()||'';
+    const result=gC(i,'result')?.value.trim()||'적합';
+    if(!name&&!code&&qty===0) continue;
+    pvNum++;pvQty+=qty;
+    const photoEl=document.getElementById(`c${i}_photo`);
+    const img=photoEl?.querySelector('img');
+    const photo=img?`<img src="${img.src}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
+    const badge=result==='부적합'?`<span class="badge-ng">부적합</span>`:result||'적합';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${name||'–'}</td>
+      <td>${code||'–'}</td><td>${color||'–'}</td>
+      <td>${qty||'–'}</td><td>${inspector||'–'}</td>
+      <td>${badge}</td><td>${photo}</td>`;
+    cb.appendChild(tr);
+  }
+  if(pvNum===0){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td colspan="8" style="text-align:center;color:#aaa;padding:16px">입력된 검사내용이 없습니다.</td>`;
     cb.appendChild(tr);
-  } else {
-    filledRows.forEach((r,i)=>{
-      const tr=document.createElement('tr');
-      const photo=r.photo?`<img src="${r.photo}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
-      const badge=r.result==='부적합'?`<span class="badge-ng">부적합</span>`:r.result||'적합';
-      tr.innerHTML=`<td>${i+1}</td><td style="text-align:center">${r.name||'–'}</td>
-        <td>${r.code||'–'}</td><td>${r.color||'–'}</td>
-        <td>${r.qty||'–'}</td><td>${r.inspector||'–'}</td>
-        <td>${badge}</td><td>${photo}</td>`;
-      cb.appendChild(tr);
-    });
   }
-  const cqty=filledRows.reduce((s,r)=>s+(r.qty||0),0);
-  document.getElementById('pv_c_item').textContent=filledRows.length+' 품목';
-  document.getElementById('pv_c_qty').textContent=cqty+' 박스';
+  document.getElementById('pv_c_item').textContent=pvNum+' 품목';
+  document.getElementById('pv_c_qty').textContent=pvQty+' 박스';
 
   document.getElementById('pvNote').textContent=v('in_note')||'\u00a0';
 
@@ -589,12 +591,13 @@ function resetAll(){
   if(!confirm('모든 내용을 초기화할까요?'))return;
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
   calcS();
-  document.getElementById('inCBody').innerHTML='';
-  cRows=[];
-  attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
-  renderAttach();
-  document.getElementById('in_note').value='';
-  calcC(); addCRow();
+  for(let i=0;i<C_COUNT;i++){
+    ['name','code','color','inspector','result'].forEach(f=>{const el=gC(i,f);if(el)el.value='';});
+    const q=gC(i,'qty');if(q)q.value='';
+    const ph=document.getElementById(`c${i}_photo`);
+    if(ph){ph.innerHTML='📷<br>사진';ph.style.border='1px dashed #d1d5db';}
+  }
+  calcC();
 }
 
 async function copyDashboard(){
