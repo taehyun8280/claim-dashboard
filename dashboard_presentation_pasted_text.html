@@ -96,7 +96,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .inp-t input[type=number],
 .inp-t input[type=text]{border:1px solid #d1d5db;padding:4px 6px;font-size:12px;font-family:inherit;width:100%;background:#fff;border-radius:3px;text-align:center;height:30px;box-sizing:border-box}
 .inp-t input:focus{outline:none;border-color:#1a56db}
-.inp-t select{border:1px solid #d1d5db;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:3px;height:30px}
+.inp-t select{appearance:auto;-webkit-appearance:menulist;border:1px solid #9ca3af;padding:3px 6px;font-size:11px;font-family:inherit;width:100%;min-width:72px;background:#fff;color:#111;border-radius:3px;height:30px;cursor:pointer}
+.inp-t select:focus{outline:none;border-color:#1a56db;box-shadow:0 0 0 2px rgba(26,86,219,.12)}
 .inp-t-total td{background:#e8f0fe;font-weight:700;color:#1a56db;padding:5px 8px;border:1px solid #dde5f5;font-size:12px;text-align:center}
 .inp-textarea{width:100%;border:1px solid #e5e7eb;padding:7px 9px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff;resize:vertical}
 .inp-textarea:focus{outline:none;border-color:#1a56db}
@@ -592,7 +593,9 @@ function resetAll(){
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
   calcS();
   for(let i=0;i<C_COUNT;i++){
-    ['name','code','color','inspector','result'].forEach(f=>{const el=gC(i,f);if(el)el.value='';});
+    ['name','code','color'].forEach(f=>{const el=gC(i,f);if(el)el.value='';});
+    const inspector=gC(i,'inspector');if(inspector)inspector.value='';
+    const result=gC(i,'result');if(result)result.value='적합';
     const q=gC(i,'qty');if(q)q.value='';
     const ph=document.getElementById(`c${i}_photo`);
     if(ph){ph.innerHTML='📷<br>사진';ph.style.border='1px dashed #d1d5db';}
