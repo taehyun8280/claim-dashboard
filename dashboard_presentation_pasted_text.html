@@ -459,16 +459,23 @@ function addCRow(){
   const idx=cRows.length;
   const uid='ph_'+Date.now();
   cRows.push({name:'',code:'',color:'',qty:0,inspector:'',result:'적합',photo:null,uid});
+  const s='width:100%;border:1px solid #d1d5db;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;height:32px;background:#fff;box-sizing:border-box';
+  const sc=s+';text-align:center';
   const tr=document.createElement('tr');
   tr.innerHTML=`
-    <td style="text-align:center">${idx+1}</td>
-    <td><input type="text" placeholder="예) FAM-12(미국)" oninput="syncC(this,'name',${idx})"></td>
-    <td><input type="text" placeholder="단품코드" oninput="syncC(this,'code',${idx})"></td>
-    <td><input type="text" placeholder="예) WW" oninput="syncC(this,'color',${idx})"></td>
-    <td><input type="number" value="0" min="0" oninput="syncC(this,'qty',${idx})"></td>
-    <td><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})"></td>
-    <td><input type="text" value="적합" oninput="syncC(this,'result',${idx})"></td>
-    <td><div class="ph-cell" id="${uid}" onclick="trigPh('${uid}',${idx})">📷<br>사진 업로드</div></td>`;
+    <td style="text-align:center;padding:8px 4px;border:1px solid #e5e7eb">${idx+1}</td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb"><input type="text" placeholder="예) FAM-CLEV-01(미국)" oninput="syncC(this,'name',${idx})" style="${s}"></td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb"><input type="text" placeholder="예) XCRE181200A" oninput="syncC(this,'code',${idx})" style="${s}"></td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb"><input type="text" placeholder="WW" oninput="syncC(this,'color',${idx})" style="${sc}"></td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb"><input type="number" value="" placeholder="0" min="0" oninput="syncC(this,'qty',${idx})" style="${sc}"></td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb"><input type="text" placeholder="검사자" oninput="syncC(this,'inspector',${idx})" style="${sc}"></td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb"><input type="text" value="적합" oninput="syncC(this,'result',${idx})" style="${sc}"></td>
+    <td style="padding:8px 6px;border:1px solid #e5e7eb;text-align:center">
+      <div id="${uid}" onclick="trigPh('${uid}',${idx})"
+        style="width:90px;height:62px;background:#f9fafb;cursor:pointer;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto;line-height:1.4">
+        📷<br>사진 업로드
+      </div>
+    </td>`;
   document.getElementById('inCBody').appendChild(tr);
   calcC();
 }
