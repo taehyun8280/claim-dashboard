@@ -412,6 +412,86 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 <script>
 let attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
+const STORAGE_KEY='quality-dashboard-state-v1';
+const PHOTO_DB='quality-dashboard-photos-v1';
+let saveTimer=null;
+let restoringState=false;
+
+function collectState(){
+  const values={};
+  document.querySelectorAll('#tab-input input[id],#tab-input select[id],#tab-input textarea[id]').forEach(el=>{
+    if(el.type!=='file')values[el.id]=el.value;
+  });
+  return{
+    values,
+    attachItems:[...attachItems],
+    activeTab:document.getElementById('tab-input').classList.contains('active')?'input':'preview'
+  };
+}
+function saveStateNow(){
+  if(restoringState)return;
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(collectState()));}catch(e){console.warn('자동 저장 실패',e);}
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveStateNow,300);
+}
+function openPhotoDb(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(PHOTO_DB,1);
+    req.onupgradeneeded=()=>req.result.createObjectStore('photos',{keyPath:'id'});
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function savePhoto(id,data){
+  try{
+    const db=await openPhotoDb();
+    const tx=db.transaction('photos','readwrite');
+    tx.objectStore('photos').put({id,data});
+    tx.oncomplete=()=>db.close();
+  }catch(e){console.warn('사진 자동 저장 실패',e);}
+}
+async function restorePhotos(){
+  try{
+    const db=await openPhotoDb();
+    const tx=db.transaction('photos','readonly');
+    const req=tx.objectStore('photos').getAll();
+    const photos=await new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
+    photos.forEach(({id,data})=>{
+      const cell=document.getElementById(id);
+      if(cell&&data){cell.innerHTML=`<img src="${data}" style="width:100%;height:100%;object-fit:cover">`;cell.style.border='none';}
+    });
+    db.close();
+  }catch(e){console.warn('사진 복원 실패',e);}
+}
+async function clearSavedPhotos(){
+  try{
+    const db=await openPhotoDb();
+    const tx=db.transaction('photos','readwrite');
+    tx.objectStore('photos').clear();
+    tx.oncomplete=()=>db.close();
+  }catch(e){console.warn('사진 저장소 초기화 실패',e);}
+}
+async function restoreState(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw)return;
+  restoringState=true;
+  try{
+    const state=JSON.parse(raw);
+    Object.entries(state.values||{}).forEach(([id,value])=>{
+      const el=document.getElementById(id);
+      if(el)el.value=value;
+    });
+    if(Array.isArray(state.attachItems))attachItems=state.attachItems;
+    renderAttach();
+    await restorePhotos();
+    calcS();calcC();
+    applyAll();
+    switchTab(state.activeTab==='input'?'input':'preview');
+  }catch(e){console.warn('저장 내용 복원 실패',e);}
+  finally{restoringState=false;}
+}
 
 function renderAttach(){
   const list=document.getElementById('attachList');
@@ -422,7 +502,7 @@ function renderAttach(){
     row.style.cssText='display:flex;align-items:center;gap:8px';
     row.innerHTML=`
       <span style="font-size:12px;color:#6b7280;min-width:20px">${i+1}.</span>
-      <input type="text" value="${text}" oninput="attachItems[${i}]=this.value"
+      <input type="text" value="${text}" oninput="attachItems[${i}]=this.value;scheduleSave()"
         style="flex:1;border:1px solid #e5e7eb;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;height:30px">`;
     list.appendChild(row);
   });
@@ -430,9 +510,10 @@ function renderAttach(){
 function addAttachRow(){
   attachItems.push(`${attachItems.length+1}. `);
   renderAttach();
+  scheduleSave();
 }
 function delAttachRow(){
-  if(attachItems.length>0){attachItems.pop();renderAttach();}
+  if(attachItems.length>0){attachItems.pop();renderAttach();scheduleSave();}
 }
 const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
@@ -446,6 +527,7 @@ const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   document.getElementById('kpi_today_lbl').textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   renderAttach();
+  setTimeout(restoreState,0);
 })();
 
 function switchTab(t){
@@ -453,7 +535,12 @@ function switchTab(t){
   document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   document.querySelectorAll('.tab-bar button')[{preview:0,input:1}[t]].classList.add('active');
+  scheduleSave();
 }
+
+document.getElementById('tab-input').addEventListener('input',scheduleSave);
+document.getElementById('tab-input').addEventListener('change',scheduleSave);
+window.addEventListener('pagehide',saveStateNow);
 
 function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
 function fmtNum(value){return (Number(value)||0).toLocaleString('ko-KR');}
@@ -496,6 +583,7 @@ document.getElementById('photoInput').addEventListener('change',function(){
   r.onload=e=>{
     const c=document.getElementById(photoTarget.uid);
     if(c){c.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;c.style.border='none';}
+    savePhoto(photoTarget.uid,e.target.result);
     photoTarget=null;
   };
   r.readAsDataURL(this.files[0]);this.value='';
@@ -523,6 +611,7 @@ document.addEventListener('paste',function(e){
       r.onload=ev=>{
         const c=document.getElementById(targetId);
         if(c){c.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover">`;c.style.border='none';}
+        savePhoto(targetId,ev.target.result);
       };
       r.readAsDataURL(file);
       e.preventDefault();
@@ -634,11 +723,14 @@ function applyAll(){
   document.getElementById('pvAttach').innerHTML=
     lines.length?lines.map(s=>`<li>${s.trim()}</li>`).join(''):'<li>첨부 없음</li>';
 
+  saveStateNow();
   switchTab('preview');
 }
 
 function resetAll(){
   if(!confirm('모든 내용을 초기화할까요?'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  clearSavedPhotos();
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
   calcS();
   for(let i=0;i<C_COUNT;i++){
@@ -647,6 +739,8 @@ function resetAll(){
     const ph=document.getElementById(`c${i}_photo`);
     if(ph){ph.innerHTML='📷<br>사진';ph.style.border='1px dashed #d1d5db';}
   }
+  attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
+  renderAttach();
   calcC();
 }
 
