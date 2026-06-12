@@ -95,7 +95,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .inp-t-name{font-weight:600;background:#e8e8e8;color:#333}
 .inp-t input[type=number],
 .inp-t input[type=text]{border:1px solid #d1d5db;padding:4px 6px;font-size:12px;font-family:inherit;width:100%;background:#fff;border-radius:3px;text-align:center;height:30px;box-sizing:border-box}
-.inp-t input:focus{outline:none;border-color:#1a56db}
+.inp-t input:focus,.inp-t textarea:focus{outline:none;border-color:#1a56db}
+.case-name-input{border:1px solid #d1d5db;padding:5px 6px;font-size:12px;font-family:inherit;width:100%;min-width:150px;background:#fff;border-radius:3px;text-align:left;height:48px;line-height:1.45;box-sizing:border-box;resize:vertical;overflow:auto}
 .inp-t select{border:1px solid #d1d5db;padding:3px 4px;font-size:11px;font-family:inherit;width:100%;background:#fff;border-radius:3px;height:30px}
 .inp-t-total td{background:#e8f0fe;font-weight:700;color:#1a56db;padding:5px 8px;border:1px solid #dde5f5;font-size:12px;text-align:center}
 .inp-textarea{width:100%;border:1px solid #e5e7eb;padding:7px 9px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff;resize:vertical}
@@ -462,9 +463,36 @@ function getSRows(){
 
 const C_COUNT=20;
 function gC(i,f){return document.getElementById(`c${i}_${f}`);}
-function formatCaseName(name){
-  return (name||'–').replace(/\s*\(/g,'<br>(');
+function setupCaseNameInputs(){
+  for(let i=0;i<C_COUNT;i++){
+    const input=gC(i,'name');
+    if(!input||input.tagName==='TEXTAREA') continue;
+    const textarea=document.createElement('textarea');
+    textarea.id=input.id;
+    textarea.className='case-name-input';
+    textarea.placeholder='예) VAN-REX6\n(싱가폴)';
+    textarea.value=input.value;
+    textarea.rows=2;
+    textarea.addEventListener('input',calcC);
+    textarea.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey) e.preventDefault();
+    });
+    input.replaceWith(textarea);
+  }
 }
+function escapeHtml(text){
+  return String(text).replace(/[&<>"']/g,ch=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
+}
+function formatCaseName(name){
+  const text=(name||'').trim();
+  if(!text) return '–';
+  const lines=text.split(/\r?\n/);
+  if(lines.length===1) return escapeHtml(text).replace(/\s*\(/g,'<br>(');
+  return lines.map(escapeHtml).join('<br>');
+}
+setupCaseNameInputs();
 function calcC(){
   let items=0,qty=0;
   for(let i=0;i<C_COUNT;i++){
