@@ -50,26 +50,26 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .kpi-issue{font-size:13px;color:#555;line-height:1.7;margin-top:4px;min-height:40px}
 
 /* 섹션 */
-.sec-title{font-size:25px;font-weight:700;margin:18px 0 8px;color:#111;display:flex;align-items:center;gap:6px}
-.sec-title::before{content:'';display:inline-block;width:4px;height:20px;background:#1a56db;border-radius:2px}
+.sec-title{font-size:13px;font-weight:700;margin:18px 0 8px;color:#111;display:flex;align-items:center;gap:6px}
+.sec-title::before{content:'';display:inline-block;width:3px;height:14px;background:#1a56db;border-radius:2px}
 
 /* 검사현황 테이블 */
-.st{width:100%;border-collapse:collapse;font-size:20px;margin-bottom:4px;border:1px solid #e5e7eb}
-.st th{background:#f8faff;padding:10px 12px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:20px}
-.st td{padding:10px 12px;border:1px solid #e5e7eb;text-align:center;background:#fff}
+.st{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px;border:1px solid #e5e7eb}
+.st th{background:#f8faff;padding:7px 10px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
+.st td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff}
 .st .gh{background:#e8e8e8;font-weight:600;color:#333}
 .st .tr-total td{background:#e8f0fe;font-weight:700;color:#1a56db;border-color:#c7d7f5}
 .ng-red{color:#111;font-weight:400}
 
 /* 검사내용 테이블 */
-.ct{width:100%;border-collapse:collapse;font-size:20px;border:1px solid #e5e7eb}
-.ct th{background:#f8faff;padding:10px 12px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:20px}
-.ct td{padding:10px 12px;border:1px solid #e5e7eb;text-align:center;background:#fff;vertical-align:middle}
+.ct{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e5e7eb}
+.ct th{background:#f8faff;padding:7px 10px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
+.ct td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff;vertical-align:middle}
 .ct .tr-total td{background:#f8faff;font-weight:700;border-color:#dde5f5}
-.badge-ok{background:#dcfce7;color:#166534;padding:2px 9px;border-radius:10px;font-size:18px;font-weight:700}
-.badge-ng{background:#fee2e2;color:#991b1b;padding:2px 9px;border-radius:10px;font-size:18px;font-weight:700}
-.photo-thumb{width:130px;height:90px;object-fit:cover;border-radius:4px;border:1px solid #e5e7eb;display:block;margin:0 auto}
-.photo-empty{width:130px;height:90px;background:#f9fafb;border:1px dashed #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:14px;margin:0 auto}
+.badge-ok{background:#dcfce7;color:#166534;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}
+.badge-ng{background:#fee2e2;color:#991b1b;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}
+.photo-thumb{width:110px;height:74px;object-fit:cover;border-radius:4px;border:1px solid #e5e7eb;display:block;margin:0 auto}
+.photo-empty{width:110px;height:74px;background:#f9fafb;border:1px dashed #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;margin:0 auto}
 
 /* 특이사항 / 첨부 */
 .note-box{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-height:60px;font-size:12px;color:#555;line-height:1.7}
@@ -636,6 +636,85 @@ function resetAll(){
   calcC();
 }
 
+// 실시간 동기화
+function liveSync(){
+  // 보고서 미리보기 탭이 아니어도 항상 동기화
+  applyAll_silent();
+}
+function applyAll_silent(){
+  // switchTab 없이 applyAll 내용만 실행
+  const v=id=>document.getElementById(id)?.value||'';
+  document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
+  document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
+  if(v('in_date')){
+    const d=new Date(v('in_date'));
+    const day=d.getDay();
+    const offset=day===1?3:1;
+    d.setDate(d.getDate()-offset);
+    document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('pv_lbl_today').textContent=`${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('pv_lbl_month').textContent=`${new Date(v('in_date')).getMonth()+1}월 누적`;
+  }
+  const rows=getSRows();
+  const sb=document.getElementById('pvSBody');
+  sb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    const fmt=n=>n.toLocaleString();
+    tr.innerHTML=`<td class="gh">${r.name}</td>
+      <td>${fmt(r.ti)}</td><td class="${r.tq>0?'ng-red':''}">${fmt(r.tq)}</td>
+      <td>${fmt(r.mi)}</td><td class="${r.mq>0?'ng-red':''}">${fmt(r.mq)}</td>
+      <td>${fmt(r.yi)}</td><td class="${r.yq>0?'ng-red':''}">${fmt(r.yq)}</td>`;
+    sb.appendChild(tr);
+  });
+  const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
+  rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
+  S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k].toLocaleString());
+  // 검사내용
+  const cb=document.getElementById('pvCBody');
+  cb.innerHTML='';
+  let pvNum=0,pvQty=0;
+  for(let i=0;i<C_COUNT;i++){
+    const name=gC(i,'name')?.value.trim()||'';
+    const code=gC(i,'code')?.value.trim()||'';
+    const color=gC(i,'color')?.value.trim()||'';
+    const qty=parseInt(gC(i,'qty')?.value)||0;
+    const inspector=gC(i,'inspector')?.value||'';
+    const result=gC(i,'result')?.value||'적합';
+    if(!name&&!code&&qty===0)continue;
+    pvNum++;pvQty+=qty;
+    const photoEl=document.getElementById(`c${i}_photo`);
+    const img=photoEl?.querySelector('img');
+    const photo=img?`<img src="${img.src}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
+    const badge=result==='부적합'?`<span class="badge-ng">부적합</span>`:result||'적합';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${name||'–'}</td>
+      <td>${code||'–'}</td><td>${color||'–'}</td>
+      <td>${qty||'–'}</td><td>${inspector||'–'}</td>
+      <td>${badge}</td><td>${photo}</td>`;
+    cb.appendChild(tr);
+  }
+  if(pvNum===0){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td colspan="8" style="text-align:center;color:#aaa;padding:16px">입력된 검사내용이 없습니다.</td>`;
+    cb.appendChild(tr);
+  }
+  document.getElementById('pv_c_item').textContent=pvNum+' 품목';
+  document.getElementById('pv_c_qty').textContent=pvQty+' 박스';
+  const note=v('in_note').trim();
+  document.getElementById('pvNote').textContent=note||'\u00a0';
+}
+
+// 입력 이벤트 감지 → 실시간 동기화
+document.addEventListener('input',function(e){
+  const inp=e.target;
+  if(inp.closest('#tab-input')) liveSync();
+});
+document.addEventListener('change',function(e){
+  const inp=e.target;
+  if(inp.closest('#tab-input')) liveSync();
+});
+
 async function copyDashboard(){
   const btn=document.getElementById('copyBtn');
   const target=document.querySelector('.report-paper');
@@ -648,6 +727,18 @@ async function copyDashboard(){
   const prevDisplay=head?head.style.display:'';
   if(head) head.style.display='none';
 
+  // 캡처용 폰트 확대
+  const secTitles=document.querySelectorAll('.sec-title');
+  const stThs=document.querySelectorAll('.st th');
+  const stTds=document.querySelectorAll('.st td');
+  const ctThs=document.querySelectorAll('.ct th');
+  const ctTds=document.querySelectorAll('.ct td');
+  secTitles.forEach(el=>el.style.fontSize='25px');
+  stThs.forEach(el=>el.style.fontSize='20px');
+  stTds.forEach(el=>el.style.fontSize='20px');
+  ctThs.forEach(el=>el.style.fontSize='20px');
+  ctTds.forEach(el=>el.style.fontSize='20px');
+
   try{
     const canvas=await html2canvas(target,{
       scale:2,
@@ -656,8 +747,13 @@ async function copyDashboard(){
       logging:false
     });
 
-    // 제목·날짜 복원
+    // 제목·날짜 복원 + 폰트 복원
     if(head) head.style.display=prevDisplay;
+    secTitles.forEach(el=>el.style.fontSize='');
+    stThs.forEach(el=>el.style.fontSize='');
+    stTds.forEach(el=>el.style.fontSize='');
+    ctThs.forEach(el=>el.style.fontSize='');
+    ctTds.forEach(el=>el.style.fontSize='');
 
     canvas.toBlob(async blob=>{
       try{
@@ -681,6 +777,11 @@ async function copyDashboard(){
     },'image/png');
   }catch(e){
     if(head) head.style.display=prevDisplay;
+    secTitles.forEach(el=>el.style.fontSize='');
+    stThs.forEach(el=>el.style.fontSize='');
+    stTds.forEach(el=>el.style.fontSize='');
+    ctThs.forEach(el=>el.style.fontSize='');
+    ctTds.forEach(el=>el.style.fontSize='');
     alert('캡처에 실패했습니다: '+e.message);
     btn.textContent='📋 대시보드 이미지 복사';
     btn.disabled=false;
