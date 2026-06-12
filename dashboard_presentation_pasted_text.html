@@ -731,11 +731,15 @@ async function copyDashboard(){
   if(head) head.style.display='none';
 
   // 캡처용 폰트 확대
+  const kpiLabels=document.querySelectorAll('.kpi-lbl');
+  const kpiSubLabels=document.querySelectorAll('.kpi-sub-lbl');
   const secTitles=document.querySelectorAll('.sec-title');
   const stThs=document.querySelectorAll('.st th');
   const stTds=document.querySelectorAll('.st td');
   const ctThs=document.querySelectorAll('.ct th');
   const ctTds=document.querySelectorAll('.ct td');
+  kpiLabels.forEach(el=>el.style.fontSize='20px');
+  kpiSubLabels.forEach(el=>el.style.fontSize='20px');
   secTitles.forEach(el=>el.style.fontSize='25px');
   stThs.forEach(el=>el.style.fontSize='20px');
   stTds.forEach(el=>el.style.fontSize='20px');
@@ -779,6 +783,8 @@ async function copyDashboard(){
     }
   }finally{
     if(head) head.style.display=prevDisplay;
+    kpiLabels.forEach(el=>el.style.fontSize='');
+    kpiSubLabels.forEach(el=>el.style.fontSize='');
     secTitles.forEach(el=>el.style.fontSize='');
     stThs.forEach(el=>el.style.fontSize='');
     stTds.forEach(el=>el.style.fontSize='');
