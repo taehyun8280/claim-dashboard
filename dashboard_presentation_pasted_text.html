@@ -738,6 +738,8 @@ async function copyDashboard(){
   const stTds=document.querySelectorAll('.st td');
   const ctThs=document.querySelectorAll('.ct th');
   const ctTds=document.querySelectorAll('.ct td');
+  const ctHorizontalCells=document.querySelectorAll('.ct th:nth-child(1),.ct td:nth-child(1),.ct th:nth-child(5),.ct td:nth-child(5),.ct th:nth-child(7),.ct td:nth-child(7)');
+  const attachItems=document.querySelectorAll('.attach-box li');
   kpiLabels.forEach(el=>el.style.fontSize='20px');
   kpiSubLabels.forEach(el=>el.style.fontSize='20px');
   secTitles.forEach(el=>el.style.fontSize='25px');
@@ -745,6 +747,11 @@ async function copyDashboard(){
   stTds.forEach(el=>el.style.fontSize='20px');
   ctThs.forEach(el=>el.style.fontSize='20px');
   ctTds.forEach(el=>el.style.fontSize='20px');
+  ctHorizontalCells.forEach(el=>{
+    el.style.whiteSpace='nowrap';
+    el.style.minWidth=el.cellIndex===0?'54px':el.cellIndex===4?'68px':'72px';
+  });
+  attachItems.forEach(el=>el.style.fontSize='20px');
 
   let canvas;
   const blobPromise=(async()=>{
@@ -790,6 +797,11 @@ async function copyDashboard(){
     stTds.forEach(el=>el.style.fontSize='');
     ctThs.forEach(el=>el.style.fontSize='');
     ctTds.forEach(el=>el.style.fontSize='');
+    ctHorizontalCells.forEach(el=>{
+      el.style.whiteSpace='';
+      el.style.minWidth='';
+    });
+    attachItems.forEach(el=>el.style.fontSize='');
     setTimeout(()=>{
       btn.textContent='📋 대시보드 이미지 복사';
       btn.style.background='';
