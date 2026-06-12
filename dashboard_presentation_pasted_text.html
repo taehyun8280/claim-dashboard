@@ -447,10 +447,20 @@ function switchTab(t){
 }
 
 function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
+function updateClaimKpis(s){
+  const fmt=n=>(n||0).toLocaleString();
+  document.getElementById('db_claim_d_item').textContent=fmt(s.ti);
+  document.getElementById('db_claim_d_qty').textContent=fmt(s.tq);
+  document.getElementById('db_claim_m_item').textContent=fmt(s.mi);
+  document.getElementById('db_claim_m_qty').textContent=fmt(s.mq);
+  document.getElementById('db_claim_y_item').textContent=fmt(s.yi);
+  document.getElementById('db_claim_y_qty').textContent=fmt(s.yq);
+}
 function calcS(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
   S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k].toLocaleString());
+  updateClaimKpis(s);
 }
 function getSRows(){
   return S_NAMES.map((name,i)=>({
@@ -566,21 +576,7 @@ function applyAll(){
   rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
   S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k].toLocaleString());
 
-  // KPI 카드1 - 금일 (보고서와 동일한 날짜 기준)
-  const todayLbl2=v('in_date')?(()=>{
-    const d=new Date(v('in_date'));
-    const day=d.getDay();
-    const offset=day===1?3:1;
-    d.setDate(d.getDate()-offset);
-    return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
-  })():'금일';
-  // KPI 카드 - 고객클레임 (– 유지, 별도 입력 없음)
-  document.getElementById('db_claim_d_item').textContent='–';
-  document.getElementById('db_claim_d_qty').textContent='–';
-  document.getElementById('db_claim_m_item').textContent='–';
-  document.getElementById('db_claim_m_qty').textContent='–';
-  document.getElementById('db_claim_y_item').textContent='1';
-  document.getElementById('db_claim_y_qty').textContent='1';
+  updateClaimKpis(s);
 
   const cb=document.getElementById('pvCBody');
   cb.innerHTML='';
@@ -669,6 +665,7 @@ function applyAll_silent(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
   S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k].toLocaleString());
+  updateClaimKpis(s);
   // 검사내용
   const cb=document.getElementById('pvCBody');
   cb.innerHTML='';
@@ -713,6 +710,10 @@ document.addEventListener('change',function(e){
   const inp=e.target;
   if(inp.closest('#tab-input')) liveSync();
 });
+
+// 페이지를 처음 열 때도 입력값과 보고서/KPI 숫자를 맞춘다.
+calcS();
+applyAll_silent();
 
 async function copyDashboard(){
   const btn=document.getElementById('copyBtn');
