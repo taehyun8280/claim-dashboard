@@ -224,12 +224,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
       <thead>
         <tr>
           <th style="width:34px">번호</th>
-          <th>건명</th><th>단품코드</th>
+          <th style="width:160px">건명</th><th>단품코드</th>
           <th style="width:48px">색상</th>
           <th style="width:44px">수량</th>
           <th>검사자</th>
           <th style="width:58px">결과</th>
-          <th style="width:125px">검사 사진</th>
+          <th style="width:170px">검사 사진</th>
         </tr>
       </thead>
       <tbody id="pvCBody"></tbody>
@@ -472,6 +472,9 @@ function getSRows(){
 
 const C_COUNT=20;
 function gC(i,f){return document.getElementById(`c${i}_${f}`);}
+function formatCaseName(name){
+  return (name||'–').replace(/\s*\(/g,'<br>(');
+}
 function calcC(){
   let items=0,qty=0;
   for(let i=0;i<C_COUNT;i++){
@@ -595,7 +598,7 @@ function applyAll(){
     const photo=img?`<img src="${img.src}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
     const badge=result==='부적합'?`<span class="badge-ng">부적합</span>`:result||'적합';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${name||'–'}</td>
+    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${formatCaseName(name)}</td>
       <td>${code||'–'}</td><td>${color||'–'}</td>
       <td>${qty||'–'}</td><td>${inspector||'–'}</td>
       <td>${badge}</td><td>${photo}</td>`;
@@ -684,7 +687,7 @@ function applyAll_silent(){
     const photo=img?`<img src="${img.src}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
     const badge=result==='부적합'?`<span class="badge-ng">부적합</span>`:result||'적합';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${name||'–'}</td>
+    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${formatCaseName(name)}</td>
       <td>${code||'–'}</td><td>${color||'–'}</td>
       <td>${qty||'–'}</td><td>${inspector||'–'}</td>
       <td>${badge}</td><td>${photo}</td>`;
@@ -740,7 +743,11 @@ async function copyDashboard(){
   const ctThs=document.querySelectorAll('.ct th');
   const ctTds=document.querySelectorAll('.ct td');
   const ctHorizontalCells=document.querySelectorAll('.ct th:nth-child(1),.ct td:nth-child(1),.ct th:nth-child(5),.ct td:nth-child(5),.ct th:nth-child(7),.ct td:nth-child(7)');
+  const caseNameCells=document.querySelectorAll('.ct th:nth-child(2),.ct td:nth-child(2)');
+  const photoCells=document.querySelectorAll('.ct th:nth-child(8),.ct td:nth-child(8)');
+  const photoThumbs=document.querySelectorAll('.ct .photo-thumb,.ct .photo-empty');
   const attachItems=document.querySelectorAll('.attach-box li');
+  const reportFooter=document.querySelector('.report-footer');
   kpiLabels.forEach(el=>el.style.fontSize='20px');
   kpiSubLabels.forEach(el=>el.style.fontSize='20px');
   secTitles.forEach(el=>el.style.fontSize='25px');
@@ -752,7 +759,21 @@ async function copyDashboard(){
     el.style.whiteSpace='nowrap';
     el.style.minWidth=el.cellIndex===0?'54px':el.cellIndex===4?'68px':'72px';
   });
+  caseNameCells.forEach(el=>{
+    el.style.width='160px';
+    el.style.maxWidth='160px';
+    el.style.whiteSpace='normal';
+  });
+  photoCells.forEach(el=>{
+    el.style.width='170px';
+    el.style.minWidth='170px';
+  });
+  photoThumbs.forEach(el=>{
+    el.style.width='150px';
+    el.style.height='100px';
+  });
   attachItems.forEach(el=>el.style.fontSize='20px');
+  if(reportFooter) reportFooter.style.fontSize='20px';
 
   let canvas;
   const blobPromise=(async()=>{
@@ -802,7 +823,21 @@ async function copyDashboard(){
       el.style.whiteSpace='';
       el.style.minWidth='';
     });
+    caseNameCells.forEach(el=>{
+      el.style.width='';
+      el.style.maxWidth='';
+      el.style.whiteSpace='';
+    });
+    photoCells.forEach(el=>{
+      el.style.width='';
+      el.style.minWidth='';
+    });
+    photoThumbs.forEach(el=>{
+      el.style.width='';
+      el.style.height='';
+    });
     attachItems.forEach(el=>el.style.fontSize='');
+    if(reportFooter) reportFooter.style.fontSize='';
     setTimeout(()=>{
       btn.textContent='📋 대시보드 이미지 복사';
       btn.style.background='';
