@@ -436,7 +436,8 @@ const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
   document.getElementById('in_lbl_month_val') || (window._lbl_month = `${d.getMonth()+1}월 누적`);
   window._lbl_year = `${String(d.getFullYear()).slice(2)}년 누적`;
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
-  document.getElementById('kpi_today_lbl').textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
+  const todayLabel=document.getElementById('kpi_today_lbl');
+  if(todayLabel) todayLabel.textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   renderAttach();
 })();
 
@@ -719,6 +720,10 @@ async function copyDashboard(){
   const btn=document.getElementById('copyBtn');
   const target=document.querySelector('.report-paper');
   if(!target){alert('보고서 영역을 찾을 수 없습니다.');return;}
+  if(!window.isSecureContext||!navigator.clipboard||!window.ClipboardItem){
+    alert('이 브라우저에서는 이미지 복사를 지원하지 않습니다. GitHub 공개 링크를 Chrome 또는 Edge에서 열어 주세요.');
+    return;
+  }
   btn.textContent='⏳ 캡처 중...';
   btn.disabled=true;
 
@@ -739,52 +744,53 @@ async function copyDashboard(){
   ctThs.forEach(el=>el.style.fontSize='20px');
   ctTds.forEach(el=>el.style.fontSize='20px');
 
-  try{
-    const canvas=await html2canvas(target,{
+  let canvas;
+  const blobPromise=(async()=>{
+    canvas=await html2canvas(target,{
       scale:2,
       useCORS:true,
       backgroundColor:'#ffffff',
       logging:false
     });
+    return new Promise((resolve,reject)=>{
+      canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG 이미지 생성에 실패했습니다.')),'image/png');
+    });
+  })();
 
-    // 제목·날짜 복원 + 폰트 복원
-    if(head) head.style.display=prevDisplay;
-    secTitles.forEach(el=>el.style.fontSize='');
-    stThs.forEach(el=>el.style.fontSize='');
-    stTds.forEach(el=>el.style.fontSize='');
-    ctThs.forEach(el=>el.style.fontSize='');
-    ctTds.forEach(el=>el.style.fontSize='');
-
-    canvas.toBlob(async blob=>{
-      try{
-        await navigator.clipboard.write([
-          new ClipboardItem({'image/png':blob})
-        ]);
-        btn.textContent='✅ 복사 완료!';
-        btn.style.background='#166534';
-      }catch(e){
+  try{
+    // 사용자 클릭 권한이 유지되는 동안 복사를 먼저 요청하고 이미지 생성을 기다린다.
+    await navigator.clipboard.write([
+      new ClipboardItem({'image/png':blobPromise})
+    ]);
+    btn.textContent='✅ 복사 완료!';
+    btn.style.background='#166534';
+  }catch(e){
+    try{
+      await blobPromise;
+      if(canvas){
         const a=document.createElement('a');
         a.href=canvas.toDataURL('image/png');
         a.download='보고서_'+new Date().toISOString().slice(0,10)+'.png';
         a.click();
-        btn.textContent='💾 이미지 저장됨';
+        btn.textContent='💾 복사 권한 없음 · 이미지 저장됨';
+        alert('브라우저가 클립보드 이미지 복사를 차단해 PNG 파일로 저장했습니다. 주소창의 사이트 권한에서 클립보드를 허용한 뒤 다시 눌러 주세요.');
       }
-      setTimeout(()=>{
-        btn.textContent='📋 대시보드 이미지 복사';
-        btn.style.background='';
-        btn.disabled=false;
-      },2500);
-    },'image/png');
-  }catch(e){
+    }catch(captureError){
+      alert('캡처에 실패했습니다: '+captureError.message);
+      btn.textContent='❌ 복사 실패';
+    }
+  }finally{
     if(head) head.style.display=prevDisplay;
     secTitles.forEach(el=>el.style.fontSize='');
     stThs.forEach(el=>el.style.fontSize='');
     stTds.forEach(el=>el.style.fontSize='');
     ctThs.forEach(el=>el.style.fontSize='');
     ctTds.forEach(el=>el.style.fontSize='');
-    alert('캡처에 실패했습니다: '+e.message);
-    btn.textContent='📋 대시보드 이미지 복사';
-    btn.disabled=false;
+    setTimeout(()=>{
+      btn.textContent='📋 대시보드 이미지 복사';
+      btn.style.background='';
+      btn.disabled=false;
+    },2500);
   }
 }
 </script>
