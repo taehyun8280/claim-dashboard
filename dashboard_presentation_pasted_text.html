@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>사내 QA 지식검색</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+</script>
 <style>
 /* ===== DESIGN TOKENS ===== */
 :root {
@@ -949,24 +955,70 @@ miniDrop.addEventListener('dragover', e => { e.preventDefault(); miniDrop.style.
 miniDrop.addEventListener('dragleave', () => { miniDrop.style.borderColor=''; });
 miniDrop.addEventListener('drop', e => { e.preventDefault(); miniDrop.style.borderColor=''; handleFiles(e.dataTransfer.files); });
 
-function handleFiles(files) {
+function sanitizeDocumentText(text) {
+  return String(text || '')
+    .replace(/\u0000/g, '')
+    .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function isReadableDocumentText(text) {
+  const value = String(text || '');
+  if (!value || /^%PDF-/i.test(value.trim())) return false;
+  const replacementCount = (value.match(/\uFFFD/g) || []).length;
+  const controlCount = (value.match(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g) || []).length;
+  return (replacementCount + controlCount) / Math.max(value.length, 1) < 0.02;
+}
+
+async function extractPdfText(file) {
+  if (!window.pdfjsLib) throw new Error('PDF parser unavailable');
+  const data = new Uint8Array(await file.arrayBuffer());
+  const pdf = await window.pdfjsLib.getDocument({ data }).promise;
+  const pages = [];
+  for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+    const page = await pdf.getPage(pageNo);
+    const textContent = await page.getTextContent();
+    pages.push(textContent.items.map(item => item.str).join(' '));
+  }
+  return sanitizeDocumentText(pages.join('\n\n'));
+}
+
+async function readDocumentText(file) {
+  const extension = (file.name.split('.').pop() || '').toLowerCase();
+  if (extension === 'pdf' || file.type === 'application/pdf') return extractPdfText(file);
+  return sanitizeDocumentText(await file.text());
+}
+
+async function handleFiles(files) {
   closeModal('modalUpload');
   let added = 0;
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = async e => {
-      const doc = { name:file.name, size:file.size, content:e.target.result, type:file.type, addedAt:nowStr() };
+  let failed = 0;
+  for (const file of Array.from(files)) {
+    try {
+      const content = await readDocumentText(file);
+      if (!content) throw new Error('No readable text');
+      const doc = {
+        name:file.name,
+        size:file.size,
+        content,
+        type:file.type,
+        addedAt:nowStr(),
+        extraction:'text-v2'
+      };
       const idx = S.docs.findIndex(d => d.name === file.name);
       if (idx >= 0) S.docs[idx] = doc; else S.docs.push(doc);
-      try { await storeDoc(doc); } catch(err) { toast(`"${file.name}" 저장에 실패했습니다`, 'warn'); return; }
+      await storeDoc(doc);
       added++;
-      renderDocRail(); renderDocGrid(); updateDocStats();
-      updateBadges();
-      saveState();
-      if (added === files.length) toast(`${files.length}개 파일 업로드 완료`, 'ok');
-    };
-    reader.readAsText(file);
-  });
+    } catch (err) {
+      failed++;
+      console.error('Document extraction failed:', file.name, err);
+      toast(`"${file.name}" 텍스트 추출에 실패했습니다`, 'warn');
+    }
+  }
+  renderDocRail(); renderDocGrid(); updateDocStats(); updateBadges(); saveState();
+  if (added) toast(`${added}개 파일 업로드 완료${failed ? ` (${failed}개 실패)` : ''}`, 'ok');
 }
 
 async function removeDoc(i) {
@@ -1112,11 +1164,12 @@ function hlKeywords(html, kws=[]) {
 }
 
 function localDocumentAnswer(q) {
-  const terms = q.toLowerCase().match(/[a-z0-9가-힣]{2,}/g) || [];
+  const terms = q.toLowerCase().match(/[a-z0-9\uAC00-\uD7A3]{2,}/g) || [];
   const results = S.docs.map(doc => {
     const name = (doc.name || '').toLowerCase();
     const content = String(doc.content || '');
-    const lower = content.toLowerCase();
+    const readable = isReadableDocumentText(content);
+    const lower = readable ? content.toLowerCase() : '';
     let score = 0;
     let hit = -1;
     terms.forEach(term => {
@@ -1124,7 +1177,7 @@ function localDocumentAnswer(q) {
       const pos = lower.indexOf(term);
       if (pos >= 0) { score += 3; if (hit < 0) hit = pos; }
     });
-    return { doc, score, hit, content };
+    return { doc, score, hit, content, readable };
   }).filter(r => r.score > 0).sort((a,b) => b.score - a.score).slice(0,5);
 
   if (!results.length) {
@@ -1134,7 +1187,10 @@ function localDocumentAnswer(q) {
     };
   }
 
-  const rows = results.map(({doc,hit,content}) => {
+  const rows = results.map(({doc,hit,content,readable}) => {
+    if (!readable) {
+      return `<div style="margin:10px 0 14px"><strong>${esc(doc.name)}</strong><br><span style="color:var(--ink-2)">이 PDF는 이전 방식으로 등록되어 본문을 읽을 수 없습니다. 같은 파일을 다시 업로드하면 정상적으로 검색됩니다.</span></div>`;
+    }
     const start = Math.max(0, hit - 90);
     const snippet = content.slice(start, start + 260).replace(/\s+/g, ' ').trim();
     return `<div style="margin:10px 0 14px"><strong>${esc(doc.name)}</strong><br><span style="color:var(--ink-2)">${esc(snippet || '파일명에서 관련 키워드를 찾았습니다.')}</span></div>`;
