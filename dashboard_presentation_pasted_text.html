@@ -765,7 +765,7 @@ a { color: inherit; text-decoration: none; }
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn" onclick="exportCSV()">이력 CSV 내보내기</button>
               <button class="btn btn-danger" onclick="if(confirm('모든 이력을 삭제할까요?')){S.history=[];saveState();renderHist();toast('이력 초기화됨','ok')}">이력 초기화</button>
-              <button class="btn btn-danger" onclick="if(confirm('모든 문서를 삭제할까요?')){S.docs=[];saveState();renderAll();toast('문서 초기화됨','ok')}">문서 초기화</button>
+              <button class="btn btn-danger" onclick="clearAllDocs()">문서 초기화</button>
             </div>
           </div>
         </div>
@@ -823,6 +823,8 @@ a { color: inherit; text-decoration: none; }
 // STATE
 // ======================================================
 const STORE_KEY = 'qa_gpt_state_v2';
+const DOC_DB_NAME = 'qa_gpt_documents_v1';
+const DOC_STORE_NAME = 'documents';
 let S = {
   docs: [],
   history: [],
@@ -836,16 +838,76 @@ let S = {
 };
 
 function saveState() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({ docs:S.docs, history:S.history, users:S.users, settings:S.settings })); } catch(e) {}
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ history:S.history, users:S.users, settings:S.settings })); } catch(e) {}
 }
 function loadState() {
   try {
     const d = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-    if (d.docs)     S.docs     = d.docs;
     if (d.history)  S.history  = d.history;
     if (d.users)    S.users    = d.users;
     if (d.settings) S.settings = { ...S.settings, ...d.settings };
   } catch(e) {}
+}
+
+function openDocDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DOC_DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(DOC_STORE_NAME)) db.createObjectStore(DOC_STORE_NAME, { keyPath:'name' });
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function loadStoredDocs() {
+  try {
+    const db = await openDocDb();
+    S.docs = await new Promise((resolve, reject) => {
+      const req = db.transaction(DOC_STORE_NAME, 'readonly').objectStore(DOC_STORE_NAME).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+    db.close();
+    if (!S.docs.length) {
+      const legacy = JSON.parse(localStorage.getItem(STORE_KEY) || '{}').docs || [];
+      if (legacy.length) {
+        S.docs = legacy;
+        await Promise.all(legacy.map(storeDoc));
+        saveState();
+      }
+    }
+  } catch(e) {
+    const legacy = JSON.parse(localStorage.getItem(STORE_KEY) || '{}').docs || [];
+    S.docs = legacy;
+  }
+}
+async function storeDoc(doc) {
+  const db = await openDocDb();
+  await new Promise((resolve, reject) => {
+    const req = db.transaction(DOC_STORE_NAME, 'readwrite').objectStore(DOC_STORE_NAME).put(doc);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+  db.close();
+}
+async function deleteStoredDoc(name) {
+  const db = await openDocDb();
+  await new Promise((resolve, reject) => {
+    const req = db.transaction(DOC_STORE_NAME, 'readwrite').objectStore(DOC_STORE_NAME).delete(name);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+  db.close();
+}
+async function clearStoredDocs() {
+  const db = await openDocDb();
+  await new Promise((resolve, reject) => {
+    const req = db.transaction(DOC_STORE_NAME, 'readwrite').objectStore(DOC_STORE_NAME).clear();
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+  db.close();
 }
 
 // ======================================================
@@ -892,12 +954,13 @@ function handleFiles(files) {
   let added = 0;
   Array.from(files).forEach(file => {
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
       const doc = { name:file.name, size:file.size, content:e.target.result, type:file.type, addedAt:nowStr() };
       const idx = S.docs.findIndex(d => d.name === file.name);
       if (idx >= 0) S.docs[idx] = doc; else S.docs.push(doc);
+      try { await storeDoc(doc); } catch(err) { toast(`"${file.name}" 저장에 실패했습니다`, 'warn'); return; }
       added++;
-      renderDocRail();
+      renderDocRail(); renderDocGrid(); updateDocStats();
       updateBadges();
       saveState();
       if (added === files.length) toast(`${files.length}개 파일 업로드 완료`, 'ok');
@@ -906,11 +969,19 @@ function handleFiles(files) {
   });
 }
 
-function removeDoc(i) {
+async function removeDoc(i) {
   const name = S.docs[i].name;
   S.docs.splice(i, 1);
+  try { await deleteStoredDoc(name); } catch(e) {}
   renderDocRail(); renderDocGrid(); updateDocStats(); updateBadges(); saveState();
   toast(`"${name}" 삭제됨`);
+}
+async function clearAllDocs() {
+  if (!confirm('모든 문서를 삭제할까요?')) return;
+  S.docs = [];
+  try { await clearStoredDocs(); } catch(e) {}
+  saveState(); renderDocRail(); renderDocGrid(); updateDocStats(); updateBadges(); fillCmpSelects();
+  toast('문서 초기화됨','ok');
 }
 
 // ======================================================
@@ -1282,11 +1353,17 @@ function toast(msg, type='info') {
 // ======================================================
 // INIT
 // ======================================================
-loadState();
-renderDocRail();
-renderUsers();
-updateBadges();
-applySettingsUI();
+async function initApp() {
+  loadState();
+  await loadStoredDocs();
+  renderDocRail();
+  renderDocGrid();
+  updateDocStats();
+  renderUsers();
+  updateBadges();
+  applySettingsUI();
+}
+initApp();
 </script>
 </body>
 </html>
