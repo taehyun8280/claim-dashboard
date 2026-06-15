@@ -434,6 +434,7 @@ function delAttachRow(){
 }
 const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
+const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV1';
 
 (function(){
   const d=new Date();
@@ -455,6 +456,52 @@ function switchTab(t){
 }
 
 function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
+function saveInspectionState(){
+  const rows=[0,1,2].map(i=>({
+    ti:getS(i,'ti'),tq:getS(i,'tq'),
+    mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq'),
+    savedTi:parseInt(document.getElementById(`s${i}_ti`)?.dataset.saved)||0,
+    savedTq:parseInt(document.getElementById(`s${i}_tq`)?.dataset.saved)||0
+  }));
+  localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(rows));
+}
+function restoreInspectionState(){
+  let rows=[];
+  try{rows=JSON.parse(localStorage.getItem(INSPECTION_STORAGE_KEY)||'[]');}catch(e){}
+  [0,1,2].forEach(i=>{
+    const row=rows[i]||{};
+    ['ti','tq','mi','mq','yi','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el&&Number.isFinite(Number(row[f]))) el.value=Number(row[f]);
+    });
+    const ti=document.getElementById(`s${i}_ti`);
+    const tq=document.getElementById(`s${i}_tq`);
+    if(ti) ti.dataset.saved=String(Number(row.savedTi)||0);
+    if(tq) tq.dataset.saved=String(Number(row.savedTq)||0);
+  });
+}
+function commitTodayToCumulative(){
+  [0,1,2].forEach(i=>{
+    const ti=document.getElementById(`s${i}_ti`);
+    const tq=document.getElementById(`s${i}_tq`);
+    const currentTi=getS(i,'ti');
+    const currentTq=getS(i,'tq');
+    const deltaTi=currentTi-(parseInt(ti?.dataset.saved)||0);
+    const deltaTq=currentTq-(parseInt(tq?.dataset.saved)||0);
+    ['mi','yi'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.value=Math.max(0,getS(i,f)+deltaTi);
+    });
+    ['mq','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.value=Math.max(0,getS(i,f)+deltaTq);
+    });
+    if(ti) ti.dataset.saved=String(currentTi);
+    if(tq) tq.dataset.saved=String(currentTq);
+  });
+  calcS();
+  saveInspectionState();
+}
 function calcS(){
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
@@ -561,6 +608,7 @@ document.addEventListener('paste',function(e){
 
 function applyAll(){
   const v=id=>document.getElementById(id)?.value||'';
+  commitTodayToCumulative();
 
   document.getElementById('pv_title').textContent=v('in_title')||'일일 품질 검사 보고서';
   document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
@@ -663,7 +711,14 @@ function applyAll(){
 function resetAll(){
   if(!confirm('모든 내용을 초기화할까요?'))return;
   [0,1,2].forEach(i=>['ti','tq'].forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
+  [0,1,2].forEach(i=>{
+    const ti=document.getElementById(`s${i}_ti`);
+    const tq=document.getElementById(`s${i}_tq`);
+    if(ti) ti.dataset.saved='0';
+    if(tq) tq.dataset.saved='0';
+  });
   calcS();
+  saveInspectionState();
   for(let i=0;i<C_COUNT;i++){
     ['name','code','color','inspector','result'].forEach(f=>{const el=gC(i,f);if(el)el.value='';});
     const q=gC(i,'qty');if(q)q.value='';
@@ -753,6 +808,7 @@ document.addEventListener('change',function(e){
 });
 
 // 고정 누적값을 첫 화면의 합계와 보고서 미리보기에 즉시 반영한다.
+restoreInspectionState();
 calcS();
 applyAll_silent();
 
