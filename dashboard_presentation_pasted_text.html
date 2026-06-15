@@ -1111,6 +1111,40 @@ function hlKeywords(html, kws=[]) {
   return html;
 }
 
+function localDocumentAnswer(q) {
+  const terms = q.toLowerCase().match(/[a-z0-9가-힣]{2,}/g) || [];
+  const results = S.docs.map(doc => {
+    const name = (doc.name || '').toLowerCase();
+    const content = String(doc.content || '');
+    const lower = content.toLowerCase();
+    let score = 0;
+    let hit = -1;
+    terms.forEach(term => {
+      if (name.includes(term)) score += 8;
+      const pos = lower.indexOf(term);
+      if (pos >= 0) { score += 3; if (hit < 0) hit = pos; }
+    });
+    return { doc, score, hit, content };
+  }).filter(r => r.score > 0).sort((a,b) => b.score - a.score).slice(0,5);
+
+  if (!results.length) {
+    return {
+      answer: `등록된 문서에서 <strong>“${esc(q)}”</strong>와 일치하는 문구를 찾지 못했습니다.<br><br><span style="color:var(--ink-3)">정확한 AI 해석이 필요하면 시스템 설정에서 API Key를 등록해 주세요.</span>`,
+      sources: [], keywords: terms
+    };
+  }
+
+  const rows = results.map(({doc,hit,content}) => {
+    const start = Math.max(0, hit - 90);
+    const snippet = content.slice(start, start + 260).replace(/\s+/g, ' ').trim();
+    return `<div style="margin:10px 0 14px"><strong>${esc(doc.name)}</strong><br><span style="color:var(--ink-2)">${esc(snippet || '파일명에서 관련 키워드를 찾았습니다.')}</span></div>`;
+  }).join('');
+  return {
+    answer: `API 연결 없이 등록 문서에서 찾은 관련 결과입니다.${rows}`,
+    sources: results.map(r => r.doc.name), keywords: terms
+  };
+}
+
 async function sendMsg() {
   const ta = document.getElementById('chatTa');
   const q = ta.value.trim();
@@ -1129,10 +1163,15 @@ async function sendMsg() {
 
   // Determine API key
   const apiKey = document.getElementById('apiKeyInput')?.value?.trim() || '';
-  const headers = { 'Content-Type':'application/json' };
+  const headers = {
+    'Content-Type':'application/json',
+    'anthropic-version':'2023-06-01',
+    'anthropic-dangerous-direct-browser-access':'true'
+  };
   if (apiKey) headers['x-api-key'] = apiKey;
 
   try {
+    if (!apiKey) throw new Error('API_KEY_MISSING');
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST', headers,
       body: JSON.stringify({
@@ -1154,6 +1193,7 @@ JSON만 반환, 코드블록 없이.`,
       })
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || `API 요청 실패 (${res.status})`);
     const raw = (data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
     let parsed;
     try { parsed = JSON.parse(raw); } catch { parsed = { answer: esc(raw), sources:[], keywords:[] }; }
@@ -1169,7 +1209,13 @@ JSON만 반환, 코드블록 없이.`,
     }
   } catch(e) {
     rmTyping();
-    addMsg('ai', '⚠️ 오류가 발생했습니다. 설정 > API Key를 확인하거나 다시 시도해 주세요.');
+    const fallback = localDocumentAnswer(q);
+    addMsg('ai', hlKeywords(fallback.answer, fallback.keywords), fallback.sources);
+    S.chatHistory.push({ role:'user', content:q }, { role:'assistant', content:fallback.answer });
+    if (S.settings.autoHist) {
+      S.history.unshift({ q, sources:fallback.sources, time:nowStr(), cnt:fallback.sources.length });
+      updateBadges(); saveState();
+    }
   }
 
   busy = false;
