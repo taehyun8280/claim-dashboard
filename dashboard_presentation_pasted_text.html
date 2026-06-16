@@ -736,8 +736,8 @@ a { color: inherit; text-decoration: none; }
             <h3>Anthropic API 설정</h3>
             <div class="fgrp" style="margin-bottom:12px">
               <label>API Key</label>
-              <input class="finput" type="password" id="apiKeyInput" placeholder="sk-ant-…" value="">
-              <small style="color:var(--ink-4);font-size:11px;margin-top:4px;display:block">키는 이 브라우저에만 저장됩니다. 서버로 전송되지 않습니다.</small>
+              <input class="finput" type="password" id="apiKeyInput" placeholder="AIza…" value="">
+              <small style="color:var(--ink-4);font-size:11px;margin-top:4px;display:block">Gemini API 키 (aistudio.google.com에서 무료 발급). 이 브라우저에만 저장됩니다.</small>
             </div>
             <div class="fgrp" style="margin-bottom:16px">
               <label>모델</label>
@@ -1292,23 +1292,9 @@ async function sendMsg() {
   const ctx = S.docs.map(d=>`[문서: ${d.name}]\n${d.content.slice(0,8000)}`).join('\n\n---\n\n');
   const hist = S.chatHistory.slice(-6);
 
-  // Determine API key
   const apiKey = document.getElementById('apiKeyInput')?.value?.trim() || '';
-  const headers = {
-    'Content-Type':'application/json',
-    'anthropic-version':'2023-06-01',
-    'anthropic-dangerous-direct-browser-access':'true'
-  };
-  if (apiKey) headers['x-api-key'] = apiKey;
 
-  try {
-    if (!apiKey) throw new Error('API_KEY_MISSING');
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers,
-      body: JSON.stringify({
-        model: S.settings.model || 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: `당신은 사내 QA 지식 검색 전문 AI입니다. 업로드된 시험 기준서·표준 문서를 기반으로 핵심만 간결하게 답변하세요.
+  const systemPrompt = `당신은 사내 QA 지식 검색 전문 AI입니다. 업로드된 시험 기준서·표준 문서를 기반으로 핵심만 간결하게 답변하세요.
 
 답변 규칙:
 - 첫 줄에 출처 문서명 표기: <span style="font-size:0.82em;color:#888">📋 문서명</span><br>
@@ -1320,16 +1306,34 @@ async function sendMsg() {
 - 인사말·서론 없이 바로 내용만 답변
 
 응답 JSON: {"answer":"HTML 형식 답변","sources":["문서명"],"keywords":["핵심키워드"]}
-JSON만 반환, 코드블록 없이.`,
-        messages: [
-          ...hist,
-          { role:'user', content:`[등록 문서]\n${ctx}\n\n[질문] ${q}` }
-        ]
-      })
-    });
+JSON만 반환, 코드블록 없이.`;
+
+  // Gemini 대화 이력 변환 (user/assistant → user/model)
+  const geminiHistory = hist.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+
+  try {
+    if (!apiKey) throw new Error('API_KEY_MISSING');
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [
+            ...geminiHistory,
+            { role: 'user', parts: [{ text: `[등록 문서]\n${ctx}\n\n[질문] ${q}` }] }
+          ],
+          generationConfig: { maxOutputTokens: 1500, temperature: 0.3 }
+        })
+      }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data?.error?.message || `API 요청 실패 (${res.status})`);
-    const raw = (data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '{}').replace(/```json|```/g,'').trim();
     let parsed;
     try { parsed = JSON.parse(raw); } catch { parsed = { answer: esc(raw), sources:[], keywords:[] }; }
 
