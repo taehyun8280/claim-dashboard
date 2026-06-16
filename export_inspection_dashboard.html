@@ -476,26 +476,50 @@ function restoreInspectionState(){
     });
     const ti=document.getElementById(`s${i}_ti`);
     const tq=document.getElementById(`s${i}_tq`);
-    if(ti) ti.dataset.saved=String(Number(row.savedTi)||0);
-    if(tq) tq.dataset.saved=String(Number(row.savedTq)||0);
+    const savedTi=Number(row.savedTi)||0;
+    const savedTq=Number(row.savedTq)||0;
+    if(ti) ti.dataset.saved=String(savedTi);
+    if(tq) tq.dataset.saved=String(savedTq);
+    ['mi','yi'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.dataset.base=String(Math.max(0,getS(i,f)-savedTi));
+    });
+    ['mq','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.dataset.base=String(Math.max(0,getS(i,f)-savedTq));
+    });
+  });
+}
+function ensureCumulativeBases(){
+  [0,1,2].forEach(i=>{
+    ['mi','mq','yi','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el&&!el.dataset.base) el.dataset.base=String(getS(i,f));
+    });
+  });
+}
+function projectCumulativeFromToday(){
+  ensureCumulativeBases();
+  [0,1,2].forEach(i=>{
+    const todayItems=getS(i,'ti');
+    const todayQty=getS(i,'tq');
+    ['mi','yi'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.value=(Number(el.dataset.base)||0)+todayItems;
+    });
+    ['mq','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.value=(Number(el.dataset.base)||0)+todayQty;
+    });
   });
 }
 function commitTodayToCumulative(){
+  projectCumulativeFromToday();
   [0,1,2].forEach(i=>{
     const ti=document.getElementById(`s${i}_ti`);
     const tq=document.getElementById(`s${i}_tq`);
     const currentTi=getS(i,'ti');
     const currentTq=getS(i,'tq');
-    const deltaTi=currentTi-(parseInt(ti?.dataset.saved)||0);
-    const deltaTq=currentTq-(parseInt(tq?.dataset.saved)||0);
-    ['mi','yi'].forEach(f=>{
-      const el=document.getElementById(`s${i}_${f}`);
-      if(el) el.value=Math.max(0,getS(i,f)+deltaTi);
-    });
-    ['mq','yq'].forEach(f=>{
-      const el=document.getElementById(`s${i}_${f}`);
-      if(el) el.value=Math.max(0,getS(i,f)+deltaTq);
-    });
     if(ti) ti.dataset.saved=String(currentTi);
     if(tq) tq.dataset.saved=String(currentTq);
   });
@@ -503,6 +527,7 @@ function commitTodayToCumulative(){
   saveInspectionState();
 }
 function calcS(){
+  projectCumulativeFromToday();
   const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
   [0,1,2].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
   S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k].toLocaleString());
