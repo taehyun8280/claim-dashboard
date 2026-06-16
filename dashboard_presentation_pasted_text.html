@@ -1199,7 +1199,13 @@ function localDocumentAnswer(q) {
     };
   }
 
-  const top = results[0];
+  // 파일명에 검색어가 가장 많이 포함된 문서 우선 선택
+  const top = results.reduce((best, r) => {
+    const nameMatches = terms.filter(t => (r.doc.name||'').toLowerCase().includes(t)).length;
+    const bestMatches = terms.filter(t => (best.doc.name||'').toLowerCase().includes(t)).length;
+    return nameMatches > bestMatches ? r : best;
+  }, results[0]);
+
   if (!top.readable) {
     return {
       answer: `<span style=”color:var(--ink-2)”>이 PDF는 본문을 읽을 수 없습니다. 같은 파일을 다시 업로드해 주세요.</span>`,
@@ -1207,54 +1213,13 @@ function localDocumentAnswer(q) {
     };
   }
 
-  const txt = top.content.replace(/\s+/g, ' ');
-
-  // 문서에서 특정 필드 값을 추출하는 헬퍼
-  function extractField(fieldPatterns, range) {
-    for (const pat of fieldPatterns) {
-      const re = new RegExp(pat + '[\\s:：]*(\\S[^\\n]{0,' + (range||40) + '})', 'i');
-      const m = txt.match(re);
-      if (m) return m[1].trim().replace(/\s+/g, ' ').slice(0, range||40);
-    }
-    return null;
-  }
-
-  // 주요 항목 추출
-  const fields = [
-    { label: '두께',     val: extractField(['두께','thickness'], 30) },
-    { label: '규격',     val: extractField(['규격','size','크기'], 30) },
-    { label: '시료매수', val: extractField(['시료\\s*매수','시료수','매수'], 20) },
-    { label: '시험방법', val: extractField(['시험\\s*방법','측정\\s*방법','방법'], 60) },
-    { label: '합부판정', val: extractField(['합부\\s*판정','판정\\s*기준','합격\\s*기준','판정'], 60) },
-  ];
-
-  const found = fields.filter(f => f.val);
-
-  // 추출된 필드가 있으면 챗봇 형식으로 응답
-  if (found.length >= 2) {
-    const rows = found.map(f =>
-      `<tr><td style=”padding:5px 12px 5px 0;color:var(--ink-3);white-space:nowrap;font-size:0.9em”>${esc(f.label)}</td><td style=”padding:5px 0;font-size:0.9em”>${esc(f.val)}</td></tr>`
-    ).join('');
-    const docRef = top.doc.name.replace(/\.[^.]+$/, '');
-    return {
-      answer: `LPM 기준 품관(<span style=”color:var(--ink-3);font-size:0.88em”>${esc(docRef)}</span>)에 따르면,<br><br>
-<table style=”border-collapse:collapse;width:100%”>${rows}</table>`,
-      sources: results.map(r => r.doc.name), keywords: terms
-    };
-  }
-
-  // 추출 실패 시 판정기준 근처 스니펫으로 fallback
-  const lower2 = txt.toLowerCase();
-  const judgmentKws = ['판정기준','판정 기준','합격기준','허용기준','불합격'];
-  let bestHit = top.hit;
-  for (const jk of judgmentKws) {
-    const jpos = lower2.indexOf(jk);
-    if (jpos >= 0) { bestHit = jpos; break; }
-  }
-  const start = Math.max(0, bestHit - 20);
-  const snippet = txt.slice(start, start + 200).trim();
+  // 원문 확인용: 스크래치 키워드 근처 800자 그대로 반환 (디버그)
+  const rawFull = top.content.replace(/\s+/g, ' ');
+  const debugPos = rawFull.toLowerCase().indexOf('스크래치');
+  const debugStart = Math.max(0, debugPos - 50);
+  const debugSnip = rawFull.slice(debugStart, debugStart + 800);
   return {
-    answer: `LPM 기준 품관에 따르면,<br><br><span style=”font-size:0.9em;color:var(--ink-1)”>${esc(snippet)}</span>`,
+    answer: `<div style=”font-size:0.8em;color:var(--ink-3);margin-bottom:6px”>[원문 확인] ${esc(top.doc.name)}</div><pre style=”font-size:0.82em;white-space:pre-wrap;line-height:1.6;background:var(--surface-2,#f5f5f5);padding:10px;border-radius:6px”>${esc(debugSnip)}</pre>`,
     sources: results.map(r => r.doc.name), keywords: terms
   };
 }
