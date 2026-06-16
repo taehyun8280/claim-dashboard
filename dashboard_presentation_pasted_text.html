@@ -1199,11 +1199,19 @@ function localDocumentAnswer(q) {
     };
   }
 
-  // 파일명에 검색어가 가장 많이 포함된 문서 우선 선택
+  // 질문에 “스크래치” 포함 시 스크래치 문서 우선, 아니면 파일명 매칭 많은 문서 우선
+  const hasScr = terms.includes('스크래치');
   const top = results.reduce((best, r) => {
-    const nameMatches = terms.filter(t => (r.doc.name||'').toLowerCase().includes(t)).length;
-    const bestMatches = terms.filter(t => (best.doc.name||'').toLowerCase().includes(t)).length;
-    return nameMatches > bestMatches ? r : best;
+    const rName = (r.doc.name||'').toLowerCase();
+    const bName = (best.doc.name||'').toLowerCase();
+    if (hasScr) {
+      const rScr = rName.includes('스크래치') ? 1 : 0;
+      const bScr = bName.includes('스크래치') ? 1 : 0;
+      if (rScr !== bScr) return rScr > bScr ? r : best;
+    }
+    const rM = terms.filter(t => rName.includes(t)).length;
+    const bM = terms.filter(t => bName.includes(t)).length;
+    return rM > bM ? r : best;
   }, results[0]);
 
   if (!top.readable) {
@@ -1216,42 +1224,53 @@ function localDocumentAnswer(q) {
   const raw = top.content.replace(/\s+/g, ' ');
   const docShort = top.doc.name.replace(/\.[^.]+$/, '');
 
-  // 문서에서 값 추출 헬퍼 (키워드 뒤 값)
+  // 문서에서 값 추출 헬퍼
   function grab(patterns, maxLen) {
     for (const p of patterns) {
-      const m = raw.match(new RegExp(p + '[\\s:：]*([^\\s][\\s\\S]{0,' + (maxLen||50) + '}?)(?=\\s{2,}|[가-힣]{2,}\\s*[:：]|$)', 'i'));
+      const m = raw.match(new RegExp(p + '[\\s:：]*([^\\s][^\\n]{0,' + (maxLen||50) + '})', 'i'));
       if (m) return m[1].replace(/\s+/g, ' ').trim().slice(0, maxLen||50);
     }
     return null;
   }
 
-  // 실제 문서 구조 기반 파싱
-  const 규격   = grab(['규\\s*격'], 20) || '100×100';
-  const 시료매수 = raw.match(/(\d+)\s*매/)?.[1] ? raw.match(/(\d+)\s*매/)[1] + '매' : grab(['시료\\s*매수','매수'], 10);
-  const 각도   = raw.match(/측정\s*각도\s*[：:]\s*([^\s].*?(?=측정거리|$))/i)?.[1]?.trim();
-  const 거리   = raw.match(/측정\s*거리\s*[：:]\s*([^\s].*?(?=변화|없을|$))/i)?.[1]?.trim();
-  const 시험방법 = [각도 ? '측정각도 ' + 각도 : null, 거리 ? '측정거리 ' + 거리 : null].filter(Boolean).join(' / ') || grab(['시험\\s*방법','방법'], 60);
-  const 합부판정 = raw.match(/변화가\s*없을\s*것/)?.[0] || grab(['합부\\s*판정','판정\\s*기준','합격'], 40);
-  const 시험기  = raw.match(/SCUFF\s*시험기[^\s]*/i)?.[0] || grab(['시험기'], 20);
+  // 스크래치 시험 기준 파싱 (기준-품관-0035 구조)
+  const 규격    = raw.match(/100\s*[\*×x]\s*150/)?.[0]?.replace(/\s/g,'') || grab(['규\\s*격'], 20);
+  const 시료매수  = raw.match(/5\s*매/)?.[0]?.replace(/\s/g,'') || raw.match(/(\d+)\s*매/)?.[0];
+  const 합부판정  = raw.match(/[\d.]+\s*N\s*이상/)?.[0] || grab(['합부\\s*판정','판정\\s*기준'], 30);
+  const 시험기   = raw.match(/스크래치\s*시험\s*기/)?.[0]?.replace(/\s/g,'') || grab(['시험기'], 20);
+  // 시험방법: ①~⑥ 번호 항목 추출
+  const stepMatches = [...raw.matchAll(/[①②③④⑤⑥]\s*([^①②③④⑤⑥]{10,80})/g)];
+  const 시험방법steps = stepMatches.slice(0,6).map((m,i) => {
+    const num = ['①','②','③','④','⑤','⑥'][i];
+    return `${num} ${m[1].replace(/\s+/g,' ').trim().slice(0,60)}`;
+  });
 
   const items = [
     { k: '규격',    v: 규격 },
     { k: '시료매수', v: 시료매수 },
-    { k: '시험방법', v: 시험방법 },
     { k: '합부판정', v: 합부판정 },
     { k: '시험기',   v: 시험기 },
   ].filter(i => i.v);
 
-  const rows = items.map(i => `
-    <div style=”display:flex;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border,#eee)”>
-      <span style=”min-width:72px;font-weight:600;color:#4f8ef7;font-size:0.88em”>${esc(i.k)}</span>
-      <span style=”color:var(--ink-1);font-size:0.92em;line-height:1.5”>${esc(i.v)}</span>
+  const itemRows = items.map(i => `
+    <div style=”display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--border,#ececec)”>
+      <span style=”min-width:68px;font-weight:600;color:#4f8ef7;font-size:0.87em;flex-shrink:0”>${esc(i.k)}</span>
+      <span style=”color:var(--ink-1);font-size:0.92em”>${esc(i.v)}</span>
     </div>`).join('');
 
+  const methodHtml = 시험방법steps.length ? `
+    <div style=”margin-top:10px”>
+      <div style=”font-weight:600;color:#4f8ef7;font-size:0.87em;margin-bottom:6px”>시험방법</div>
+      <div style=”font-size:0.88em;line-height:1.9;color:var(--ink-1)”>
+        ${시험방법steps.map(s => `<div>${esc(s)}</div>`).join('')}
+      </div>
+    </div>` : '';
+
   return {
-    answer: `<div style=”font-size:0.82em;color:var(--ink-3);margin-bottom:10px”>📋 ${esc(docShort)}</div>
+    answer: `<div style=”font-size:0.8em;color:var(--ink-3);margin-bottom:10px”>📋 ${esc(docShort)}</div>
 <div style=”background:var(--surface-2,#f7f9ff);border-radius:10px;padding:12px 16px”>
-  ${rows || '<span style=”color:var(--ink-3)”>해당 항목을 찾지 못했습니다.</span>'}
+  ${itemRows}
+  ${methodHtml}
 </div>`,
     sources: results.map(r => r.doc.name), keywords: terms
   };
