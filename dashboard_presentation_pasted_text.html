@@ -1213,13 +1213,46 @@ function localDocumentAnswer(q) {
     };
   }
 
-  // 원문 확인용: 스크래치 키워드 근처 800자 그대로 반환 (디버그)
-  const rawFull = top.content.replace(/\s+/g, ' ');
-  const debugPos = rawFull.toLowerCase().indexOf('스크래치');
-  const debugStart = Math.max(0, debugPos - 50);
-  const debugSnip = rawFull.slice(debugStart, debugStart + 800);
+  const raw = top.content.replace(/\s+/g, ' ');
+  const docShort = top.doc.name.replace(/\.[^.]+$/, '');
+
+  // 문서에서 값 추출 헬퍼 (키워드 뒤 값)
+  function grab(patterns, maxLen) {
+    for (const p of patterns) {
+      const m = raw.match(new RegExp(p + '[\\s:：]*([^\\s][\\s\\S]{0,' + (maxLen||50) + '}?)(?=\\s{2,}|[가-힣]{2,}\\s*[:：]|$)', 'i'));
+      if (m) return m[1].replace(/\s+/g, ' ').trim().slice(0, maxLen||50);
+    }
+    return null;
+  }
+
+  // 실제 문서 구조 기반 파싱
+  const 규격   = grab(['규\\s*격'], 20) || '100×100';
+  const 시료매수 = raw.match(/(\d+)\s*매/)?.[1] ? raw.match(/(\d+)\s*매/)[1] + '매' : grab(['시료\\s*매수','매수'], 10);
+  const 각도   = raw.match(/측정\s*각도\s*[：:]\s*([^\s].*?(?=측정거리|$))/i)?.[1]?.trim();
+  const 거리   = raw.match(/측정\s*거리\s*[：:]\s*([^\s].*?(?=변화|없을|$))/i)?.[1]?.trim();
+  const 시험방법 = [각도 ? '측정각도 ' + 각도 : null, 거리 ? '측정거리 ' + 거리 : null].filter(Boolean).join(' / ') || grab(['시험\\s*방법','방법'], 60);
+  const 합부판정 = raw.match(/변화가\s*없을\s*것/)?.[0] || grab(['합부\\s*판정','판정\\s*기준','합격'], 40);
+  const 시험기  = raw.match(/SCUFF\s*시험기[^\s]*/i)?.[0] || grab(['시험기'], 20);
+
+  const items = [
+    { k: '규격',    v: 규격 },
+    { k: '시료매수', v: 시료매수 },
+    { k: '시험방법', v: 시험방법 },
+    { k: '합부판정', v: 합부판정 },
+    { k: '시험기',   v: 시험기 },
+  ].filter(i => i.v);
+
+  const rows = items.map(i => `
+    <div style=”display:flex;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border,#eee)”>
+      <span style=”min-width:72px;font-weight:600;color:#4f8ef7;font-size:0.88em”>${esc(i.k)}</span>
+      <span style=”color:var(--ink-1);font-size:0.92em;line-height:1.5”>${esc(i.v)}</span>
+    </div>`).join('');
+
   return {
-    answer: `<div style=”font-size:0.8em;color:var(--ink-3);margin-bottom:6px”>[원문 확인] ${esc(top.doc.name)}</div><pre style=”font-size:0.82em;white-space:pre-wrap;line-height:1.6;background:var(--surface-2,#f5f5f5);padding:10px;border-radius:6px”>${esc(debugSnip)}</pre>`,
+    answer: `<div style=”font-size:0.82em;color:var(--ink-3);margin-bottom:10px”>📋 ${esc(docShort)}</div>
+<div style=”background:var(--surface-2,#f7f9ff);border-radius:10px;padding:12px 16px”>
+  ${rows || '<span style=”color:var(--ink-3)”>해당 항목을 찾지 못했습니다.</span>'}
+</div>`,
     sources: results.map(r => r.doc.name), keywords: terms
   };
 }
