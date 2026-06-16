@@ -1221,6 +1221,11 @@ function localDocumentAnswer(q) {
     };
   }
 
+  // DEBUG: 문서 원문 전체 출력
+  return {
+    answer: `<pre style="font-size:0.75em;white-space:pre-wrap;line-height:1.5;background:#f5f5f5;padding:10px;border-radius:6px;max-height:600px;overflow-y:auto">${esc(top.content.slice(0, 3000))}</pre>`,
+    sources: [top.doc.name], keywords: terms
+  };
   const raw = top.content.replace(/\s+/g, ' ');
   const docShort = top.doc.name.replace(/\.[^.]+$/, '');
 
