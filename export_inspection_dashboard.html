@@ -158,12 +158,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <div class="kpi-row">
           <div>
             <div class="kpi-sub-lbl">품목</div>
-            <div class="kpi-val" id="db_claim_d_item">1</div>
+            <div class="kpi-val" id="db_claim_d_item">0</div>
           </div>
           <div class="kpi-divider"></div>
           <div>
             <div class="kpi-sub-lbl">수량</div>
-            <div class="kpi-val" id="db_claim_d_qty">2</div>
+            <div class="kpi-val" id="db_claim_d_qty">0</div>
           </div>
         </div>
       </div>
@@ -173,12 +173,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <div class="kpi-row">
           <div>
             <div class="kpi-sub-lbl">품목</div>
-            <div class="kpi-val red" id="db_claim_m_item">1</div>
+            <div class="kpi-val red" id="db_claim_m_item">0</div>
           </div>
           <div class="kpi-divider"></div>
           <div>
             <div class="kpi-sub-lbl">수량</div>
-            <div class="kpi-val red" id="db_claim_m_qty">2</div>
+            <div class="kpi-val red" id="db_claim_m_qty">0</div>
           </div>
         </div>
       </div>
@@ -193,7 +193,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
           <div class="kpi-divider"></div>
           <div>
             <div class="kpi-sub-lbl">수량</div>
-            <div class="kpi-val" id="db_claim_y_qty">3</div>
+            <div class="kpi-val" id="db_claim_y_qty">2</div>
           </div>
         </div>
       </div>
@@ -686,12 +686,12 @@ function applyAll(){
     return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   })():'금일';
   // KPI 카드 - 고객클레임 (– 유지, 별도 입력 없음)
-  document.getElementById('db_claim_d_item').textContent='1';
-  document.getElementById('db_claim_d_qty').textContent='2';
-  document.getElementById('db_claim_m_item').textContent='1';
-  document.getElementById('db_claim_m_qty').textContent='2';
+  document.getElementById('db_claim_d_item').textContent='0';
+  document.getElementById('db_claim_d_qty').textContent='0';
+  document.getElementById('db_claim_m_item').textContent='0';
+  document.getElementById('db_claim_m_qty').textContent='0';
   document.getElementById('db_claim_y_item').textContent='2';
-  document.getElementById('db_claim_y_qty').textContent='3';
+  document.getElementById('db_claim_y_qty').textContent='2';
 
   const cb=document.getElementById('pvCBody');
   cb.innerHTML='';
@@ -763,12 +763,12 @@ function applyAll_silent(){
   const v=id=>document.getElementById(id)?.value||'';
   document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
   document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
-  document.getElementById('db_claim_d_item').textContent='1';
-  document.getElementById('db_claim_d_qty').textContent='2';
-  document.getElementById('db_claim_m_item').textContent='1';
-  document.getElementById('db_claim_m_qty').textContent='2';
+  document.getElementById('db_claim_d_item').textContent='0';
+  document.getElementById('db_claim_d_qty').textContent='0';
+  document.getElementById('db_claim_m_item').textContent='0';
+  document.getElementById('db_claim_m_qty').textContent='0';
   document.getElementById('db_claim_y_item').textContent='2';
-  document.getElementById('db_claim_y_qty').textContent='3';
+  document.getElementById('db_claim_y_qty').textContent='2';
   if(v('in_date')){
     const d=new Date(v('in_date'));
     const day=d.getDay();
