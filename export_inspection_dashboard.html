@@ -158,12 +158,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <div class="kpi-row">
           <div>
             <div class="kpi-sub-lbl">품목</div>
-            <div class="kpi-val" id="db_claim_d_item">–</div>
+            <div class="kpi-val" id="db_claim_d_item">1</div>
           </div>
           <div class="kpi-divider"></div>
           <div>
             <div class="kpi-sub-lbl">수량</div>
-            <div class="kpi-val" id="db_claim_d_qty">–</div>
+            <div class="kpi-val" id="db_claim_d_qty">2</div>
           </div>
         </div>
       </div>
@@ -173,12 +173,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <div class="kpi-row">
           <div>
             <div class="kpi-sub-lbl">품목</div>
-            <div class="kpi-val red" id="db_claim_m_item">–</div>
+            <div class="kpi-val red" id="db_claim_m_item">1</div>
           </div>
           <div class="kpi-divider"></div>
           <div>
             <div class="kpi-sub-lbl">수량</div>
-            <div class="kpi-val red" id="db_claim_m_qty">–</div>
+            <div class="kpi-val red" id="db_claim_m_qty">2</div>
           </div>
         </div>
       </div>
@@ -686,10 +686,10 @@ function applyAll(){
     return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   })():'금일';
   // KPI 카드 - 고객클레임 (– 유지, 별도 입력 없음)
-  document.getElementById('db_claim_d_item').textContent='–';
-  document.getElementById('db_claim_d_qty').textContent='–';
-  document.getElementById('db_claim_m_item').textContent='–';
-  document.getElementById('db_claim_m_qty').textContent='–';
+  document.getElementById('db_claim_d_item').textContent='1';
+  document.getElementById('db_claim_d_qty').textContent='2';
+  document.getElementById('db_claim_m_item').textContent='1';
+  document.getElementById('db_claim_m_qty').textContent='2';
   document.getElementById('db_claim_y_item').textContent='2';
   document.getElementById('db_claim_y_qty').textContent='3';
 
