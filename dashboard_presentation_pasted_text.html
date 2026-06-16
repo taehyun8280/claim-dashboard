@@ -1172,11 +1172,23 @@ function localDocumentAnswer(q) {
     const lower = readable ? content.toLowerCase() : '';
     let score = 0;
     let hit = -1;
+    const allHits = [];
     terms.forEach(term => {
       if (name.includes(term)) score += 8;
-      const pos = lower.indexOf(term);
-      if (pos >= 0) { score += 3; if (hit < 0) hit = pos; }
+      let p = 0, found = false;
+      while ((p = lower.indexOf(term, p)) >= 0) {
+        if (!found) { score += 3; found = true; }
+        allHits.push(p);
+        p++;
+      }
     });
+    if (allHits.length > 0) {
+      hit = allHits.reduce((best, p) => {
+        const nearby = allHits.filter(h => Math.abs(h - p) <= 200).length;
+        const bestNearby = allHits.filter(h => Math.abs(h - best) <= 200).length;
+        return nearby > bestNearby ? p : best;
+      }, allHits[0]);
+    }
     return { doc, score, hit, content, readable };
   }).filter(r => r.score > 0).sort((a,b) => b.score - a.score).slice(0,5);
 
