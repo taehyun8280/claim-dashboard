@@ -1221,11 +1221,6 @@ function localDocumentAnswer(q) {
     };
   }
 
-  // DEBUG: 문서 원문 전체 출력
-  return {
-    answer: `<pre style="font-size:0.75em;white-space:pre-wrap;line-height:1.5;background:#f5f5f5;padding:10px;border-radius:6px;max-height:600px;overflow-y:auto">${esc(top.content.slice(0, 3000))}</pre>`,
-    sources: [top.doc.name], keywords: terms
-  };
   const raw = top.content.replace(/\s+/g, ' ');
   const docShort = top.doc.name.replace(/\.[^.]+$/, '');
 
@@ -1313,14 +1308,18 @@ async function sendMsg() {
       body: JSON.stringify({
         model: S.settings.model || 'claude-sonnet-4-6',
         max_tokens: 1000,
-        system: `당신은 QA(품질보증) 전문 AI입니다. 업로드된 기준서·표준·시험 기준 문서를 기반으로 정확하고 구체적으로 답변하세요.
-규칙:
-- 문서에서 찾은 내용을 정확히 인용 또는 요약
-- 어느 문서의 어느 항목인지 명시
-- 수치·기준·조건은 <strong>강조</strong>
-- 여러 문서에 관련 내용이 있으면 모두 비교해서 안내
-- 없는 내용은 "해당 내용이 등록된 문서에서 확인되지 않습니다"
-응답 JSON: {"answer":"HTML 형식 답변(줄바꿈=<br>)","sources":["문서명"],"keywords":["핵심키워드"]}
+        system: `당신은 사내 QA 지식 검색 전문 AI입니다. 업로드된 시험 기준서·표준 문서를 기반으로 핵심만 간결하게 답변하세요.
+
+답변 규칙:
+- 첫 줄에 출처 문서명 표기: <span style="font-size:0.82em;color:#888">📋 문서명</span><br>
+- 시험 기준 질문이면 항목을 표로 정리 (규격/시료매수/시험방법/합부판정/시험기 등):
+  <table style="border-collapse:collapse;width:100%;margin-top:8px"><tr><td style="padding:6px 14px 6px 0;color:#4f8ef7;font-weight:600;white-space:nowrap;font-size:0.88em">항목</td><td style="padding:6px 0;font-size:0.9em">값</td></tr></table>
+- 시험방법은 번호 항목(①②③...)으로 한 줄씩 표시
+- 수치·판정기준은 <strong>강조</strong>
+- 없는 내용은 한 줄로: "등록 문서에서 확인되지 않습니다"
+- 인사말·서론 없이 바로 내용만 답변
+
+응답 JSON: {"answer":"HTML 형식 답변","sources":["문서명"],"keywords":["핵심키워드"]}
 JSON만 반환, 코드블록 없이.`,
         messages: [
           ...hist,
