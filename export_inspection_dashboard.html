@@ -763,6 +763,12 @@ function applyAll_silent(){
   const v=id=>document.getElementById(id)?.value||'';
   document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
   document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
+  document.getElementById('db_claim_d_item').textContent='1';
+  document.getElementById('db_claim_d_qty').textContent='2';
+  document.getElementById('db_claim_m_item').textContent='1';
+  document.getElementById('db_claim_m_qty').textContent='2';
+  document.getElementById('db_claim_y_item').textContent='2';
+  document.getElementById('db_claim_y_qty').textContent='3';
   if(v('in_date')){
     const d=new Date(v('in_date'));
     const day=d.getDay();
