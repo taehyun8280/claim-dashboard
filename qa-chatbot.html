@@ -290,9 +290,7 @@ let apiKey = localStorage.getItem('qa_gemini_key') || '';
 localStorage.removeItem('qa_model');
 let model = 'gemini-2.0-flash-lite';
 
-// Init
-document.getElementById('apiKeyInput').value = apiKey;
-document.getElementById('modelSelect').value = model;
+// Init (API 미사용 - 필드 없음)
 
 // PDF 텍스트 추출
 async function extractPdfText(file) {
