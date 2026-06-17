@@ -79,6 +79,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* 특이사항 / 첨부 */
 .note-box{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-height:60px;font-size:12px;color:#555;line-height:1.7}
+.note-text{white-space:normal}
+.note-photo-report{margin-top:10px}
+.note-photo-report img{max-width:320px;max-height:220px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;display:block}
 .attach-box{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:10px 14px;font-size:12px;line-height:2}
 .attach-box li{list-style:none;color:#374151}
 .attach-box li::before{content:'• ';color:#1a56db;font-weight:700}
@@ -108,6 +111,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .inp-t-total td{background:#e8f0fe;font-weight:700;color:#1a56db;padding:5px 8px;border:1px solid #dde5f5;font-size:12px;text-align:center}
 .inp-textarea{width:100%;border:1px solid #e5e7eb;padding:7px 9px;font-size:12px;font-family:inherit;border-radius:4px;background:#fff;resize:vertical}
 .inp-textarea:focus{outline:none;border-color:#1a56db}
+.note-photo-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.note-photo-box{margin-top:8px;width:220px;min-height:120px;border:1px dashed #d1d5db;border-radius:4px;background:#f9fafb;color:#9ca3af;font-size:11px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.note-photo-box img{width:100%;height:100%;max-height:180px;object-fit:contain;background:#fff}
 .ph-cell{width:86px;height:58px;background:#f9fafb;cursor:pointer;border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;text-align:center;border:1px dashed #d1d5db;margin:0 auto}
 .ph-cell img{width:100%;height:100%;object-fit:cover}
 .rbt{background:#fff;border:1px solid #d1d5db;padding:4px 12px;font-size:11px;cursor:pointer;border-radius:4px;font-family:inherit;color:#374151}
@@ -395,6 +401,11 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     <div class="inp-card-hd">3. 특이사항</div>
     <div class="inp-card-bd">
       <textarea id="in_note" class="inp-textarea" rows="3" placeholder="특이사항을 입력하세요..."></textarea>
+      <div class="note-photo-row">
+        <button type="button" class="rbt" onclick="trigNotePhoto()">사진 첨부</button>
+        <button type="button" class="rbt" id="notePhotoRemove" onclick="clearNotePhoto()" style="display:none">사진 삭제</button>
+      </div>
+      <div class="note-photo-box" id="notePhotoPreview">특이사항 사진 없음</div>
     </div>
   </div>
 
@@ -407,6 +418,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 </div>
 
 <input type="file" id="photoInput" accept="image/*" style="display:none">
+<input type="file" id="notePhotoInput" accept="image/*" style="display:none">
 
 <script>
 let attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
@@ -614,6 +626,17 @@ document.addEventListener('paste',function(e){
     if(item.type.startsWith('image/')){
       const file=item.getAsFile();
       if(!file) continue;
+      if(document.activeElement?.id==='in_note'){
+        const r=new FileReader();
+        r.onload=ev=>{
+          notePhotoData=ev.target.result;
+          renderNoteInputPhoto();
+          liveSync();
+        };
+        r.readAsDataURL(file);
+        e.preventDefault();
+        return;
+      }
       const targetId=lastClickedPhoto||null;
       if(!targetId){
         alert('먼저 사진을 붙여넣을 셀을 클릭하세요.');
@@ -629,6 +652,46 @@ document.addEventListener('paste',function(e){
       return;
     }
   }
+});
+
+let notePhotoData='';
+function renderNoteInputPhoto(){
+  const box=document.getElementById('notePhotoPreview');
+  const removeBtn=document.getElementById('notePhotoRemove');
+  if(!box||!removeBtn) return;
+  if(notePhotoData){
+    box.innerHTML=`<img src="${notePhotoData}" alt="특이사항 사진">`;
+    removeBtn.style.display='';
+  }else{
+    box.textContent='특이사항 사진 없음';
+    removeBtn.style.display='none';
+  }
+}
+function renderNotePreview(){
+  const note=(document.getElementById('in_note')?.value||'').trim();
+  const parts=[];
+  if(note) parts.push(`<div class="note-text">${escapeHtml(note).replace(/\r?\n/g,'<br>')}</div>`);
+  if(notePhotoData) parts.push(`<div class="note-photo-report"><img src="${notePhotoData}" alt="특이사항 사진"></div>`);
+  document.getElementById('pvNote').innerHTML=parts.length?parts.join(''):'&nbsp;';
+}
+function trigNotePhoto(){
+  document.getElementById('notePhotoInput').click();
+}
+function clearNotePhoto(){
+  notePhotoData='';
+  renderNoteInputPhoto();
+  liveSync();
+}
+document.getElementById('notePhotoInput').addEventListener('change',function(){
+  if(!this.files.length) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    notePhotoData=e.target.result;
+    renderNoteInputPhoto();
+    liveSync();
+  };
+  r.readAsDataURL(this.files[0]);
+  this.value='';
 });
 
 function applyAll(){
@@ -724,7 +787,7 @@ function applyAll(){
   document.getElementById('pv_c_item').textContent=pvNum+' 품목';
   document.getElementById('pv_c_qty').textContent=pvQty+' 박스';
 
-  document.getElementById('pvNote').textContent=v('in_note')||'\u00a0';
+  renderNotePreview();
 
   const lines=attachItems.filter(s=>s.trim());
   document.getElementById('pvAttach').innerHTML=
@@ -750,6 +813,11 @@ function resetAll(){
     const ph=document.getElementById(`c${i}_photo`);
     if(ph){ph.innerHTML='📷<br>사진';ph.style.border='1px dashed #d1d5db';}
   }
+  const note=document.getElementById('in_note');
+  if(note) note.value='';
+  notePhotoData='';
+  renderNoteInputPhoto();
+  renderNotePreview();
   calcC();
 }
 
@@ -824,8 +892,7 @@ function applyAll_silent(){
   }
   document.getElementById('pv_c_item').textContent=pvNum+' 품목';
   document.getElementById('pv_c_qty').textContent=pvQty+' 박스';
-  const note=v('in_note').trim();
-  document.getElementById('pvNote').textContent=note||'\u00a0';
+  renderNotePreview();
 }
 
 // 입력 이벤트 감지 → 실시간 동기화
