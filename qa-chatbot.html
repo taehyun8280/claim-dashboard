@@ -259,8 +259,8 @@
     <p class="modal-hint">aistudio.google.com에서 무료 발급. 이 브라우저에만 저장됩니다.</p>
     <label>AI 모델</label>
     <select id="modelSelect">
-      <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (무료)</option>
-      <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro (무료)</option>
+      <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (무료)</option>
+      <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
     </select>
     <div class="modal-btns">
       <button class="btn-cancel" id="cancelSettings">취소</button>
@@ -278,7 +278,7 @@ let busy = false;
 let chatHistory = [];
 let apiKey = localStorage.getItem('qa_gemini_key') || '';
 localStorage.removeItem('qa_model');
-let model = 'gemini-1.5-flash';
+let model = 'gemini-2.0-flash-lite';
 
 // Init
 document.getElementById('apiKeyInput').value = apiKey;
@@ -428,7 +428,7 @@ JSON만 반환, 코드블록 없이.`;
     // 시스템 프롬프트를 첫 번째 메시지에 포함 (v1 호환)
     const firstMsg = `[시스템 지시]\n${systemPrompt}\n\n${ctx ? `[등록 문서]\n${ctx}\n\n` : ''}[질문] ${q}`;
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
