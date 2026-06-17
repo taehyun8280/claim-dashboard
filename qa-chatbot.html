@@ -278,6 +278,9 @@ let docs = [];
 let busy = false;
 let chatHistory = [];
 let apiKey = localStorage.getItem('qa_gemini_key') || '';
+// 구버전 모델명 자동 초기화
+const savedModel = localStorage.getItem('qa_model');
+if (!savedModel || savedModel === 'gemini-1.5-flash') localStorage.removeItem('qa_model');
 let model = localStorage.getItem('qa_model') || 'gemini-2.0-flash';
 
 // Init
