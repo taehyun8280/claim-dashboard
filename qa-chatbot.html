@@ -399,6 +399,31 @@ function highlight(html, keywords) {
   return html;
 }
 
+// 성적서 파싱
+function parseReport(text) {
+  const t = text.replace(/\s+/g, ' ');
+  function get(patterns) {
+    for (const re of patterns) { const m = t.match(re); if (m) return m[1]?.trim(); }
+    return null;
+  }
+  const sample   = get([/시료명\s*[:\s]+([^\n\r,]{2,30})/, /시로명\s*[:\s]+([^\n\r,]{2,30})/]);
+  const date     = get([/시험일자\s*[:\s]+([\d.~\s년월일-]{6,30})/, /작성일자\s*[:\s]+([\d.\s-]{6,20})/]);
+  const result   = get([/시험결과\s*[:\s]+([^\n\r,]{1,10})/, /결\s*과\s*[:\s]+(적\s*합|부적합)/]);
+  const docNo    = get([/문서번호\s*[:\s]+([^\n\r,]{4,30})/]);
+  const subject  = get([/제\s*목\s*[:\s]+([^\n\r]{4,50})/, /시험목적\s*[:\s《:]*\s*([^\n\r]{4,50})/]);
+  const standard = [...t.matchAll(/[①②③④⑤]\s*(KS\s*[^\s①②③④⑤]{3,40}|ISO\s*[^\s①②③④⑤]{3,30}|의뢰자[^\s①②③④⑤]{4,40})/g)]
+    .map(m => m[1].trim()).slice(0, 4);
+
+  // 시험항목 행 추출: 항목명 + 기준 + 결과 패턴
+  const rows = [];
+  const rowRe = /([가-힣\s]{3,20})\s+(사용상[^적]{0,40}|변형[^적]{0,30}|파손[^적]{0,30}|변화[^적]{0,30}|전도[^적]{0,20}|이상[^적]{0,20}|[\d.]+\s*(?:N|kgf|mm)[^적]{0,30})\s+(적\s*합|부\s*적\s*합)/g;
+  let m;
+  while ((m = rowRe.exec(t)) !== null && rows.length < 8) {
+    rows.push({ item: m[1].replace(/\s+/g,' ').trim(), criteria: m[2].replace(/\s+/g,' ').trim(), result: m[3].replace(/\s+/g,' ') });
+  }
+  return { sample, date, result, docNo, subject, standard, rows };
+}
+
 // API 없는 문서 검색 엔진
 function localSearch(q) {
   const terms = q.toLowerCase().match(/[a-z0-9가-힣]{2,}/g) || [];
@@ -424,134 +449,133 @@ function localSearch(q) {
     };
   }
 
-  const top = scored[0];
-  const { text, lower, positions, doc } = top;
-  const docShort = doc.name.replace(/\.[^.]+$/, '');
+  // 상위 3개 문서 사용 (성적서 여러 건 대비)
+  const topDocs = scored.slice(0, 3);
+  const answers = topDocs.map(({ doc, text, lower, positions }) => {
+    const docShort = doc.name.replace(/\.[^.]+$/, '');
+    const fullText = text;
+    const isReport = /성적서|시험[\/검사]*\s*성적|검사\s*성적/.test(fullText);
 
-  // 가장 밀집된 위치 찾기
-  let bestPos = positions[0] || 0;
-  if (positions.length > 1) {
-    bestPos = positions.reduce((best, p) => {
-      const near = positions.filter(h => Math.abs(h - p) <= 400).length;
-      const bestNear = positions.filter(h => Math.abs(h - best) <= 400).length;
-      return near > bestNear ? p : best;
-    }, positions[0]);
-  }
+    // ── 성적서 포맷 ──
+    if (isReport) {
+      const r = parseReport(fullText);
+      let html = `<div style="font-size:0.78em;color:#9CA3AF;margin-bottom:8px;font-weight:500">📄 ${esc(docShort)}</div>`;
 
-  // 전체 텍스트에서 필드 추출 (위치 무관하게 전체 스캔)
-  const fullText = text;
+      // 헤더 정보
+      const meta = [
+        r.subject && { k: '시험 제목', v: r.subject },
+        r.sample  && { k: '시료명',   v: r.sample },
+        r.date    && { k: '시험일자', v: r.date },
+        r.docNo   && { k: '문서번호', v: r.docNo },
+        r.result  && { k: '최종 결과', v: r.result },
+      ].filter(Boolean);
 
-  function extract(patterns) {
-    for (const re of patterns) {
-      const m = fullText.match(re);
-      if (m) return m[1]?.replace(/\s+/g, ' ').trim();
+      if (meta.length) {
+        html += `<table style="border-collapse:collapse;width:100%;margin-bottom:12px;background:#F8FAFF;border-radius:8px">`;
+        meta.forEach(f => {
+          const isPass = f.k === '최종 결과';
+          const color = isPass ? (f.v.includes('부적') ? '#DC2626' : '#059669') : '#2563EB';
+          html += `<tr>
+            <td style="padding:6px 14px 6px 0;color:${color};font-weight:600;white-space:nowrap;font-size:0.83em;vertical-align:top;min-width:72px">${f.k}</td>
+            <td style="padding:6px 0;font-size:0.88em;color:#111"><strong>${esc(f.v)}</strong></td>
+          </tr>`;
+        });
+        html += `</table>`;
+      }
+
+      // 시험항목 테이블
+      if (r.rows.length) {
+        html += `<div style="font-weight:700;color:#2563EB;font-size:0.83em;margin-bottom:6px">🧪 시험 항목</div>
+          <table style="border-collapse:collapse;width:100%;font-size:0.83em">
+            <tr style="background:#EFF6FF">
+              <th style="padding:6px 8px;text-align:left;border:1px solid #DBEAFE;color:#1D4ED8">시험 항목</th>
+              <th style="padding:6px 8px;text-align:left;border:1px solid #DBEAFE;color:#1D4ED8">기준</th>
+              <th style="padding:6px 8px;text-align:center;border:1px solid #DBEAFE;color:#1D4ED8">결과</th>
+            </tr>`;
+        r.rows.forEach(row => {
+          const pass = !row.result.includes('부');
+          html += `<tr>
+            <td style="padding:6px 8px;border:1px solid #E5E7EB">${esc(row.item)}</td>
+            <td style="padding:6px 8px;border:1px solid #E5E7EB;color:#374151">${esc(row.criteria)}</td>
+            <td style="padding:6px 8px;border:1px solid #E5E7EB;text-align:center;font-weight:700;color:${pass?'#059669':'#DC2626'}">${esc(row.result)}</td>
+          </tr>`;
+        });
+        html += `</table>`;
+      }
+
+      // 시험기준 (KS 등)
+      if (r.standard.length) {
+        html += `<div style="margin-top:10px;font-size:0.82em;color:#6B7280">📌 시험기준: ${r.standard.map(s=>esc(s)).join(' · ')}</div>`;
+      }
+
+      return { html, source: doc.name };
     }
-    return null;
-  }
 
-  // 각 필드 추출
-  const fields = [
-    {
-      k: '시험기',
-      v: extract([
-        /시험기\s*[:\s]\s*([^\n\r]{4,40}시험기[^\n\r]{0,20})/,
-        /사용\s*기기\s*[:\s]\s*([^\n\r]{4,50})/,
-        /([A-Za-z가-힣\s]+시험기)/,
-        /(스크래치\s*테스터[^\n\r]{0,20})/,
-        /(SCUFF[^\n\r]{0,30})/i,
-      ])
-    },
-    {
-      k: '시료 규격',
-      v: extract([
-        /규격\s*[:\s]\s*(\d+\s*[×xX\*]\s*\d+(?:\s*mm|㎜)?)/,
-        /시료\s*크기\s*[:\s]\s*([^\n\r]{3,30})/,
-        /크기\s*[:\s]\s*(\d+\s*[×xX\*]\s*\d+(?:\s*mm|㎜)?)/,
-        /(\d+\s*[×xX\*]\s*\d+\s*(?:mm|㎜)?)/,
-      ])
-    },
-    {
-      k: '시료 매수',
-      v: extract([
-        /시료\s*매수\s*[:\s]\s*(\d+\s*매)/,
-        /매수\s*[:\s]\s*(\d+\s*매)/,
-        /시편\s*수\s*[:\s]\s*(\d+\s*(?:매|개|EA))/,
-        /(\d+\s*매)/,
-      ])
-    },
-    {
-      k: '하중 / 조건',
-      v: extract([
-        /하중\s*[:\s]\s*([\d.]+\s*(?:N|kgf|g)[^\n\r]{0,20})/,
-        /시험\s*하중\s*[:\s]\s*([\d.]+\s*(?:N|kgf)[^\n\r]{0,20})/,
-        /조건\s*[:\s]\s*([^\n\r]{4,40})/,
-        /([\d.]+\s*N(?:\s*이상|\s*이하|\s*하중)?)/,
-      ])
-    },
-    {
-      k: '합부판정',
-      v: extract([
-        /합부\s*판정\s*[:\s]\s*([^\n\r]{5,60})/,
-        /판정\s*기준\s*[:\s]\s*([^\n\r]{5,60})/,
-        /합격\s*기준\s*[:\s]\s*([^\n\r]{5,60})/,
-        /불합격\s*[:\s]\s*([^\n\r]{5,60})/,
-        /(변화\s*없을\s*것[^\n\r]{0,30})/,
-        /(이상\s*없을\s*것[^\n\r]{0,30})/,
-        /([\d.]+\s*N\s*이상[^\n\r]{0,30})/,
-      ])
-    },
-    {
-      k: '시험 횟수',
-      v: extract([
-        /횟수\s*[:\s]\s*(\d+\s*(?:회|번)[^\n\r]{0,20})/,
-        /반복\s*[:\s]\s*(\d+\s*(?:회|번)[^\n\r]{0,20})/,
-        /(\d+\s*회(?:\s*반복)?)/,
-      ])
-    },
-  ].filter(f => f.v);
+    // ── 기준서 포맷 ──
+    let bestPos = positions[0] || 0;
+    if (positions.length > 1) {
+      bestPos = positions.reduce((best, p) => {
+        const near = positions.filter(h => Math.abs(h - p) <= 400).length;
+        const bestNear = positions.filter(h => Math.abs(h - best) <= 400).length;
+        return near > bestNear ? p : best;
+      }, positions[0]);
+    }
 
-  // 시험방법 단계 추출
-  const methodArea = (() => {
-    const idx = lower.indexOf('시험방법');
-    if (idx < 0) return fullText.slice(Math.max(0, bestPos - 200), bestPos + 1200);
-    return fullText.slice(idx, idx + 1500);
-  })();
+    function extract(patterns) {
+      for (const re of patterns) {
+        const m = fullText.match(re);
+        if (m) return m[1]?.replace(/\s+/g, ' ').trim();
+      }
+      return null;
+    }
 
-  const steps = [
-    ...[...methodArea.matchAll(/[①②③④⑤⑥⑦⑧⑨⑩]\s*([^①②③④⑤⑥⑦⑧⑨⑩]{8,120})/g)].slice(0, 7),
-  ].map((m, i) => {
-    const num = '①②③④⑤⑥⑦⑧⑨⑩'[i];
-    return `<div style="padding:4px 0;border-bottom:1px solid #F3F4F6">${num} ${esc(m[1].trim().replace(/\s+/g,' ').slice(0, 100))}</div>`;
+    const fields = [
+      { k:'시험기',    v: extract([/사용\s*기기\s*[:\s]+([^\n\r]{4,50})/, /([가-힣A-Za-z\s]+시험기)/, /(SCUFF[^\n\r]{0,30})/i]) },
+      { k:'시료 규격', v: extract([/규격\s*[:\s]+(\d+\s*[×xX*]\s*\d+[^\n\r]{0,10})/, /(\d+\s*[×xX*]\s*\d+\s*(?:mm|㎜)?)/ ]) },
+      { k:'시료 매수', v: extract([/매수\s*[:\s]+(\d+\s*매)/, /(\d+\s*매)/ ]) },
+      { k:'하중/조건', v: extract([/하중\s*[:\s]+([\d.]+\s*(?:N|kgf)[^\n\r]{0,20})/, /([\d.]+\s*N(?:\s*이상|\s*이하)?)/ ]) },
+      { k:'합부판정',  v: extract([/합부\s*판정\s*[:\s]+([^\n\r]{5,60})/, /판정\s*기준\s*[:\s]+([^\n\r]{5,60})/, /(변화\s*없을\s*것[^\n\r]{0,20})/, /([\d.]+\s*N\s*이상[^\n\r]{0,20})/ ]) },
+      { k:'시험 횟수', v: extract([/횟수\s*[:\s]+(\d+\s*회[^\n\r]{0,10})/, /(\d+\s*회(?:\s*반복)?)/ ]) },
+    ].filter(f => f.v);
+
+    const methodIdx = lower.indexOf('시험방법');
+    const methodArea = methodIdx >= 0 ? fullText.slice(methodIdx, methodIdx + 1500)
+      : fullText.slice(Math.max(0, bestPos - 200), bestPos + 1200);
+
+    const steps = [...methodArea.matchAll(/[①②③④⑤⑥⑦⑧⑨⑩]\s*([^①②③④⑤⑥⑦⑧⑨⑩]{8,120})/g)]
+      .slice(0, 7)
+      .map((m, i) => `<div style="padding:4px 0;border-bottom:1px solid #F3F4F6">${'①②③④⑤⑥⑦⑧⑨⑩'[i]} ${esc(m[1].trim().replace(/\s+/g,' ').slice(0,100))}</div>`)
+      .join('');
+
+    let html = `<div style="font-size:0.78em;color:#9CA3AF;margin-bottom:10px;font-weight:500">📋 ${esc(docShort)}</div>`;
+    if (fields.length) {
+      html += `<table style="border-collapse:collapse;width:100%;margin-bottom:14px">`;
+      fields.forEach(f => {
+        html += `<tr>
+          <td style="padding:7px 14px 7px 0;color:#2563EB;font-weight:600;white-space:nowrap;font-size:0.84em;vertical-align:top;min-width:76px">${f.k}</td>
+          <td style="padding:7px 0;font-size:0.9em;color:#111;line-height:1.5"><strong>${esc(f.v)}</strong></td>
+        </tr>`;
+      });
+      html += `</table>`;
+    }
+    if (steps) {
+      html += `<div style="margin-top:4px"><div style="font-weight:700;color:#2563EB;font-size:0.84em;margin-bottom:8px">📝 시험방법</div>
+        <div style="font-size:0.87em;line-height:1.8;color:#374151">${steps}</div></div>`;
+    }
+    if (!fields.length && !steps) {
+      const chunk = fullText.slice(Math.max(0, bestPos - 100), bestPos + 600).replace(/\s+/g, ' ').trim();
+      const sentences = chunk.split(/(?<=[.。])\s+/).filter(s => s.trim().length > 5).slice(0, 5);
+      html += `<div style="font-size:0.9em;line-height:1.9;color:#374151">${sentences.map(s=>`• ${esc(s.trim())}`).join('<br>')}</div>`;
+    }
+    return { html, source: doc.name };
+  });
+
+  const combined = answers.map((a, i) => {
+    const sep = i > 0 ? `<hr style="border:none;border-top:1px solid #E5E7EB;margin:16px 0">` : '';
+    return sep + a.html;
   }).join('');
 
-  // 응답 조합
-  let answer = `<div style="font-size:0.78em;color:#9CA3AF;margin-bottom:10px;font-weight:500">📋 ${esc(docShort)}</div>`;
-
-  if (fields.length) {
-    answer += `<table style="border-collapse:collapse;width:100%;margin-bottom:14px">`;
-    fields.forEach(f => {
-      answer += `<tr>
-        <td style="padding:7px 16px 7px 0;color:#2563EB;font-weight:600;white-space:nowrap;font-size:0.84em;vertical-align:top;min-width:80px">${f.k}</td>
-        <td style="padding:7px 0;font-size:0.9em;color:#111;line-height:1.5"><strong>${esc(f.v)}</strong></td>
-      </tr>`;
-    });
-    answer += `</table>`;
-  }
-
-  if (steps) {
-    answer += `<div style="margin-top:4px">
-      <div style="font-weight:700;color:#2563EB;font-size:0.84em;margin-bottom:8px">📝 시험방법</div>
-      <div style="font-size:0.87em;line-height:1.8;color:#374151">${steps}</div>
-    </div>`;
-  }
-
-  if (!fields.length && !steps) {
-    const chunk = fullText.slice(Math.max(0, bestPos - 100), bestPos + 600).replace(/\s+/g, ' ').trim();
-    const sentences = chunk.split(/(?<=[.。])\s+/).filter(s => s.trim().length > 5).slice(0, 5);
-    answer += `<div style="font-size:0.9em;line-height:1.9;color:#374151">${sentences.map(s => `• ${esc(s.trim())}`).join('<br>')}</div>`;
-  }
-
-  return { answer, sources: [doc.name] };
+  return { answer: combined, sources: answers.map(a => a.source) };
 }
 
 // 메인 전송
