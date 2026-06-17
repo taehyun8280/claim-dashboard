@@ -323,7 +323,7 @@ async function handleFiles(files) {
 
 function renderDocList() {
   const list = document.getElementById('docList');
-  document.getElementById('uploadBar').classList.toggle('show', docs.length > 0);
+  // 업로드 바는 수동으로만 열림 (자동 표시 안 함)
   list.innerHTML = docs.map((d, i) => `
     <div class="doc-chip">
       📄 ${d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name}
@@ -556,10 +556,15 @@ document.getElementById('chatInput').addEventListener('input', function() {
 });
 
 // 파일 업로드
-['uploadBtn','attachBtn'].forEach(id => {
-  document.getElementById(id).addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('uploadBtn').addEventListener('click', () => {
+  const bar = document.getElementById('uploadBar');
+  bar.classList.toggle('show');
 });
-document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
+document.getElementById('attachBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e => {
+  handleFiles(e.target.files);
+  document.getElementById('uploadBar').classList.add('show');
+});
 
 // 설정 모달
 document.getElementById('settingsBtn').addEventListener('click', () => {
