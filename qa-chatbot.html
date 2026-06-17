@@ -425,16 +425,17 @@ JSON만 반환, 코드블록 없이.`;
   try {
     if (!apiKey) throw new Error('NO_KEY');
 
+    // 시스템 프롬프트를 첫 번째 메시지에 포함 (v1 호환)
+    const firstMsg = `[시스템 지시]\n${systemPrompt}\n\n${ctx ? `[등록 문서]\n${ctx}\n\n` : ''}[질문] ${q}`;
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
           contents: [
             ...hist,
-            { role: 'user', parts: [{ text: (ctx ? `[등록 문서]\n${ctx}\n\n` : '') + `[질문] ${q}` }] }
+            { role: 'user', parts: [{ text: firstMsg }] }
           ],
           generationConfig: { maxOutputTokens: 1500, temperature: 0.2 }
         })
