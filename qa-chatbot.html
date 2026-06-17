@@ -259,8 +259,9 @@
     <p class="modal-hint">aistudio.google.com에서 무료 발급. 이 브라우저에만 저장됩니다.</p>
     <label>AI 모델</label>
     <select id="modelSelect">
-      <option value="gemini-1.5-flash">Gemini 1.5 Flash (빠름, 무료)</option>
-      <option value="gemini-1.5-pro">Gemini 1.5 Pro (정확, 무료)</option>
+      <option value="gemini-2.0-flash">Gemini 2.0 Flash (빠름, 무료)</option>
+      <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (가장 빠름)</option>
+      <option value="gemini-1.5-pro">Gemini 1.5 Pro (정확)</option>
     </select>
     <div class="modal-btns">
       <button class="btn-cancel" id="cancelSettings">취소</button>
@@ -277,7 +278,7 @@ let docs = [];
 let busy = false;
 let chatHistory = [];
 let apiKey = localStorage.getItem('qa_gemini_key') || '';
-let model = localStorage.getItem('qa_model') || 'gemini-1.5-flash';
+let model = localStorage.getItem('qa_model') || 'gemini-2.0-flash';
 
 // Init
 document.getElementById('apiKeyInput').value = apiKey;
