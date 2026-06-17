@@ -569,10 +569,8 @@ document.getElementById('cancelSettings').addEventListener('click', () => {
   document.getElementById('settingsModal').classList.remove('show');
 });
 document.getElementById('saveSettings').addEventListener('click', () => {
-  apiKey = document.getElementById('apiKeyInput').value.trim();
-  model = document.getElementById('modelSelect').value;
-  localStorage.setItem('qa_gemini_key', apiKey);
-  localStorage.setItem('qa_model', model);
+  const nameVal = document.getElementById('botNameInput').value.trim();
+  if (nameVal) document.querySelector('.header-title').textContent = nameVal;
   document.getElementById('settingsModal').classList.remove('show');
 });
 
