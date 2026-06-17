@@ -278,7 +278,7 @@ let busy = false;
 let chatHistory = [];
 let apiKey = localStorage.getItem('qa_gemini_key') || '';
 localStorage.removeItem('qa_model');
-let model = 'gemini-1.5-flash-latest';
+let model = 'gemini-1.5-flash';
 
 // Init
 document.getElementById('apiKeyInput').value = apiKey;
@@ -426,7 +426,7 @@ JSON만 반환, 코드블록 없이.`;
     if (!apiKey) throw new Error('NO_KEY');
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
