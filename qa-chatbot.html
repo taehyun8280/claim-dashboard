@@ -254,14 +254,8 @@
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
     <h3>⚙️ 설정</h3>
-    <label>Gemini API 키</label>
-    <input type="password" id="apiKeyInput" placeholder="AIza...">
-    <p class="modal-hint">aistudio.google.com에서 무료 발급. 이 브라우저에만 저장됩니다.</p>
-    <label>AI 모델</label>
-    <select id="modelSelect">
-      <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (무료)</option>
-      <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-    </select>
+    <label>챗봇 이름</label>
+    <input type="text" id="botNameInput" placeholder="QA 지식검색" value="QA 지식검색">
     <div class="modal-btns">
       <button class="btn-cancel" id="cancelSettings">취소</button>
       <button class="btn-save" id="saveSettings">저장</button>
@@ -391,6 +385,101 @@ function highlight(html, keywords) {
   return html;
 }
 
+// API 없는 문서 검색 엔진
+function localSearch(q) {
+  const terms = q.toLowerCase().match(/[a-z0-9가-힣]{2,}/g) || [];
+
+  // 문서별 점수 계산
+  const scored = docs.map(doc => {
+    const name = doc.name.toLowerCase();
+    const text = doc.content.replace(/\s+/g, ' ');
+    const lower = text.toLowerCase();
+    let score = 0;
+    const positions = [];
+    terms.forEach(t => {
+      if (name.includes(t)) score += 10;
+      let p = 0;
+      while ((p = lower.indexOf(t, p)) >= 0) { score += 3; positions.push(p); p++; }
+    });
+    return { doc, score, text, lower, positions };
+  }).filter(r => r.score > 0).sort((a, b) => b.score - a.score);
+
+  if (!scored.length) {
+    return {
+      answer: `<span style="color:#6B7280">등록된 문서에서 <strong>"${esc(q)}"</strong>에 해당하는 내용을 찾지 못했습니다.</span>`,
+      sources: []
+    };
+  }
+
+  const top = scored[0];
+  const { text, lower, positions, doc } = top;
+  const docShort = doc.name.replace(/\.[^.]+$/, '');
+
+  // 가장 밀집된 위치 찾기
+  let bestPos = positions[0] || 0;
+  if (positions.length > 1) {
+    bestPos = positions.reduce((best, p) => {
+      const near = positions.filter(h => Math.abs(h - p) <= 300).length;
+      const bestNear = positions.filter(h => Math.abs(h - best) <= 300).length;
+      return near > bestNear ? p : best;
+    }, positions[0]);
+  }
+
+  // 판정기준 섹션 우선
+  const jKws = ['판정기준','판정 기준','합격기준','합부판정','불합격','이상','이하'];
+  for (const jk of jKws) {
+    const jp = lower.indexOf(jk);
+    if (jp >= 0 && Math.abs(jp - bestPos) < 2000) { bestPos = jp; break; }
+  }
+
+  // 넓은 범위 추출
+  const start = Math.max(0, bestPos - 100);
+  const chunk = text.slice(start, start + 800).replace(/\s+/g, ' ').trim();
+
+  // 시험방법 번호 항목 추출
+  const steps = [...chunk.matchAll(/[①②③④⑤⑥⑦⑧]\s*([^①②③④⑤⑥⑦⑧]{8,100})/g)]
+    .slice(0, 6)
+    .map((m, i) => `<div style="padding:3px 0">${'①②③④⑤⑥⑦⑧'[i]} ${esc(m[1].trim().slice(0, 80))}</div>`)
+    .join('');
+
+  // 핵심 수치 추출 (N, mm, %, 매 등)
+  const nums = [...new Set(chunk.match(/[\d.]+\s*(N|mm|㎜|%|매|회|℃|°C|이상|이하|미만|초과)[^\s,]*/g) || [])].slice(0, 5);
+
+  // 표 형식 항목 추출
+  const fields = [
+    { k:'규격',    re:/(\d+\s*[\*×x]\s*\d+)/ },
+    { k:'시료매수', re:/(\d+\s*매)/ },
+    { k:'합부판정', re:/([\d.]+\s*N\s*이상|변화\s*없을\s*것|이상|이하[^\s]{0,10})/ },
+    { k:'시험기',   re:/(스크래치\s*시험기|SCUFF\s*시험기|내마모\s*시험기|시험기[^\s]{0,10})/ },
+  ].map(f => {
+    const m = chunk.match(f.re);
+    return m ? { k: f.k, v: m[1].replace(/\s+/g,' ').trim() } : null;
+  }).filter(Boolean);
+
+  const tableRows = fields.map(f =>
+    `<tr><td style="padding:6px 14px 6px 0;color:#3B82F6;font-weight:600;white-space:nowrap;font-size:0.88em;vertical-align:top">${f.k}</td>` +
+    `<td style="padding:6px 0;font-size:0.9em"><strong>${esc(f.v)}</strong></td></tr>`
+  ).join('');
+
+  // 응답 조합
+  let answer = `<div style="font-size:0.8em;color:#9CA3AF;margin-bottom:10px">📋 ${esc(docShort)}</div>`;
+
+  if (tableRows) {
+    answer += `<table style="border-collapse:collapse;width:100%;margin-bottom:${steps ? '12px' : '0'}">${tableRows}</table>`;
+  }
+  if (steps) {
+    answer += `<div style="margin-top:8px"><div style="font-weight:600;color:#3B82F6;font-size:0.87em;margin-bottom:6px">시험방법</div>` +
+      `<div style="font-size:0.88em;line-height:1.9;color:#374151">${steps}</div></div>`;
+  }
+  if (!tableRows && !steps) {
+    // 관련 문장만 표시
+    const sentences = chunk.split(/[.。]\s+/).filter(s => s.trim().length > 5).slice(0, 4);
+    answer += `<div style="font-size:0.9em;line-height:1.8;color:#374151">${sentences.map(s => `• ${esc(s.trim())}`).join('<br>')}</div>`;
+  }
+
+  return { answer, sources: [doc.name] };
+}
+
 // 메인 전송
 async function sendMsg(q) {
   if (!q.trim() || busy) return;
@@ -406,61 +495,17 @@ async function sendMsg(q) {
     parts: [{ text: m.content }]
   }));
 
-  const systemPrompt = `당신은 사내 QA 지식검색 전문 AI입니다. 업로드된 시험 기준서·실험 데이터 문서를 기반으로 정확하고 간결하게 답변하세요.
-
-답변 규칙:
-- 출처 문서명을 먼저 표기: <span style="font-size:0.82em;color:#6B7280">📋 문서명</span><br><br>
-- 시험 기준 질문은 표로 정리 (규격/시료매수/시험방법/합부판정/시험기):
-  <table style="border-collapse:collapse;width:100%">
-  <tr><td style="padding:6px 14px 6px 0;color:#3B82F6;font-weight:600;white-space:nowrap;font-size:0.88em">항목명</td><td style="padding:6px 0">값</td></tr>
-  </table>
-- 시험방법 단계는 번호(①②③...)로 한 줄씩
-- 수치·판정기준은 <strong>굵게</strong>
-- 문서에 없으면: "등록 문서에서 확인되지 않습니다"
-- 인사말 없이 바로 답변
-
-응답 JSON: {"answer":"HTML 형식 답변","sources":["문서명"],"keywords":["핵심키워드"]}
-JSON만 반환, 코드블록 없이.`;
-
   try {
-    if (!apiKey) throw new Error('NO_KEY');
-
-    // 시스템 프롬프트를 첫 번째 메시지에 포함 (v1 호환)
-    const firstMsg = `[시스템 지시]\n${systemPrompt}\n\n${ctx ? `[등록 문서]\n${ctx}\n\n` : ''}[질문] ${q}`;
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            ...hist,
-            { role: 'user', parts: [{ text: firstMsg }] }
-          ],
-          generationConfig: { maxOutputTokens: 1500, temperature: 0.2 }
-        })
-      }
-    );
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message || `오류 ${res.status}`);
-
-    const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '{}')
-      .replace(/```json|```/g, '').trim();
-
-    let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch { parsed = { answer: esc(raw), sources: [], keywords: [] }; }
-
+    if (docs.length === 0) throw new Error('NO_DOCS');
+    const result = localSearch(q);
     removeTyping();
-    addMsg('ai', highlight(parsed.answer || '답변을 생성하지 못했습니다.', parsed.keywords), parsed.sources || []);
-    chatHistory.push({ role: 'user', content: q }, { role: 'assistant', content: parsed.answer || '' });
-
+    addMsg('ai', result.answer, result.sources);
+    chatHistory.push({ role: 'user', content: q }, { role: 'assistant', content: result.answer });
   } catch (e) {
     removeTyping();
-    if (e.message === 'NO_KEY') {
-      addMsg('ai', `<div style="color:#92400E;background:#FFFBEB;padding:10px 14px;border-radius:10px;font-size:0.9em">
-        ⚙️ API 키가 없어요.<br>오른쪽 상단 <strong>⚙️ 설정</strong>에서 Gemini API 키를 입력하면<br>문서 기반으로 정확하게 답변해드릴게요.
+    if (e.message === 'NO_DOCS') {
+      addMsg('ai', `<div style="color:#92400E;background:#FFFBEB;padding:12px 16px;border-radius:10px;font-size:0.9em">
+        📎 먼저 문서를 업로드해 주세요.<br>오른쪽 상단 <strong>📎 버튼</strong>으로 기준서 PDF를 올리면 바로 검색할 수 있어요.
       </div>`);
     } else {
       addMsg('ai', `<span style="color:#EF4444">오류: ${esc(e.message)}</span>`);
