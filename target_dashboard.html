@@ -88,7 +88,8 @@ body>:not(.tab-bar){padding-top:2rem}
 .attach-box li{list-style:none;color:#1a1a1a;display:flex;align-items:center;gap:10px;padding:7px 0}
 .attach-box li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#378ADD;flex-shrink:0}
 .attach-box li a,.attach-box li span{color:#1a1a1a;text-decoration:none}
-.report-footer{text-align:right;font-size:13px;color:#888;margin-top:14px;padding-top:10px;border-top:none}
+.report-footer{text-align:right;font-size:13px;color:#888;margin-top:14px;padding-top:10px;border-top:0!important;box-shadow:none!important;background-image:none!important}
+.report-footer::before,.report-footer::after{content:none!important;display:none!important}
 
 /* 이미지 복사 전용 강조 스타일 */
 .report-paper.capture-strong{color:#000;font-weight:650}
