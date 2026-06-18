@@ -90,6 +90,27 @@ body>:not(.tab-bar){padding-top:2rem}
 .attach-box li a,.attach-box li span{color:#1a1a1a;text-decoration:none}
 .report-footer{text-align:right;font-size:13px;color:#888;margin-top:14px;padding-top:10px;border-top:0.5px solid #e0e0da}
 
+/* 이미지 복사 전용 강조 스타일 */
+.report-paper.capture-strong{color:#000;font-weight:650}
+.report-paper.capture-strong .kpi-lbl,
+.report-paper.capture-strong .kpi-sub-lbl{color:#000!important;font-weight:850!important}
+.report-paper.capture-strong .kpi-val{color:#000;font-weight:900!important}
+.report-paper.capture-strong .kpi-val.red{color:#a51f24!important}
+.report-paper.capture-strong .sec-title{font-size:30px!important;font-weight:900!important;margin:42px 0 18px!important;color:#000!important}
+.report-paper.capture-strong .st,
+.report-paper.capture-strong .ct{margin-bottom:38px!important;border:1.6px solid #555!important}
+.report-paper.capture-strong .st th,
+.report-paper.capture-strong .ct th{background:#e9eef6!important;border:1.4px solid #666!important;color:#000!important;font-weight:900!important}
+.report-paper.capture-strong .st td,
+.report-paper.capture-strong .ct td{border:1.4px solid #777!important;color:#000!important;font-weight:650!important}
+.report-paper.capture-strong .st .gh,
+.report-paper.capture-strong .ct .tr-total td{font-weight:900!important;color:#000!important}
+.report-paper.capture-strong .st .tr-total td{font-weight:900!important}
+.report-paper.capture-strong .note-box{min-height:145px!important;margin-bottom:42px!important;border:1.4px solid #777!important;color:#000!important;font-weight:700!important}
+.report-paper.capture-strong .attach-box{margin-top:10px!important;margin-bottom:36px!important}
+.report-paper.capture-strong .attach-box li{font-size:22px!important;font-weight:800!important;color:#000!important;padding:10px 0!important}
+.report-paper.capture-strong .report-footer{font-size:20px!important;font-weight:800!important;color:#000!important}
+
 /* ══ 데이터 입력 ══ */
 .inp-page{max-width:1100px;margin:0 auto;padding:20px}
 .inp-card{background:#fff;border:0.5px solid #e0e0da;border-radius:8px;margin-bottom:14px;overflow:hidden}
@@ -928,6 +949,7 @@ async function copyDashboard(){
   const head=document.querySelector('.report-head');
   const prevDisplay=head?head.style.display:'';
   if(head) head.style.display='none';
+  target.classList.add('capture-strong');
 
   // 캡처용 폰트 확대
   const kpiLabels=document.querySelectorAll('.kpi-lbl');
@@ -1008,6 +1030,7 @@ async function copyDashboard(){
     }
   }finally{
     if(head) head.style.display=prevDisplay;
+    target.classList.remove('capture-strong');
     kpiLabels.forEach(el=>el.style.fontSize='');
     kpiSubLabels.forEach(el=>el.style.fontSize='');
     secTitles.forEach(el=>el.style.fontSize='');
