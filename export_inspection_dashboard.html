@@ -281,13 +281,42 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
   <div class="inp-card">
     <div class="inp-card-hd">기본 정보</div>
     <div class="inp-card-bd">
-      <div class="inp-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:8px 14px">
-        <div class="inp-f"><label>보고서 제목</label><input id="in_title" value="수출건 검사 보고서"></div>
+      <div class="inp-grid" style="grid-template-columns:260px;gap:8px 14px">
         <div class="inp-f"><label>작성일</label><input id="in_date" type="date"></div>
-        <div class="inp-f"><label>작성부서</label><input id="in_dept" value="퍼시스 제조사업부 > 충주공장 > 품질보증팀 (충주)" readonly class="ro"></div>
-        <div class="inp-f"><label>작성자</label><input id="in_writer" placeholder="이름 입력"></div>
-        <div class="inp-f"><label>소속 (하단 표기)</label><input id="in_org" value="충주공장 품질보증팀"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- 고객클레임 현황 -->
+  <div class="inp-card">
+    <div class="inp-card-hd">고객클레임 현황</div>
+    <div class="inp-card-bd">
+      <table class="inp-t">
+        <thead>
+          <tr>
+            <th style="width:180px">구분</th>
+            <th>품목</th>
+            <th>수량</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="inp-t-name">일 고객클레임 현황</td>
+            <td><input type="number" id="claim_d_item" value="0" min="0" oninput="liveSync()"></td>
+            <td><input type="number" id="claim_d_qty" value="0" min="0" oninput="liveSync()"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">월 고객클레임 현황</td>
+            <td><input type="number" id="claim_m_item" value="0" min="0" oninput="liveSync()"></td>
+            <td><input type="number" id="claim_m_qty" value="0" min="0" oninput="liveSync()"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">누적 고객클레임 현황</td>
+            <td><input type="number" id="claim_y_item" value="2" min="0" oninput="liveSync()"></td>
+            <td><input type="number" id="claim_y_qty" value="2" min="0" oninput="liveSync()"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -551,6 +580,20 @@ function getSRows(){
     yi:getS(i,'yi'),yq:getS(i,'yq')
   }));
 }
+function claimValue(id,fallback){
+  const el=document.getElementById(id);
+  if(!el) return fallback;
+  const value=parseInt(el.value);
+  return Number.isFinite(value)?value:fallback;
+}
+function syncClaimKpis(){
+  document.getElementById('db_claim_d_item').textContent=claimValue('claim_d_item',0).toLocaleString();
+  document.getElementById('db_claim_d_qty').textContent=claimValue('claim_d_qty',0).toLocaleString();
+  document.getElementById('db_claim_m_item').textContent=claimValue('claim_m_item',0).toLocaleString();
+  document.getElementById('db_claim_m_qty').textContent=claimValue('claim_m_qty',0).toLocaleString();
+  document.getElementById('db_claim_y_item').textContent=claimValue('claim_y_item',2).toLocaleString();
+  document.getElementById('db_claim_y_qty').textContent=claimValue('claim_y_qty',2).toLocaleString();
+}
 
 const C_COUNT=20;
 function gC(i,f){return document.getElementById(`c${i}_${f}`);}
@@ -698,8 +741,8 @@ function applyAll(){
   const v=id=>document.getElementById(id)?.value||'';
   commitTodayToCumulative();
 
-  document.getElementById('pv_title').textContent=v('in_title')||'일일 품질 검사 보고서';
-  document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
+  document.getElementById('pv_title').textContent='수출건 검사 보고서';
+  document.getElementById('pvOrg').textContent='충주공장 품질보증팀';
 
   // 보고서 표시 날짜: 월요일이면 -3일(직전 금요일), 나머지는 -1일
   let reportDate='';
@@ -748,13 +791,7 @@ function applyAll(){
     d.setDate(d.getDate()-offset);
     return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   })():'금일';
-  // KPI 카드 - 고객클레임 (– 유지, 별도 입력 없음)
-  document.getElementById('db_claim_d_item').textContent='0';
-  document.getElementById('db_claim_d_qty').textContent='0';
-  document.getElementById('db_claim_m_item').textContent='0';
-  document.getElementById('db_claim_m_qty').textContent='0';
-  document.getElementById('db_claim_y_item').textContent='2';
-  document.getElementById('db_claim_y_qty').textContent='2';
+  syncClaimKpis();
 
   const cb=document.getElementById('pvCBody');
   cb.innerHTML='';
@@ -818,6 +855,9 @@ function resetAll(){
   notePhotoData='';
   renderNoteInputPhoto();
   renderNotePreview();
+  ['claim_d_item','claim_d_qty','claim_m_item','claim_m_qty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=0;});
+  ['claim_y_item','claim_y_qty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=2;});
+  syncClaimKpis();
   calcC();
 }
 
@@ -829,14 +869,9 @@ function liveSync(){
 function applyAll_silent(){
   // switchTab 없이 applyAll 내용만 실행
   const v=id=>document.getElementById(id)?.value||'';
-  document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
-  document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
-  document.getElementById('db_claim_d_item').textContent='0';
-  document.getElementById('db_claim_d_qty').textContent='0';
-  document.getElementById('db_claim_m_item').textContent='0';
-  document.getElementById('db_claim_m_qty').textContent='0';
-  document.getElementById('db_claim_y_item').textContent='2';
-  document.getElementById('db_claim_y_qty').textContent='2';
+  document.getElementById('pv_title').textContent='수출건 검사 보고서';
+  document.getElementById('pvOrg').textContent='충주공장 품질보증팀';
+  syncClaimKpis();
   if(v('in_date')){
     const d=new Date(v('in_date'));
     const day=d.getDay();
