@@ -26,8 +26,10 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
 .btn-img-copy{background:#166534;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .btn-img-copy:hover{background:#14532d}
-.sync-pill{background:#fff;color:#16a34a;border:1px solid #86efac;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
-.sync-pill .dot{width:7px;height:7px;background:#16a34a;border-radius:50%}
+.sync-pill{background:#fff;color:#666;border:1px solid #ddd;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
+.sync-pill .dot{width:7px;height:7px;background:#d4a017;border-radius:50%}
+.sync-pill.synced{color:#16a34a;border-color:#86efac}
+.sync-pill.synced .dot{background:#16a34a}
 
 /* 보고서 카드 */
 .report-paper{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:24px 28px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
@@ -169,7 +171,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
   <div class="preview-topbar no-print">
     <button class="btn-img-copy" id="copyBtn" onclick="copyDashboard()">📋 대시보드 이미지 복사</button>
-    <div class="sync-pill"><span class="dot"></span>실시간 동기화 중</div>
+    <div class="sync-pill" id="syncStatus"><span class="dot"></span><span id="syncText">최신 데이터 확인 중</span></div>
   </div>
 
   <div class="report-paper">
@@ -516,6 +518,13 @@ function switchTab(t){
   document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   document.querySelectorAll('.tab-bar button')[{preview:0,input:1}[t]].classList.add('active');
+}
+function setSyncStatus(done=false){
+  const pill=document.getElementById('syncStatus');
+  const text=document.getElementById('syncText');
+  if(!pill||!text) return;
+  pill.classList.toggle('synced',done);
+  text.textContent=done?'실시간 동기화 중':'최신 데이터 확인 중';
 }
 
 function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
@@ -887,6 +896,7 @@ function resetAll(){
 function liveSync(){
   // 보고서 미리보기 탭이 아니어도 항상 동기화
   applyAll_silent();
+  setSyncStatus(true);
 }
 function applyAll_silent(){
   // switchTab 없이 applyAll 내용만 실행
@@ -966,6 +976,7 @@ document.addEventListener('change',function(e){
 restoreInspectionState();
 calcS();
 applyAll_silent();
+setTimeout(()=>setSyncStatus(true),700);
 
 async function copyDashboard(){
   const btn=document.getElementById('copyBtn');
