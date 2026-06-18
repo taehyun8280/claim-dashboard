@@ -50,21 +50,21 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .kpi-issue{font-size:13px;color:#555;line-height:1.7;margin-top:4px;min-height:40px}
 
 /* 섹션 */
-.sec-title{font-size:13px;font-weight:700;margin:18px 0 8px;color:#111;display:flex;align-items:center;gap:6px}
-.sec-title::before{content:'';display:inline-block;width:3px;height:14px;background:#1a56db;border-radius:2px}
+.sec-title{font-size:17px;font-weight:600;margin:18px 0 8px;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';display:inline-block;width:3px;height:16px;background:#378ADD;border-radius:2px}
 
 /* 검사현황 테이블 */
-.st{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px;border:1px solid #e5e7eb}
-.st th{background:#f8faff;padding:7px 10px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
-.st td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff}
+.st{width:100%;border-collapse:collapse;font-size:15px;margin-bottom:4px;border:1px solid #d0d8e8}
+.st th{background:#f0f4fa;padding:10px 10px;border:1px solid #d0d8e8;text-align:center;font-weight:600;color:#555;font-size:14px}
+.st td{padding:10px 10px;border:1px solid #d0d8e8;text-align:center;background:#fff;font-size:15px}
 .st .gh{background:#e8e8e8;font-weight:600;color:#333}
 .st .tr-total td{background:#e8f0fe;font-weight:700;color:#1a56db;border-color:#c7d7f5}
 .ng-red{color:#111;font-weight:400}
 
 /* 검사내용 테이블 */
-.ct{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e5e7eb}
-.ct th{background:#f8faff;padding:7px 10px;border:1px solid #dde5f5;text-align:center;font-weight:600;color:#1e3a8a;font-size:11px}
-.ct td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;background:#fff;vertical-align:middle}
+.ct{width:100%;border-collapse:collapse;font-size:15px;border:1px solid #d0d8e8}
+.ct th{background:#f0f4fa;padding:10px 10px;border:1px solid #d0d8e8;text-align:center;font-weight:600;color:#555;font-size:14px}
+.ct td{padding:10px 10px;border:1px solid #d0d8e8;text-align:center;background:#fff;vertical-align:middle;font-size:15px}
 .ct thead th:nth-child(1),.ct tbody td:nth-child(1),
 .ct thead th:nth-child(4),.ct tbody td:nth-child(4),
 .ct thead th:nth-child(5),.ct tbody td:nth-child(5),
@@ -78,14 +78,36 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .photo-empty{width:150px;height:100px;background:#f9fafb;border:1px dashed #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:10px;margin:0 auto}
 
 /* 특이사항 / 첨부 */
-.note-box{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:12px;min-height:60px;font-size:12px;color:#555;line-height:1.7}
+.note-box{background:#f9f9f8;border:0.5px solid #e0e0da;border-radius:8px;padding:1rem;min-height:60px;font-size:15px;color:#1a1a1a;line-height:1.7}
 .note-text{white-space:normal}
 .note-photo-report{margin-top:10px}
 .note-photo-report img{max-width:320px;max-height:220px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;display:block}
-.attach-box{background:#f8faff;border:1px solid #dbeafe;border-radius:6px;padding:10px 14px;font-size:12px;line-height:2}
-.attach-box li{list-style:none;color:#374151}
-.attach-box li::before{content:'• ';color:#1a56db;font-weight:700}
-.report-footer{text-align:right;font-size:11px;color:#9ca3af;margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0}
+.attach-box{background:#fff;border:none;padding:4px 0;font-size:15px}
+.attach-box li{list-style:none;color:#1a1a1a;display:flex;align-items:center;gap:10px;padding:7px 0}
+.attach-box li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#378ADD;flex-shrink:0}
+.report-footer{text-align:right;font-size:13px;color:#888;margin-top:14px;padding-top:10px;border-top:0!important;box-shadow:none!important;background-image:none!important}
+.report-footer::before,.report-footer::after{content:none!important;display:none!important}
+
+/* 이미지 복사 전용 강조 스타일 */
+.report-paper.capture-strong{color:#000;font-weight:650}
+.report-paper.capture-strong .kpi-lbl,
+.report-paper.capture-strong .kpi-sub-lbl{color:#000!important;font-weight:850!important}
+.report-paper.capture-strong .kpi-val{color:#000;font-weight:900!important}
+.report-paper.capture-strong .kpi-val.red{color:#a51f24!important}
+.report-paper.capture-strong .sec-title{font-size:30px!important;font-weight:900!important;margin:42px 0 18px!important;color:#000!important}
+.report-paper.capture-strong .st,
+.report-paper.capture-strong .ct{margin-bottom:38px!important;border:1.6px solid #555!important}
+.report-paper.capture-strong .st th,
+.report-paper.capture-strong .ct th{background:#e9eef6!important;border:1.4px solid #666!important;color:#000!important;font-weight:900!important}
+.report-paper.capture-strong .st td,
+.report-paper.capture-strong .ct td{border:1.4px solid #777!important;color:#000!important;font-weight:650!important}
+.report-paper.capture-strong .st .gh,
+.report-paper.capture-strong .ct .tr-total td{font-weight:900!important;color:#000!important}
+.report-paper.capture-strong .st .tr-total td{font-weight:900!important}
+.report-paper.capture-strong .note-box{min-height:145px!important;margin-bottom:42px!important;border:1.4px solid #777!important;color:#000!important;font-weight:700!important}
+.report-paper.capture-strong .attach-box{margin-top:10px!important;margin-bottom:36px!important}
+.report-paper.capture-strong .attach-box li{font-size:22px!important;font-weight:800!important;color:#000!important;padding:10px 0!important}
+.report-paper.capture-strong .report-footer{font-size:20px!important;font-weight:800!important;color:#000!important;border-top:none!important}
 
 /* ══ 데이터 입력 ══ */
 .inp-page{max-width:1100px;margin:0 auto;padding:20px}
@@ -960,6 +982,7 @@ async function copyDashboard(){
   const head=document.querySelector('.report-head');
   const prevDisplay=head?head.style.display:'';
   if(head) head.style.display='none';
+  target.classList.add('capture-strong');
 
   // 캡처용 폰트 확대
   const kpiLabels=document.querySelectorAll('.kpi-lbl');
@@ -1040,6 +1063,7 @@ async function copyDashboard(){
     }
   }finally{
     if(head) head.style.display=prevDisplay;
+    target.classList.remove('capture-strong');
     kpiLabels.forEach(el=>el.style.fontSize='');
     kpiSubLabels.forEach(el=>el.style.fontSize='');
     secTitles.forEach(el=>el.style.fontSize='');
