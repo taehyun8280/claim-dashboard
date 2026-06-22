@@ -57,6 +57,9 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
 /* 검사현황 테이블 */
 .st{width:100%;border-collapse:collapse;font-size:15px;margin-bottom:4px;border:1px solid #d0d8e8}
+.st{table-layout:fixed}
+.st col.col-group{width:80px}
+.st col.col-metric{width:calc((100% - 80px) / 6)}
 .st th{background:#f0f4fa;padding:10px 10px;border:1px solid #d0d8e8;text-align:center;font-weight:600;color:#555;font-size:14px}
 .st td{padding:10px 10px;border:1px solid #d0d8e8;text-align:center;background:#fff;font-size:15px}
 .st .gh{background:#e8e8e8;font-weight:600;color:#333}
@@ -232,6 +235,12 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
     <!-- 1. 검사현황 -->
     <div class="sec-title">1. 검사현황</div>
     <table class="st">
+      <colgroup>
+        <col class="col-group">
+        <col class="col-metric"><col class="col-metric">
+        <col class="col-metric"><col class="col-metric">
+        <col class="col-metric"><col class="col-metric">
+      </colgroup>
       <thead>
         <tr>
           <th rowspan="2" style="width:80px">구분</th>
