@@ -1016,7 +1016,11 @@
       </div>
       <div>
         <div class="field-label">담당자</div>
-        <input class="field-input" id="cf-person" placeholder="담당자명">
+        <select class="field-select" id="cf-person">
+          <option value="">선택</option>
+          <option value="박태현">박태현</option>
+          <option value="박동현">박동현</option>
+        </select>
       </div>
       <div>
         <div class="field-label">시험 항목</div>
@@ -1057,11 +1061,8 @@
           <tr>
             <th>No</th>
             <th>시험 항목</th>
-            <th>규격 기준</th>
-            <th>측정값 1</th>
-            <th>측정값 2</th>
-            <th>측정값 3</th>
-            <th>평균</th>
+            <th>기준</th>
+            <th>결과</th>
             <th>판정</th>
             <th>이미지</th>
             <th>비고</th>
@@ -1085,7 +1086,11 @@
       </div>
       <div>
         <div class="field-label">시험자 서명</div>
-        <input class="field-input" id="cf-signer" placeholder="시험자 이름">
+        <select class="field-select" id="cf-signer">
+          <option value="">선택</option>
+          <option value="박태현">박태현</option>
+          <option value="박동현">박동현</option>
+        </select>
       </div>
       <div class="cert-form-full">
         <div class="field-label">특이사항 / 비고</div>
@@ -1244,10 +1249,7 @@ function addResultRow() {
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;">${rc}</td>
     <td><input placeholder="항목명"></td>
     <td><input placeholder="기준값"></td>
-    <td><input placeholder="측정1" oninput="calcAvg(this)"></td>
-    <td><input placeholder="측정2" oninput="calcAvg(this)"></td>
-    <td><input placeholder="측정3" oninput="calcAvg(this)"></td>
-    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);" class="avg-cell">—</td>
+    <td><input placeholder="결과값"></td>
     <td>
       <select style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 5px;font-size:11px;">
         <option>—</option><option>합격</option><option>불합격</option>
@@ -1306,12 +1308,6 @@ document.addEventListener('paste', e => {
   }
 });
 
-function calcAvg(inp) {
-  const row = inp.closest('tr');
-  const inputs = row.querySelectorAll('input');
-  const vals = [inputs[2], inputs[3], inputs[4]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
-  row.querySelector('.avg-cell').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(3) : '—';
-}
 function delRow(id) {
   const el = document.getElementById(id);
   if (el) { el.remove(); renumberRows(); }
@@ -1344,13 +1340,10 @@ function saveCert() {
     rows.push({
       item: inputs[0]?.value,
       spec: inputs[1]?.value,
-      m1: inputs[2]?.value,
-      m2: inputs[3]?.value,
-      m3: inputs[4]?.value,
-      avg: tr.querySelector('.avg-cell')?.textContent,
+      result: inputs[2]?.value,
       judge: tr.querySelector('select')?.value,
       img: imgEl ? imgEl.dataset.src : '',
-      note: inputs[5]?.value
+      note: inputs[3]?.value
     });
   });
 
@@ -1435,16 +1428,14 @@ function loadCert(no) {
     const inputs = tr.querySelectorAll('input');
     inputs[0].value = r.item||'';
     inputs[1].value = r.spec||'';
-    inputs[2].value = r.m1||'';
-    inputs[3].value = r.m2||'';
-    inputs[4].value = r.m3||'';
-    tr.querySelector('.avg-cell').textContent = r.avg||'—';
+    inputs[2].value = r.result||'';
     tr.querySelector('select').value = r.judge||'—';
     if (r.img) {
       const drop = tr.querySelector('.img-drop');
-      drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">`;
+      drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
     }
-    inputs[5].value = r.note||'';
+    inputs[3].value = r.note||'';
   });
 
   openCertPanel();
@@ -1529,16 +1520,11 @@ function applyExcelData(data) {
     addResultRow();
     const tr = document.querySelector('#result-tbody tr:last-child');
     const inputs = tr.querySelectorAll('input');
-    // map columns: 항목, 규격기준, 측정1, 측정2, 측정3, 비고
+    // map columns: 항목, 기준, 결과, 비고
     inputs[0].value = r[0] !== undefined ? String(r[0]) : '';
     inputs[1].value = r[1] !== undefined ? String(r[1]) : '';
     inputs[2].value = r[2] !== undefined ? String(r[2]) : '';
     inputs[3].value = r[3] !== undefined ? String(r[3]) : '';
-    inputs[4].value = r[4] !== undefined ? String(r[4]) : '';
-    inputs[5].value = r[5] !== undefined ? String(r[5]) : '';
-    // recalc avg
-    const vals = [inputs[2], inputs[3], inputs[4]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
-    tr.querySelector('.avg-cell').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(3) : '—';
   });
   showToast(`엑셀 데이터 ${dataRows.length}행 가져오기 완료`);
 }
