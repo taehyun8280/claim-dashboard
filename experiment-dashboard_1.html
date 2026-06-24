@@ -911,18 +911,19 @@
         <thead>
           <tr>
             <th>성적서 번호</th>
-            <th>시험 항목</th>
+            <th>시험</th>
             <th>의뢰 기관</th>
             <th>시료 정보</th>
             <th>시험 기간</th>
             <th>담당자</th>
-            <th>판정</th>
-            <th>상태</th>
+            <th>판정(결과)</th>
+            <th>시험사진</th>
+            <th>비고</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="list-tbody">
-          <tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>
+          <tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>
         </tbody>
       </table>
     </div>
@@ -1400,23 +1401,37 @@ function renderCertList(filter='') {
     : certificates;
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(c => {
-    const chip = c.pf==='pass' ? '<span class="status-chip chip-done">✔ PASS</span>'
-                : c.pf==='fail' ? '<span class="status-chip" style="background:rgba(239,68,68,.15);color:#ef4444;">✘ FAIL</span>'
-                : '<span class="status-chip chip-prog">— 미판정</span>';
-    const stChip = c.status==='완료'?'chip-done':c.status==='진행'?'chip-prog':'chip-wait';
+    const rows = c.rows || [];
+
+    // 시험: 모든 행의 시험 항목 줄바꿈으로 표시
+    const itemText = rows.map(r => r.item||'').filter(Boolean).join('<br>') || '—';
+
+    // 판정(결과): 모든 행의 결과 줄바꿈으로 표시
+    const resultText = rows.map(r => r.result||'').filter(Boolean).join('<br>') || '—';
+
+    // 시험사진: 이미지 있는 첫 번째 행 썸네일
+    const firstImg = rows.find(r => r.img);
+    const imgCell = firstImg
+      ? `<img src="${firstImg.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);">`
+      : '—';
+
+    // 비고: 모든 행의 비고 줄바꿈으로 표시
+    const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
+
     return `<tr onclick="loadCert('${c.no}')">
       <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:12px;">${c.no}</td>
-      <td>${c.item||'—'}</td>
+      <td style="max-width:160px;line-height:1.6;">${itemText}</td>
       <td>${c.client||'—'}</td>
       <td>${c.sample||'—'}</td>
-      <td>${c.start||'—'} ~ ${c.end||'—'}</td>
+      <td style="white-space:nowrap;">${c.start||'—'} ~ ${c.end||'—'}</td>
       <td>${c.person||'—'}</td>
-      <td>${chip}</td>
-      <td><span class="status-chip ${stChip}">${c.status||'—'}</span></td>
+      <td style="max-width:100px;line-height:1.6;">${resultText}</td>
+      <td style="text-align:center;">${imgCell}</td>
+      <td style="max-width:160px;line-height:1.6;">${noteText}</td>
       <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">삭제</button></td>
     </tr>`;
   }).join('');
