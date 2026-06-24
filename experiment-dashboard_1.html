@@ -1523,30 +1523,48 @@ function parseCSVToTable(text) {
 }
 
 function applyExcelData(data) {
-  if (!data || data.length < 2) { showToast('데이터가 없습니다.'); return; }
-  // first row = header, skip it; remaining = data rows
-  const dataRows = data.slice(1).filter(r => r.some(c => String(c).trim()));
+  if (!data || !data.length) { showToast('데이터가 없습니다.'); return; }
+
+  // ── 헤더 행 자동 탐지: '시험' 셀이 있는 행 ──
+  let headerRowIdx = -1;
+  const colIdx = { item: -1, spec: -1, result: -1, note: -1 };
+
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    let foundItem = false;
+    for (let j = 0; j < row.length; j++) {
+      const v = String(row[j] ?? '').trim();
+      if (v === '시험') { colIdx.item = j; foundItem = true; }        // 시험
+      if (v === '기준') colIdx.spec = j;                               // 기준
+      if (v === '결과') colIdx.result = j;                             // 결과
+      if (v.replace(/\s/g,'').includes('비고')) colIdx.note = j;       // 비고
+    }
+    if (foundItem) { headerRowIdx = i; break; }
+  }
+
+  if (headerRowIdx === -1) {
+    showToast('헤더 행(시험/기준/결과)을 찾을 수 없습니다.'); return;
+  }
+
+  const dataRows = data.slice(headerRowIdx + 1)
+    .filter(r => r.some(c => String(c ?? '').trim()));
+
   if (!dataRows.length) { showToast('데이터 행이 없습니다.'); return; }
 
-  // open cert panel first
   openCertPanel();
-
-  // clear existing rows and re-populate
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
+
   dataRows.forEach(r => {
     addResultRow();
     const tr = document.querySelector('#result-tbody tr:last-child');
-    const inputs = tr.querySelectorAll('input');
-    // 엑셀 열 순서: 시험(0) | 기준(1) | 결과(2) | 시험사진(3, 생략) | 비고(4 or 3)
-    const colCount = r.filter(c => c !== undefined).length;
-    tr.querySelector('[data-field="item"]').value   = r[0] !== undefined ? String(r[0]) : '';
-    tr.querySelector('[data-field="spec"]').value   = r[1] !== undefined ? String(r[1]) : '';
-    tr.querySelector('[data-field="result"]').value = r[2] !== undefined ? String(r[2]) : '';
-    // 비고: 5열이면 r[4], 4열이면 r[3]
-    const noteVal = colCount >= 5 ? r[4] : r[3];
-    tr.querySelector('[data-field="note"]').value   = noteVal !== undefined ? String(noteVal) : '';
+    const get = idx => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
+    tr.querySelector('[data-field="item"]').value   = get(colIdx.item);
+    tr.querySelector('[data-field="spec"]').value   = get(colIdx.spec);
+    tr.querySelector('[data-field="result"]').value = get(colIdx.result);
+    tr.querySelector('[data-field="note"]').value   = get(colIdx.note);
   });
+
   showToast(`엑셀 데이터 ${dataRows.length}행 가져오기 완료`);
 }
 
