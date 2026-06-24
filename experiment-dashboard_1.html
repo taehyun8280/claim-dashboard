@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>실험 관리 대시보드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2a3444;
+    --accent: #00c8a0;
+    --accent2: #3b82f6;
+    --accent3: #f59e0b;
+    --danger: #ef4444;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --status-wait: #3b82f6;
+    --status-prog: #f59e0b;
+    --status-done: #00c8a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--text2);
+    font-size: 13px;
+  }
+
+  /* ─── LAYOUT ─── */
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
+
+  /* ─── SUMMARY CARDS ─── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .card-label {
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card-value {
+    font-size: 32px;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+  .c-accent  { color: var(--accent); }
+  .c-accent2 { color: var(--accent2); }
+  .c-accent3 { color: var(--accent3); }
+  .c-text    { color: var(--text); }
+
+  /* ─── FLOW STEPS ─── */
+  .flow-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--text);
+  }
+  .flow-steps {
+    display: flex;
+    gap: 0;
+    align-items: center;
+  }
+  .step {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+    position: relative;
+  }
+  .step-num {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .step-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .step-desc {
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .step-arrow {
+    width: 24px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ─── TABS ─── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+  .tab {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: none;
+    color: var(--text2);
+    transition: all .15s;
+  }
+  .tab.active {
+    background: var(--surface2);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  /* ─── MAIN GRID ─── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ─── KANBAN COLUMNS ─── */
+  .kanban-wrap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .kanban-col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .kanban-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .kanban-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .dot-wait { background: var(--status-wait); box-shadow: 0 0 6px var(--status-wait); }
+  .dot-prog { background: var(--status-prog); box-shadow: 0 0 6px var(--status-prog); }
+  .dot-done { background: var(--status-done); box-shadow: 0 0 6px var(--status-done); }
+  .kanban-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 10px;
+  }
+  .kanban-body { padding: 10px; min-height: 200px; }
+
+  .exp-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+    position: relative;
+  }
+  .exp-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .exp-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .exp-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .priority-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .p-high { background: rgba(239,68,68,.15); color: #ef4444; }
+  .p-mid  { background: rgba(245,158,11,.15); color: #f59e0b; }
+  .p-low  { background: rgba(100,200,120,.15); color: #4ade80; }
+  .exp-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .exp-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .exp-meta span { display: flex; align-items: center; gap: 3px; }
+
+  /* ─── ADD BUTTON ─── */
+  .add-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--text3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all .15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .add-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ─── CERTIFICATE SECTION ─── */
+  .cert-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .cert-header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cert-body { padding: 24px; }
+
+  .cert-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 20px;
+    margin-bottom: 20px;
+  }
+  .cert-form-full { grid-column: 1 / -1; }
+  .cert-form-half { grid-column: span 1; }
+
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+  .field-input, .field-select, .field-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color: var(--accent);
+  }
+  .field-select option { background: var(--surface2); }
+  .field-textarea { resize: vertical; min-height: 80px; }
+
+  /* result table */
+  .result-table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .result-table th {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    font-weight: 600;
+    color: var(--text2);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .result-table td {
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .result-table td input {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    text-align: center;
+    width: 100%;
+    outline: none;
+  }
+  .result-table td input:focus {
+    background: rgba(0,200,160,.07);
+    border-radius: 4px;
+  }
+  .result-table tr:hover td { background: rgba(255,255,255,.02); }
+  .del-row-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .del-row-btn:hover { color: var(--danger); background: rgba(239,68,68,.1); }
+
+  .cert-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .btn {
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d1117;
+    border-radius: 22px;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-cert {
+    background: var(--accent);
+    color: #0d1117;
+    border-radius: 22px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    border: none;
+  }
+  .btn-cert:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,200,160,.35); }
+  .btn-outline {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-outline:hover { border-color: var(--text2); color: var(--text); }
+  .btn-danger {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.3);
+    color: #ef4444;
+  }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+  /* PASS/FAIL */
+  .pass-fail-wrap { display: flex; gap: 10px; }
+  .pf-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    transition: all .15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .pf-btn.pass-sel {
+    background: rgba(0,200,160,.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pf-btn.fail-sel {
+    background: rgba(239,68,68,.15);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  /* ─── LIST TABLE ─── */
+  .list-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .list-header {
+    padding: 16px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .list-search {
+    flex: 1;
+    max-width: 280px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    padding: 7px 12px;
+    outline: none;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .list-search:focus { border-color: var(--accent); }
+  .list-table-wrap { overflow-x: auto; }
+  .list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .list-table th {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    font-weight: 600;
+    color: var(--text2);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .list-table td {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .list-table tr:last-child td { border-bottom: none; }
+  .list-table tr:hover td { background: rgba(255,255,255,.02); cursor: pointer; }
+
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .chip-wait { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .chip-prog { background: rgba(245,158,11,.15); color: #fbbf24; }
+  .chip-done { background: rgba(0,200,160,.15); color: var(--accent); }
+
+  /* ─── MODAL ─── */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .modal-full { grid-column: 1 / -1; }
+
+  /* toast */
+  .toast {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 300;
+    display: none;
+    animation: toastIn .2s ease;
+  }
+  @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .row-label { color: var(--text2); font-size: 12px; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    실험 관리 대시보드
+  </div>
+  <div class="header-right">
+    <span id="nowDate"></span>
+    <button class="btn btn-cert" onclick="scrollToCert()">📄 시험 성적서 작성</button>
+    <button class="btn btn-primary" onclick="openModal()">+ 시험 접수</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+    <div class="card">
+      <div class="card-label">전체 시험</div>
+      <div class="card-value c-text" id="cnt-total">0</div>
+      <div class="card-sub">등록된 시험 건수</div>
+    </div>
+    <div class="card">
+      <div class="card-label">시험 접수</div>
+      <div class="card-value c-accent2" id="cnt-wait">0</div>
+      <div class="card-sub">접수 대기 중</div>
+    </div>
+    <div class="card">
+      <div class="card-label">시험 진행 중</div>
+      <div class="card-value c-accent3" id="cnt-prog">0</div>
+      <div class="card-sub">현재 시험 중</div>
+    </div>
+    <div class="card">
+      <div class="card-label">시험 완료</div>
+      <div class="card-value c-accent" id="cnt-done">0</div>
+      <div class="card-sub">성적서 발행 완료</div>
+    </div>
+  </div>
+
+  <!-- FLOW -->
+  <div class="flow-section">
+    <div class="section-eyebrow">SYSTEM FLOW</div>
+    <div class="section-title">시험 운영 흐름</div>
+    <div class="flow-steps">
+      <div class="step">
+        <div class="step-num">STEP 01</div>
+        <div class="step-name">시험 접수</div>
+        <div class="step-desc">의뢰서 등록</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step">
+        <div class="step-num">STEP 02</div>
+        <div class="step-name">시료 확인</div>
+        <div class="step-desc">시료 식별·상태 검토</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step">
+        <div class="step-num">STEP 03</div>
+        <div class="step-name">시험 진행</div>
+        <div class="step-desc">측정 및 데이터 수집</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step">
+        <div class="step-num">STEP 04</div>
+        <div class="step-name">결과 검토</div>
+        <div class="step-desc">판정·서명</div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="step">
+        <div class="step-num">STEP 05</div>
+        <div class="step-name">성적서 발행</div>
+        <div class="step-desc">출력·보관</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="kanban-wrap">
+    <!-- 접수 -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <div class="kanban-title">
+          <div class="status-dot dot-wait"></div>
+          시험 접수
+        </div>
+        <div class="kanban-count" id="k-cnt-wait">0</div>
+      </div>
+      <div class="kanban-body" id="col-wait">
+        <button class="add-btn" onclick="openModal('접수')">＋ 시험 접수 추가</button>
+      </div>
+    </div>
+    <!-- 진행 -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <div class="kanban-title">
+          <div class="status-dot dot-prog"></div>
+          시험 진행 중
+        </div>
+        <div class="kanban-count" id="k-cnt-prog">0</div>
+      </div>
+      <div class="kanban-body" id="col-prog">
+        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">진행 중인 시험 없음</p>
+      </div>
+    </div>
+    <!-- 완료 -->
+    <div class="kanban-col">
+      <div class="kanban-header">
+        <div class="kanban-title">
+          <div class="status-dot dot-done"></div>
+          시험 완료
+        </div>
+        <div class="kanban-count" id="k-cnt-done">0</div>
+      </div>
+      <div class="kanban-body" id="col-done">
+        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료된 시험 없음</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERTIFICATE FORM -->
+  <div class="cert-section">
+    <div class="cert-header">
+      <div>
+        <div class="section-eyebrow">CERTIFICATE</div>
+        <div class="section-title" style="margin:0">시험 성적서 작성</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" onclick="clearCertForm()">초기화</button>
+        <button class="btn btn-outline" onclick="printCert()">🖨 인쇄</button>
+        <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
+      </div>
+    </div>
+    <div class="cert-body" id="cert-print-area">
+
+      <!-- 기본 정보 -->
+      <div style="margin-bottom:6px;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;">기본 정보</div>
+      <div class="cert-form-grid">
+        <div class="cert-form-half">
+          <div class="field-label">성적서 번호</div>
+          <input class="field-input" id="cf-no" placeholder="예) TEST-2024-001">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">발행일자</div>
+          <input class="field-input" type="date" id="cf-date">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">시험 의뢰 기관</div>
+          <input class="field-input" id="cf-client" placeholder="기관명 입력">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">담당자</div>
+          <input class="field-input" id="cf-person" placeholder="담당자명">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">시험 항목</div>
+          <input class="field-input" id="cf-item" placeholder="예) 인장강도, 경도 등">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">시험 규격/방법</div>
+          <input class="field-input" id="cf-spec" placeholder="예) KS B 0802">
+        </div>
+        <div class="cert-form-full">
+          <div class="field-label">시료 정보</div>
+          <input class="field-input" id="cf-sample" placeholder="시료명, 시료 번호, 수량 등">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">시험 조건 (온도/습도)</div>
+          <input class="field-input" id="cf-cond" placeholder="예) 23±2°C / 50±5%RH">
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">시험 기간</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input class="field-input" type="date" id="cf-start" style="flex:1">
+            <span style="color:var(--text3);font-size:12px;">~</span>
+            <input class="field-input" type="date" id="cf-end" style="flex:1">
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 시험 결과 테이블 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
+        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
+      </div>
+      <div class="result-table-wrap">
+        <table class="result-table" id="result-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>시험 항목</th>
+              <th>단위</th>
+              <th>규격 기준</th>
+              <th>측정값 1</th>
+              <th>측정값 2</th>
+              <th>측정값 3</th>
+              <th>평균</th>
+              <th>판정</th>
+              <th>비고</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="result-tbody">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 종합 판정 & 비고 -->
+      <div class="cert-form-grid">
+        <div class="cert-form-half">
+          <div class="field-label">종합 판정</div>
+          <div class="pass-fail-wrap">
+            <button class="pf-btn" id="pf-pass" onclick="setPF('pass')">✔ PASS</button>
+            <button class="pf-btn" id="pf-fail" onclick="setPF('fail')">✘ FAIL</button>
+          </div>
+        </div>
+        <div class="cert-form-half">
+          <div class="field-label">시험자 서명</div>
+          <input class="field-input" id="cf-signer" placeholder="시험자 이름">
+        </div>
+        <div class="cert-form-full">
+          <div class="field-label">특이사항 / 비고</div>
+          <textarea class="field-textarea" id="cf-note" placeholder="시험 중 특이사항, 참고 사항 등을 입력하세요"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST TABLE -->
+  <div class="list-section">
+    <div class="list-header">
+      <div>
+        <div class="section-eyebrow" style="margin-bottom:4px;">RECORDS</div>
+        <div style="font-size:15px;font-weight:700;">저장된 성적서 목록</div>
+      </div>
+      <input class="list-search" placeholder="🔍 검색..." oninput="filterList(this.value)" id="list-search">
+    </div>
+    <div class="list-table-wrap">
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th>성적서 번호</th>
+            <th>시험 항목</th>
+            <th>의뢰 기관</th>
+            <th>시료 정보</th>
+            <th>시험 기간</th>
+            <th>담당자</th>
+            <th>판정</th>
+            <th>상태</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="list-tbody">
+          <tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title">
+      시험 접수 등록
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-grid">
+      <div>
+        <div class="field-label">시험 ID</div>
+        <input class="field-input" id="m-id" placeholder="자동 생성">
+      </div>
+      <div>
+        <div class="field-label">접수일</div>
+        <input class="field-input" type="date" id="m-date">
+      </div>
+      <div class="modal-full">
+        <div class="field-label">시험명</div>
+        <input class="field-input" id="m-name" placeholder="예) KS B 0802 인장강도 시험">
+      </div>
+      <div>
+        <div class="field-label">의뢰 기관</div>
+        <input class="field-input" id="m-client" placeholder="기관명">
+      </div>
+      <div>
+        <div class="field-label">담당자</div>
+        <input class="field-input" id="m-person" placeholder="담당자명">
+      </div>
+      <div>
+        <div class="field-label">우선순위</div>
+        <select class="field-select" id="m-priority">
+          <option value="상">상 (긴급)</option>
+          <option value="중" selected>중 (보통)</option>
+          <option value="하">하 (여유)</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">초기 상태</div>
+        <select class="field-select" id="m-status">
+          <option value="접수">접수</option>
+          <option value="진행">진행 중</option>
+          <option value="완료">완료</option>
+        </select>
+      </div>
+      <div class="modal-full">
+        <div class="field-label">비고</div>
+        <textarea class="field-textarea" id="m-note" style="min-height:60px;" placeholder="특이사항"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="addExperiment()">등록</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───
+let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
+let certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
+let pfState = '';
+let rowCount = 0;
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('cf-date').value = today;
+  document.getElementById('m-date').value = today;
+  document.getElementById('nowDate').textContent =
+    new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  addResultRow();
+  addResultRow();
+  addResultRow();
+  render();
+  renderCertList();
+});
+
+// ─── RENDER KANBAN ───
+function render() {
+  const wait = experiments.filter(e=>e.status==='접수');
+  const prog = experiments.filter(e=>e.status==='진행');
+  const done = experiments.filter(e=>e.status==='완료');
+
+  document.getElementById('cnt-total').textContent = experiments.length;
+  document.getElementById('cnt-wait').textContent = wait.length;
+  document.getElementById('cnt-prog').textContent = prog.length;
+  document.getElementById('cnt-done').textContent = done.length;
+  document.getElementById('k-cnt-wait').textContent = wait.length;
+  document.getElementById('k-cnt-prog').textContent = prog.length;
+  document.getElementById('k-cnt-done').textContent = done.length;
+
+  renderCol('col-wait', wait, '접수', '시험 접수 추가');
+  renderCol('col-prog', prog, '진행', null);
+  renderCol('col-done', done, '완료', null);
+
+  save();
+}
+
+function renderCol(id, items, status, addLabel) {
+  const el = document.getElementById(id);
+  if (items.length === 0 && !addLabel) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">항목 없음</p>';
+    return;
+  }
+  let html = '';
+  items.forEach(e => {
+    const pClass = e.priority==='상'?'p-high':e.priority==='중'?'p-mid':'p-low';
+    html += `
+      <div class="exp-card" onclick="openDetailModal('${e.id}')">
+        <div class="exp-card-top">
+          <span class="exp-id">${e.id}</span>
+          <span class="priority-badge ${pClass}">${e.priority}</span>
+        </div>
+        <div class="exp-name">${e.name}</div>
+        <div class="exp-meta">
+          <span>📋 ${e.client||'—'}</span>
+          <span>👤 ${e.person||'—'}</span>
+          <span>📅 ${e.date}</span>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          ${status!=='진행'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','진행')">→ 진행</button>`:''}
+          ${status!=='완료'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','완료')">→ 완료</button>`:''}
+          <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">삭제</button>
+        </div>
+      </div>`;
+  });
+  if (addLabel) {
+    html += `<button class="add-btn" onclick="openModal()">＋ ${addLabel}</button>`;
+  }
+  el.innerHTML = html;
+}
+
+// ─── MODAL ───
+let nextId = () => {
+  const n = experiments.length + 1;
+  return 'EXP-' + String(n).padStart(4,'0');
+};
+function openModal() {
+  document.getElementById('m-id').value = nextId();
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+function addExperiment() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { showToast('시험명을 입력해주세요.'); return; }
+  experiments.push({
+    id: document.getElementById('m-id').value,
+    name,
+    client: document.getElementById('m-client').value,
+    person: document.getElementById('m-person').value,
+    priority: document.getElementById('m-priority').value,
+    status: document.getElementById('m-status').value,
+    date: document.getElementById('m-date').value,
+    note: document.getElementById('m-note').value
+  });
+  render();
+  closeModal();
+  showToast('시험이 접수되었습니다.');
+  // clear
+  ['m-name','m-client','m-person','m-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+function moveStatus(id, status) {
+  const e = experiments.find(x=>x.id===id);
+  if (e) { e.status = status; render(); showToast(`${id} → ${status} 처리되었습니다.`); }
+}
+function deleteExp(id) {
+  experiments = experiments.filter(x=>x.id!==id);
+  render();
+  showToast('삭제되었습니다.');
+}
+
+// ─── CERTIFICATE ───
+function addResultRow() {
+  rowCount++;
+  const tbody = document.getElementById('result-tbody');
+  const tr = document.createElement('tr');
+  tr.id = 'row-' + rowCount;
+  tr.innerHTML = `
+    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">${rowCount}</td>
+    <td><input placeholder="항목명"></td>
+    <td><input placeholder="단위" style="width:60px;"></td>
+    <td><input placeholder="기준값"></td>
+    <td><input placeholder="측정1" oninput="calcAvg(this)"></td>
+    <td><input placeholder="측정2" oninput="calcAvg(this)"></td>
+    <td><input placeholder="측정3" oninput="calcAvg(this)"></td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);" class="avg-cell">—</td>
+    <td>
+      <select style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:12px;">
+        <option>—</option><option>합격</option><option>불합격</option>
+      </select>
+    </td>
+    <td><input placeholder="비고"></td>
+    <td><button class="del-row-btn" onclick="delRow('row-${rowCount}')">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function calcAvg(inp) {
+  const row = inp.closest('tr');
+  const inputs = row.querySelectorAll('input');
+  const vals = [inputs[3], inputs[4], inputs[5]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
+  row.querySelector('.avg-cell').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(3) : '—';
+}
+function delRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function setPF(v) {
+  pfState = v;
+  document.getElementById('pf-pass').className = 'pf-btn' + (v==='pass'?' pass-sel':'');
+  document.getElementById('pf-fail').className = 'pf-btn' + (v==='fail'?' fail-sel':'');
+}
+
+function saveCert() {
+  const no = document.getElementById('cf-no').value.trim();
+  if (!no) { showToast('성적서 번호를 입력해주세요.'); return; }
+
+  // collect rows
+  const rows = [];
+  document.querySelectorAll('#result-tbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    rows.push({
+      item: inputs[0]?.value,
+      unit: inputs[1]?.value,
+      spec: inputs[2]?.value,
+      m1: inputs[3]?.value,
+      m2: inputs[4]?.value,
+      m3: inputs[5]?.value,
+      avg: tr.querySelector('.avg-cell')?.textContent,
+      judge: tr.querySelector('select')?.value,
+      note: inputs[6]?.value
+    });
+  });
+
+  const cert = {
+    no,
+    date: document.getElementById('cf-date').value,
+    client: document.getElementById('cf-client').value,
+    person: document.getElementById('cf-person').value,
+    item: document.getElementById('cf-item').value,
+    spec: document.getElementById('cf-spec').value,
+    sample: document.getElementById('cf-sample').value,
+    cond: document.getElementById('cf-cond').value,
+    start: document.getElementById('cf-start').value,
+    end: document.getElementById('cf-end').value,
+    signer: document.getElementById('cf-signer').value,
+    note: document.getElementById('cf-note').value,
+    pf: pfState,
+    rows,
+    status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
+    savedAt: new Date().toISOString()
+  };
+
+  const idx = certificates.findIndex(c=>c.no===no);
+  if (idx>=0) { certificates[idx]=cert; showToast('성적서가 수정되었습니다.'); }
+  else { certificates.push(cert); showToast('성적서가 저장되었습니다.'); }
+
+  localStorage.setItem('cert_data', JSON.stringify(certificates));
+  renderCertList();
+}
+
+function renderCertList(filter='') {
+  const tbody = document.getElementById('list-tbody');
+  const list = filter
+    ? certificates.filter(c => JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()))
+    : certificates;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(c => {
+    const chip = c.pf==='pass' ? '<span class="status-chip chip-done">✔ PASS</span>'
+                : c.pf==='fail' ? '<span class="status-chip" style="background:rgba(239,68,68,.15);color:#ef4444;">✘ FAIL</span>'
+                : '<span class="status-chip chip-prog">— 미판정</span>';
+    const stChip = c.status==='완료'?'chip-done':c.status==='진행'?'chip-prog':'chip-wait';
+    return `<tr onclick="loadCert('${c.no}')">
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:12px;">${c.no}</td>
+      <td>${c.item||'—'}</td>
+      <td>${c.client||'—'}</td>
+      <td>${c.sample||'—'}</td>
+      <td>${c.start||'—'} ~ ${c.end||'—'}</td>
+      <td>${c.person||'—'}</td>
+      <td>${chip}</td>
+      <td><span class="status-chip ${stChip}">${c.status||'—'}</span></td>
+      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">삭제</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function loadCert(no) {
+  const c = certificates.find(x=>x.no===no);
+  if (!c) return;
+  document.getElementById('cf-no').value = c.no;
+  document.getElementById('cf-date').value = c.date||'';
+  document.getElementById('cf-client').value = c.client||'';
+  document.getElementById('cf-person').value = c.person||'';
+  document.getElementById('cf-item').value = c.item||'';
+  document.getElementById('cf-spec').value = c.spec||'';
+  document.getElementById('cf-sample').value = c.sample||'';
+  document.getElementById('cf-cond').value = c.cond||'';
+  document.getElementById('cf-start').value = c.start||'';
+  document.getElementById('cf-end').value = c.end||'';
+  document.getElementById('cf-signer').value = c.signer||'';
+  document.getElementById('cf-note').value = c.note||'';
+  setPF(c.pf||'');
+
+  // rebuild rows
+  document.getElementById('result-tbody').innerHTML = '';
+  rowCount = 0;
+  (c.rows||[]).forEach(r => {
+    addResultRow();
+    const tr = document.querySelector('#result-tbody tr:last-child');
+    const inputs = tr.querySelectorAll('input');
+    inputs[0].value = r.item||''; inputs[1].value = r.unit||''; inputs[2].value = r.spec||'';
+    inputs[3].value = r.m1||''; inputs[4].value = r.m2||''; inputs[5].value = r.m3||'';
+    tr.querySelector('.avg-cell').textContent = r.avg||'—';
+    tr.querySelector('select').value = r.judge||'—';
+    inputs[6].value = r.note||'';
+  });
+
+  document.querySelector('.cert-section').scrollIntoView({behavior:'smooth'});
+  showToast(`성적서 ${no} 불러오기 완료`);
+}
+
+function deleteCert(no) {
+  certificates = certificates.filter(c=>c.no!==no);
+  localStorage.setItem('cert_data', JSON.stringify(certificates));
+  renderCertList();
+  showToast('삭제되었습니다.');
+}
+
+function clearCertForm() {
+  ['cf-no','cf-client','cf-person','cf-item','cf-spec','cf-sample','cf-cond','cf-signer','cf-note'].forEach(id=>document.getElementById(id).value='');
+  ['cf-date','cf-start','cf-end'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('result-tbody').innerHTML='';
+  rowCount=0; pfState='';
+  setPF('');
+  addResultRow(); addResultRow(); addResultRow();
+  showToast('초기화되었습니다.');
+}
+
+function filterList(v) { renderCertList(v); }
+
+function printCert() {
+  window.print();
+}
+
+function save() {
+  localStorage.setItem('exp_data', JSON.stringify(experiments));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>{ t.style.display='none'; }, 2600);
+}
+
+function scrollToCert() {
+  document.querySelector('.cert-section').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// close modal on bg click
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-bg')) closeModal();
+});
+</script>
+</body>
+</html>
