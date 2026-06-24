@@ -34,39 +34,130 @@
     min-height: 100vh;
   }
 
-  /* ─── HEADER ─── */
-  header {
-    background: var(--surface);
+  /* ─── HERO HEADER BANNER ─── */
+  .hero-header {
+    background: linear-gradient(135deg, #0d1b2e 0%, #0f2340 40%, #0a1628 100%);
     border-bottom: 1px solid var(--border);
-    padding: 0 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
     position: sticky;
     top: 0;
     z-index: 100;
+    overflow: hidden;
   }
-  .logo {
+  .hero-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 70% 50%, rgba(0,200,160,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 90% 20%, rgba(59,130,246,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,160,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,160,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 22px 32px 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .hero-eyebrow {
+    font-size: 10px;
     font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.3px;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--accent);
-  }
-  .header-right {
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 8px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+  .hero-title {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    line-height: 1.15;
+  }
+  .hero-subtitle {
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .hero-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .hero-date {
+    font-size: 12px;
     color: var(--text2);
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+  }
+  .hero-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 22px;
     font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all .15s;
+    letter-spacing: -0.2px;
+  }
+  .hero-btn-cert {
+    background: var(--accent);
+    color: #0d1117;
+  }
+  .hero-btn-cert:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0,200,160,.35);
+  }
+  .hero-btn-recv {
+    background: var(--accent2);
+    color: #fff;
+  }
+  .hero-btn-recv:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(59,130,246,.35);
+  }
+  .hero-btn svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
   }
 
   /* ─── LAYOUT ─── */
@@ -169,38 +260,6 @@
     flex-shrink: 0;
   }
 
-  /* ─── TABS ─── */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 18px;
-  }
-  .tab {
-    padding: 8px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background: none;
-    color: var(--text2);
-    transition: all .15s;
-  }
-  .tab.active {
-    background: var(--surface2);
-    border-color: var(--border);
-    color: var(--text);
-  }
-
-  /* ─── MAIN GRID ─── */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-    margin-bottom: 28px;
-  }
-  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
-
   /* ─── KANBAN COLUMNS ─── */
   .kanban-wrap {
     display: grid;
@@ -299,192 +358,27 @@
   .add-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 7px;
     background: none;
     border: 1px dashed var(--border);
     color: var(--text3);
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 10px 12px;
     width: 100%;
     cursor: pointer;
     font-size: 12px;
+    font-weight: 600;
     transition: all .15s;
     font-family: 'Noto Sans KR', sans-serif;
   }
   .add-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+    border-color: var(--accent2);
+    color: var(--accent2);
+    background: rgba(59,130,246,0.05);
   }
-
-  /* ─── CERTIFICATE SECTION ─── */
-  .cert-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 28px;
-    overflow: hidden;
-  }
-  .cert-header {
-    padding: 18px 24px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .cert-body { padding: 24px; }
-
-  .cert-form-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px 20px;
-    margin-bottom: 20px;
-  }
-  .cert-form-full { grid-column: 1 / -1; }
-  .cert-form-half { grid-column: span 1; }
-
-  .field-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--text2);
-    margin-bottom: 5px;
-  }
-  .field-input, .field-select, .field-textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
-    padding: 8px 12px;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .field-input:focus, .field-select:focus, .field-textarea:focus {
-    border-color: var(--accent);
-  }
-  .field-select option { background: var(--surface2); }
-  .field-textarea { resize: vertical; min-height: 80px; }
-
-  /* result table */
-  .result-table-wrap { overflow-x: auto; margin-bottom: 20px; }
-  .result-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .result-table th {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 8px 12px;
-    font-weight: 600;
-    color: var(--text2);
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    text-align: center;
-    white-space: nowrap;
-  }
-  .result-table td {
-    border: 1px solid var(--border);
-    padding: 7px 10px;
-    text-align: center;
-    vertical-align: middle;
-  }
-  .result-table td input {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
-    text-align: center;
-    width: 100%;
-    outline: none;
-  }
-  .result-table td input:focus {
-    background: rgba(0,200,160,.07);
-    border-radius: 4px;
-  }
-  .result-table tr:hover td { background: rgba(255,255,255,.02); }
-  .del-row-btn {
-    background: none;
-    border: none;
-    color: var(--text3);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-  .del-row-btn:hover { color: var(--danger); background: rgba(239,68,68,.1); }
-
-  .cert-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-  }
-  .btn {
-    padding: 9px 20px;
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all .15s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #0d1117;
-    border-radius: 22px;
-  }
-  .btn-primary:hover { filter: brightness(1.1); }
-  .btn-cert {
-    background: var(--accent);
-    color: #0d1117;
-    border-radius: 22px;
-    font-weight: 700;
-    letter-spacing: -0.2px;
-    border: none;
-  }
-  .btn-cert:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,200,160,.35); }
-  .btn-outline {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text2);
-  }
-  .btn-outline:hover { border-color: var(--text2); color: var(--text); }
-  .btn-danger {
-    background: rgba(239,68,68,.1);
-    border: 1px solid rgba(239,68,68,.3);
-    color: #ef4444;
-  }
-  .btn-danger:hover { background: rgba(239,68,68,.2); }
-
-  /* PASS/FAIL */
-  .pass-fail-wrap { display: flex; gap: 10px; }
-  .pf-btn {
-    flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text2);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    text-align: center;
-    transition: all .15s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .pf-btn.pass-sel {
-    background: rgba(0,200,160,.15);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .pf-btn.fail-sel {
-    background: rgba(239,68,68,.15);
-    border-color: var(--danger);
-    color: var(--danger);
+  .add-btn svg {
+    width: 14px; height: 14px; flex-shrink: 0;
   }
 
   /* ─── LIST TABLE ─── */
@@ -555,7 +449,7 @@
   .chip-prog { background: rgba(245,158,11,.15); color: #fbbf24; }
   .chip-done { background: rgba(0,200,160,.15); color: var(--accent); }
 
-  /* ─── MODAL ─── */
+  /* ─── ADD MODAL ─── */
   .modal-bg {
     display: none;
     position: fixed;
@@ -602,6 +496,220 @@
   }
   .modal-full { grid-column: 1 / -1; }
 
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+  .field-input, .field-select, .field-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color: var(--accent);
+  }
+  .field-select option { background: var(--surface2); }
+  .field-textarea { resize: vertical; min-height: 80px; }
+
+  .btn {
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d1117;
+    border-radius: 22px;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-outline {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-outline:hover { border-color: var(--text2); color: var(--text); }
+  .btn-danger {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.3);
+    color: #ef4444;
+  }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+  /* ─── CERT SIDE PANEL ─── */
+  .cert-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(3px);
+    z-index: 300;
+  }
+  .cert-overlay.open { display: block; }
+  .cert-panel {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 700px;
+    max-width: 95vw;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 301;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .cert-panel.open { transform: translateX(0); }
+  .cert-panel-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+  .cert-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cert-panel-title svg {
+    width: 20px; height: 20px;
+    color: var(--accent);
+  }
+  .cert-panel-title h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .cert-panel-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all .15s;
+  }
+  .cert-panel-close:hover { color: var(--text); background: rgba(255,255,255,.06); }
+  .cert-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+  .cert-panel-actions {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  /* cert form inside panel */
+  .cert-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    margin-bottom: 20px;
+  }
+  .cert-form-full { grid-column: 1 / -1; }
+
+  /* result table */
+  .result-table-wrap { overflow-x: auto; margin-bottom: 20px; }
+  .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .result-table th {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 7px 8px;
+    font-weight: 600;
+    color: var(--text2);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .result-table td {
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .result-table td input {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    text-align: center;
+    width: 100%;
+    outline: none;
+  }
+  .result-table td input:focus {
+    background: rgba(0,200,160,.07);
+    border-radius: 4px;
+  }
+  .result-table tr:hover td { background: rgba(255,255,255,.02); }
+  .del-row-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+  .del-row-btn:hover { color: var(--danger); background: rgba(239,68,68,.1); }
+
+  .pass-fail-wrap { display: flex; gap: 10px; }
+  .pf-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    transition: all .15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .pf-btn.pass-sel {
+    background: rgba(0,200,160,.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pf-btn.fail-sel {
+    background: rgba(239,68,68,.15);
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
   /* toast */
   .toast {
     position: fixed;
@@ -613,30 +721,48 @@
     border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
-    z-index: 300;
+    z-index: 400;
     display: none;
     animation: toastIn .2s ease;
   }
   @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  .divider { height: 1px; background: var(--border); margin: 20px 0; }
-  .row-label { color: var(--text2); font-size: 12px; font-weight: 500; }
+  .divider { height: 1px; background: var(--border); margin: 18px 0; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    실험 관리 대시보드
+<!-- ─── HERO HEADER BANNER ─── -->
+<div class="hero-header">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-eyebrow">IMPROVEMENT REPORT</div>
+      <div class="hero-title">실험 관리 대시보드</div>
+      <div class="hero-subtitle">시험 접수 · 진행 · 완료 항목을 한 화면에서 필터링하고 조치 상태까지 관리하는 현장형 대시보드</div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-date" id="nowDate"></div>
+      <button class="hero-btn hero-btn-cert" onclick="openCertPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        시험 성적서 작성
+      </button>
+      <button class="hero-btn hero-btn-recv" onclick="openModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        시험 접수
+      </button>
+    </div>
   </div>
-  <div class="header-right">
-    <span id="nowDate"></span>
-    <button class="btn btn-cert" onclick="scrollToCert()">📄 시험 성적서 작성</button>
-    <button class="btn btn-primary" onclick="openModal()">+ 시험 접수</button>
-  </div>
-</header>
+</div>
 
 <div class="wrap">
 
@@ -703,7 +829,6 @@
 
   <!-- KANBAN -->
   <div class="kanban-wrap">
-    <!-- 접수 -->
     <div class="kanban-col">
       <div class="kanban-header">
         <div class="kanban-title">
@@ -713,10 +838,14 @@
         <div class="kanban-count" id="k-cnt-wait">0</div>
       </div>
       <div class="kanban-body" id="col-wait">
-        <button class="add-btn" onclick="openModal('접수')">＋ 시험 접수 추가</button>
+        <button class="add-btn" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          시험 접수
+        </button>
       </div>
     </div>
-    <!-- 진행 -->
     <div class="kanban-col">
       <div class="kanban-header">
         <div class="kanban-title">
@@ -729,7 +858,6 @@
         <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">진행 중인 시험 없음</p>
       </div>
     </div>
-    <!-- 완료 -->
     <div class="kanban-col">
       <div class="kanban-header">
         <div class="kanban-title">
@@ -740,118 +868,6 @@
       </div>
       <div class="kanban-body" id="col-done">
         <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료된 시험 없음</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- CERTIFICATE FORM -->
-  <div class="cert-section">
-    <div class="cert-header">
-      <div>
-        <div class="section-eyebrow">CERTIFICATE</div>
-        <div class="section-title" style="margin:0">시험 성적서 작성</div>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-outline" onclick="clearCertForm()">초기화</button>
-        <button class="btn btn-outline" onclick="printCert()">🖨 인쇄</button>
-        <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
-      </div>
-    </div>
-    <div class="cert-body" id="cert-print-area">
-
-      <!-- 기본 정보 -->
-      <div style="margin-bottom:6px;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;">기본 정보</div>
-      <div class="cert-form-grid">
-        <div class="cert-form-half">
-          <div class="field-label">성적서 번호</div>
-          <input class="field-input" id="cf-no" placeholder="예) TEST-2024-001">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">발행일자</div>
-          <input class="field-input" type="date" id="cf-date">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 의뢰 기관</div>
-          <input class="field-input" id="cf-client" placeholder="기관명 입력">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">담당자</div>
-          <input class="field-input" id="cf-person" placeholder="담당자명">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 항목</div>
-          <input class="field-input" id="cf-item" placeholder="예) 인장강도, 경도 등">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 규격/방법</div>
-          <input class="field-input" id="cf-spec" placeholder="예) KS B 0802">
-        </div>
-        <div class="cert-form-full">
-          <div class="field-label">시료 정보</div>
-          <input class="field-input" id="cf-sample" placeholder="시료명, 시료 번호, 수량 등">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 조건 (온도/습도)</div>
-          <input class="field-input" id="cf-cond" placeholder="예) 23±2°C / 50±5%RH">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 기간</div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <input class="field-input" type="date" id="cf-start" style="flex:1">
-            <span style="color:var(--text3);font-size:12px;">~</span>
-            <input class="field-input" type="date" id="cf-end" style="flex:1">
-          </div>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- 시험 결과 테이블 -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
-        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
-      </div>
-      <div class="result-table-wrap">
-        <table class="result-table" id="result-table">
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>시험 항목</th>
-              <th>단위</th>
-              <th>규격 기준</th>
-              <th>측정값 1</th>
-              <th>측정값 2</th>
-              <th>측정값 3</th>
-              <th>평균</th>
-              <th>판정</th>
-              <th>비고</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="result-tbody">
-          </tbody>
-        </table>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- 종합 판정 & 비고 -->
-      <div class="cert-form-grid">
-        <div class="cert-form-half">
-          <div class="field-label">종합 판정</div>
-          <div class="pass-fail-wrap">
-            <button class="pf-btn" id="pf-pass" onclick="setPF('pass')">✔ PASS</button>
-            <button class="pf-btn" id="pf-fail" onclick="setPF('fail')">✘ FAIL</button>
-          </div>
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험자 서명</div>
-          <input class="field-input" id="cf-signer" placeholder="시험자 이름">
-        </div>
-        <div class="cert-form-full">
-          <div class="field-label">특이사항 / 비고</div>
-          <textarea class="field-textarea" id="cf-note" placeholder="시험 중 특이사항, 참고 사항 등을 입력하세요"></textarea>
-        </div>
       </div>
     </div>
   </div>
@@ -889,7 +905,7 @@
 
 </div><!-- /wrap -->
 
-<!-- ADD MODAL -->
+<!-- ─── ADD MODAL ─── -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <div class="modal-title">
@@ -945,6 +961,127 @@
   </div>
 </div>
 
+<!-- ─── CERT SIDE PANEL ─── -->
+<div class="cert-overlay" id="cert-overlay" onclick="closeCertPanel()"></div>
+<div class="cert-panel" id="cert-panel">
+  <div class="cert-panel-header">
+    <div class="cert-panel-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <h2>시험 성적서 작성</h2>
+    </div>
+    <button class="cert-panel-close" onclick="closeCertPanel()">×</button>
+  </div>
+
+  <div class="cert-panel-body" id="cert-print-area">
+
+    <!-- 기본 정보 -->
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
+    <div class="cert-form-grid">
+      <div>
+        <div class="field-label">성적서 번호</div>
+        <input class="field-input" id="cf-no" placeholder="예) TEST-2024-001">
+      </div>
+      <div>
+        <div class="field-label">발행일자</div>
+        <input class="field-input" type="date" id="cf-date">
+      </div>
+      <div>
+        <div class="field-label">시험 의뢰 기관</div>
+        <input class="field-input" id="cf-client" placeholder="기관명 입력">
+      </div>
+      <div>
+        <div class="field-label">담당자</div>
+        <input class="field-input" id="cf-person" placeholder="담당자명">
+      </div>
+      <div>
+        <div class="field-label">시험 항목</div>
+        <input class="field-input" id="cf-item" placeholder="예) 인장강도, 경도 등">
+      </div>
+      <div>
+        <div class="field-label">시험 규격/방법</div>
+        <input class="field-input" id="cf-spec" placeholder="예) KS B 0802">
+      </div>
+      <div class="cert-form-full">
+        <div class="field-label">시료 정보</div>
+        <input class="field-input" id="cf-sample" placeholder="시료명, 시료 번호, 수량 등">
+      </div>
+      <div>
+        <div class="field-label">시험 조건 (온도/습도)</div>
+        <input class="field-input" id="cf-cond" placeholder="예) 23±2°C / 50±5%RH">
+      </div>
+      <div>
+        <div class="field-label">시험 기간</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input class="field-input" type="date" id="cf-start" style="flex:1">
+          <span style="color:var(--text3);font-size:12px;">~</span>
+          <input class="field-input" type="date" id="cf-end" style="flex:1">
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 시험 결과 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
+      <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
+    </div>
+    <div class="result-table-wrap">
+      <table class="result-table" id="result-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>시험 항목</th>
+            <th>단위</th>
+            <th>규격 기준</th>
+            <th>측정값 1</th>
+            <th>측정값 2</th>
+            <th>측정값 3</th>
+            <th>평균</th>
+            <th>판정</th>
+            <th>비고</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="result-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 종합 판정 -->
+    <div class="cert-form-grid">
+      <div>
+        <div class="field-label">종합 판정</div>
+        <div class="pass-fail-wrap">
+          <button class="pf-btn" id="pf-pass" onclick="setPF('pass')">✔ PASS</button>
+          <button class="pf-btn" id="pf-fail" onclick="setPF('fail')">✘ FAIL</button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">시험자 서명</div>
+        <input class="field-input" id="cf-signer" placeholder="시험자 이름">
+      </div>
+      <div class="cert-form-full">
+        <div class="field-label">특이사항 / 비고</div>
+        <textarea class="field-textarea" id="cf-note" placeholder="시험 중 특이사항, 참고 사항 등을 입력하세요"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="cert-panel-actions">
+    <button class="btn btn-outline" onclick="clearCertForm()">초기화</button>
+    <button class="btn btn-outline" onclick="printCert()">🖨 인쇄</button>
+    <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -961,9 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('m-date').value = today;
   document.getElementById('nowDate').textContent =
     new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-  addResultRow();
-  addResultRow();
-  addResultRow();
+  addResultRow(); addResultRow(); addResultRow();
   render();
   renderCertList();
 });
@@ -982,16 +1117,16 @@ function render() {
   document.getElementById('k-cnt-prog').textContent = prog.length;
   document.getElementById('k-cnt-done').textContent = done.length;
 
-  renderCol('col-wait', wait, '접수', '시험 접수 추가');
-  renderCol('col-prog', prog, '진행', null);
-  renderCol('col-done', done, '완료', null);
+  renderCol('col-wait', wait, '접수', true);
+  renderCol('col-prog', prog, '진행', false);
+  renderCol('col-done', done, '완료', false);
 
   save();
 }
 
-function renderCol(id, items, status, addLabel) {
+function renderCol(id, items, status, showAdd) {
   const el = document.getElementById(id);
-  if (items.length === 0 && !addLabel) {
+  if (items.length === 0 && !showAdd) {
     el.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">항목 없음</p>';
     return;
   }
@@ -1017,8 +1152,13 @@ function renderCol(id, items, status, addLabel) {
         </div>
       </div>`;
   });
-  if (addLabel) {
-    html += `<button class="add-btn" onclick="openModal()">＋ ${addLabel}</button>`;
+  if (showAdd) {
+    html += `<button class="add-btn" onclick="openModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      시험 접수
+    </button>`;
   }
   el.innerHTML = html;
 }
@@ -1051,7 +1191,6 @@ function addExperiment() {
   render();
   closeModal();
   showToast('시험이 접수되었습니다.');
-  // clear
   ['m-name','m-client','m-person','m-note'].forEach(id=>document.getElementById(id).value='');
 }
 
@@ -1065,23 +1204,33 @@ function deleteExp(id) {
   showToast('삭제되었습니다.');
 }
 
-// ─── CERTIFICATE ───
+// ─── CERT PANEL ───
+function openCertPanel() {
+  document.getElementById('cert-overlay').classList.add('open');
+  document.getElementById('cert-panel').classList.add('open');
+}
+function closeCertPanel() {
+  document.getElementById('cert-overlay').classList.remove('open');
+  document.getElementById('cert-panel').classList.remove('open');
+}
+
+// ─── RESULT ROWS ───
 function addResultRow() {
   rowCount++;
   const tbody = document.getElementById('result-tbody');
   const tr = document.createElement('tr');
   tr.id = 'row-' + rowCount;
   tr.innerHTML = `
-    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">${rowCount}</td>
+    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;">${rowCount}</td>
     <td><input placeholder="항목명"></td>
-    <td><input placeholder="단위" style="width:60px;"></td>
+    <td><input placeholder="단위" style="width:50px;"></td>
     <td><input placeholder="기준값"></td>
     <td><input placeholder="측정1" oninput="calcAvg(this)"></td>
     <td><input placeholder="측정2" oninput="calcAvg(this)"></td>
     <td><input placeholder="측정3" oninput="calcAvg(this)"></td>
-    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);" class="avg-cell">—</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);" class="avg-cell">—</td>
     <td>
-      <select style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:12px;">
+      <select style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 5px;font-size:11px;">
         <option>—</option><option>합격</option><option>불합격</option>
       </select>
     </td>
@@ -1112,7 +1261,6 @@ function saveCert() {
   const no = document.getElementById('cf-no').value.trim();
   if (!no) { showToast('성적서 번호를 입력해주세요.'); return; }
 
-  // collect rows
   const rows = [];
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
     const inputs = tr.querySelectorAll('input');
@@ -1202,7 +1350,6 @@ function loadCert(no) {
   document.getElementById('cf-note').value = c.note||'';
   setPF(c.pf||'');
 
-  // rebuild rows
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
   (c.rows||[]).forEach(r => {
@@ -1216,7 +1363,7 @@ function loadCert(no) {
     inputs[6].value = r.note||'';
   });
 
-  document.querySelector('.cert-section').scrollIntoView({behavior:'smooth'});
+  openCertPanel();
   showToast(`성적서 ${no} 불러오기 완료`);
 }
 
@@ -1239,9 +1386,7 @@ function clearCertForm() {
 
 function filterList(v) { renderCertList(v); }
 
-function printCert() {
-  window.print();
-}
+function printCert() { window.print(); }
 
 function save() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
@@ -1255,11 +1400,6 @@ function showToast(msg) {
   t._tid = setTimeout(()=>{ t.style.display='none'; }, 2600);
 }
 
-function scrollToCert() {
-  document.querySelector('.cert-section').scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-// close modal on bg click
 document.getElementById('modal-bg').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-bg')) closeModal();
 });
