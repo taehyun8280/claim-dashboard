@@ -375,10 +375,10 @@ body>:not(.tab-bar){padding-top:2rem}
             <td class="inp-t-name">충주1</td>
             <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
             <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
-            <td><input type="number" id="s0_mi" value="49" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_mq" value="944" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_yi" value="259" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_yq" value="4234" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mi" value="59" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mq" value="1027" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_yi" value="269" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_yq" value="4317" readonly tabindex="-1" class="fixed-value"></td>
           </tr>
           <tr>
             <td class="inp-t-name">충주2</td>
@@ -512,7 +512,7 @@ function delAttachRow(){
 }
 const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
-const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV4';
+const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV5';
 
 (function(){
   const d=new Date();
@@ -543,10 +543,10 @@ function setSyncStatus(done=false){
 function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
 function saveInspectionState(){
   const rows=[0,1,2].map(i=>({
-    ti:getS(i,'ti'),tq:getS(i,'tq'),
+    ti:0,tq:0,
     mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq'),
-    savedTi:parseInt(document.getElementById(`s${i}_ti`)?.dataset.saved)||0,
-    savedTq:parseInt(document.getElementById(`s${i}_tq`)?.dataset.saved)||0
+    savedTi:0,
+    savedTq:0
   }));
   localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(rows));
 }
@@ -600,16 +600,20 @@ function projectCumulativeFromToday(){
 }
 function commitTodayToCumulative(){
   projectCumulativeFromToday();
+  const committedRows=getSRows();
   [0,1,2].forEach(i=>{
     const ti=document.getElementById(`s${i}_ti`);
     const tq=document.getElementById(`s${i}_tq`);
-    const currentTi=getS(i,'ti');
-    const currentTq=getS(i,'tq');
-    if(ti) ti.dataset.saved=String(currentTi);
-    if(tq) tq.dataset.saved=String(currentTq);
+    ['mi','mq','yi','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.dataset.base=String(getS(i,f));
+    });
+    if(ti){ti.value='0';ti.dataset.saved='0';}
+    if(tq){tq.value='0';tq.dataset.saved='0';}
   });
   calcS();
   saveInspectionState();
+  return committedRows;
 }
 function calcS(){
   projectCumulativeFromToday();
@@ -783,7 +787,7 @@ document.getElementById('notePhotoInput').addEventListener('change',function(){
 
 function applyAll(){
   const v=id=>document.getElementById(id)?.value||'';
-  commitTodayToCumulative();
+  const committedRows=commitTodayToCumulative();
 
   document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
   document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
@@ -811,7 +815,7 @@ function applyAll(){
   document.getElementById('pv_lbl_today').textContent=todayLbl;
   document.getElementById('pv_lbl_month').textContent=monthLbl;
 
-  const rows=getSRows();
+  const rows=committedRows||getSRows();
   const sb=document.getElementById('pvSBody');
   sb.innerHTML='';
   rows.forEach(r=>{
