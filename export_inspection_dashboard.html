@@ -1004,10 +1004,6 @@ async function copyDashboard(){
   btn.textContent='⏳ 캡처 중...';
   btn.disabled=true;
 
-  // 제목·날짜 숨기기
-  const head=document.querySelector('.report-head');
-  const prevDisplay=head?head.style.display:'';
-  if(head) head.style.display='none';
   target.classList.add('capture-strong');
 
   // 캡처용 폰트 확대
@@ -1088,7 +1084,6 @@ async function copyDashboard(){
       btn.textContent='❌ 복사 실패';
     }
   }finally{
-    if(head) head.style.display=prevDisplay;
     target.classList.remove('capture-strong');
     kpiLabels.forEach(el=>el.style.fontSize='');
     kpiSubLabels.forEach(el=>el.style.fontSize='');
