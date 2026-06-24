@@ -168,18 +168,26 @@
   /* ─── LAYOUT ─── */
   .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
 
-  /* ─── SUMMARY CARDS ─── */
-  .summary-grid {
+  /* ─── HERO STATS (inside banner) ─── */
+  .hero-stats {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px 20px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 28px;
+    gap: 12px;
+    position: relative;
   }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
+  .hero-stat-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 10px;
-    padding: 20px 22px;
+    padding: 16px 20px;
+    backdrop-filter: blur(4px);
+  }
+  .hero-stat-card:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
   }
   .card-label {
     color: var(--text2);
@@ -187,23 +195,26 @@
     font-weight: 500;
     letter-spacing: 1.2px;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .card-value {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 900;
     font-family: 'JetBrains Mono', monospace;
     line-height: 1;
   }
   .card-sub {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text3);
-    margin-top: 6px;
+    margin-top: 5px;
   }
   .c-accent  { color: var(--accent); }
   .c-accent2 { color: var(--accent2); }
   .c-accent3 { color: var(--accent3); }
   .c-text    { color: var(--text); }
+
+  /* hide old summary-grid */
+  .summary-grid { display: none; }
 
   /* ─── FLOW STEPS ─── */
   .flow-section {
@@ -767,33 +778,32 @@
       </button>
     </div>
   </div>
-</div>
-
-<div class="wrap">
-
-  <!-- SUMMARY -->
-  <div class="summary-grid">
-    <div class="card">
+  <!-- STATS inside banner -->
+  <div class="hero-stats">
+    <div class="hero-stat-card">
       <div class="card-label">전체 시험</div>
       <div class="card-value c-text" id="cnt-total">0</div>
       <div class="card-sub">등록된 시험 건수</div>
     </div>
-    <div class="card">
+    <div class="hero-stat-card">
       <div class="card-label">시험 접수</div>
       <div class="card-value c-accent2" id="cnt-wait">0</div>
       <div class="card-sub">접수 대기 중</div>
     </div>
-    <div class="card">
+    <div class="hero-stat-card">
       <div class="card-label">시험 진행 중</div>
       <div class="card-value c-accent3" id="cnt-prog">0</div>
       <div class="card-sub">현재 시험 중</div>
     </div>
-    <div class="card">
+    <div class="hero-stat-card">
       <div class="card-label">시험 완료</div>
       <div class="card-value c-accent" id="cnt-done">0</div>
       <div class="card-sub">성적서 발행 완료</div>
     </div>
   </div>
+</div>
+
+<div class="wrap">
 
   <!-- FLOW -->
   <div class="flow-section">
