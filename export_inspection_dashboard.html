@@ -372,10 +372,10 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
             <td class="inp-t-name">충주1</td>
             <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
             <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
-            <td><input type="number" id="s0_mi" value="49" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_mq" value="944" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_yi" value="259" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_yq" value="4234" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mi" value="59" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mq" value="1027" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_yi" value="269" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_yq" value="4317" readonly tabindex="-1" class="fixed-value"></td>
           </tr>
           <tr>
             <td class="inp-t-name">충주2</td>
@@ -552,23 +552,24 @@ function restoreInspectionState(){
   try{rows=JSON.parse(localStorage.getItem(INSPECTION_STORAGE_KEY)||'[]');}catch(e){}
   [0,1,2].forEach(i=>{
     const row=rows[i]||{};
-    ['ti','tq','mi','mq','yi','yq'].forEach(f=>{
+    // 누적값만 복원 (mi, mq, yi, yq)
+    ['mi','mq','yi','yq'].forEach(f=>{
       const el=document.getElementById(`s${i}_${f}`);
       if(el&&Number.isFinite(Number(row[f]))) el.value=Number(row[f]);
     });
+    // 금일 품목/수량은 페이지 열 때 항상 0으로 초기화
     const ti=document.getElementById(`s${i}_ti`);
     const tq=document.getElementById(`s${i}_tq`);
-    const savedTi=Number(row.savedTi)||0;
-    const savedTq=Number(row.savedTq)||0;
-    if(ti) ti.dataset.saved=String(savedTi);
-    if(tq) tq.dataset.saved=String(savedTq);
+    if(ti){ti.value=0;ti.dataset.saved='0';}
+    if(tq){tq.value=0;tq.dataset.saved='0';}
+    // base = 현재 누적값 (금일은 0으로 시작하므로)
     ['mi','yi'].forEach(f=>{
       const el=document.getElementById(`s${i}_${f}`);
-      if(el) el.dataset.base=String(Math.max(0,getS(i,f)-savedTi));
+      if(el) el.dataset.base=String(getS(i,f));
     });
     ['mq','yq'].forEach(f=>{
       const el=document.getElementById(`s${i}_${f}`);
-      if(el) el.dataset.base=String(Math.max(0,getS(i,f)-savedTq));
+      if(el) el.dataset.base=String(getS(i,f));
     });
   });
 }
