@@ -1,1268 +1,1132 @@
-<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>실험 관리 대시보드</title>
+<title>수출건 일일 검사현황</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;font-size:14px;background:#f0f0ee;color:#1a1a1a}
 
-  :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2230;
-    --border: #2a3444;
-    --accent: #00c8a0;
-    --accent2: #3b82f6;
-    --accent3: #f59e0b;
-    --danger: #ef4444;
-    --text: #e6edf3;
-    --text2: #8b949e;
-    --text3: #6e7681;
-    --status-wait: #3b82f6;
-    --status-prog: #f59e0b;
-    --status-done: #00c8a0;
-  }
+/* ── 탭바 ── */
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+body>:not(.tab-bar){padding-top:2rem}
+.tab-bar{background:#f5f5f3;position:sticky;top:0;z-index:100;border-bottom:2px solid #378ADD}
+.tab-inner{display:flex;width:100%}
+.tab-bar button{background:#f5f5f3;border:none;border-bottom:3px solid transparent;color:#888;padding:14px 0;font-size:16px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:.15s;white-space:nowrap;flex:1;border-right:1px solid #d0d3d8}
+.tab-bar button:last-child{border-right:none}
+.tab-bar button.active{background:#fff;color:#378ADD;border-bottom:3px solid #378ADD;font-weight:600}
+.tab-bar button:hover:not(.active){background:#ebebea;color:#555}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── 패널 ── */
+.panel{display:none}.panel.active{display:block}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 14px;
-    min-height: 100vh;
-  }
+/* ══ 보고서 미리보기 ══ */
+.preview-page{max-width:1100px;margin:0 auto;padding:20px}
+.preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.btn-img-copy{background:#2f7d4f;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:15px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-img-copy:hover{background:#25663f}
+.sync-pill{background:#f5f5f3;color:#666;border:1px solid #ddd;padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+.sync-pill .dot{width:8px;height:8px;background:#d4a017;border-radius:50%}
+.sync-pill.synced{color:#2f9e62;border-color:#c9e9d4}
+.sync-pill.synced .dot{background:#2f9e62}
 
-  /* ─── HEADER ─── */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.3px;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--accent);
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    color: var(--text2);
-    font-size: 13px;
-  }
+/* 보고서 카드 */
+.report-paper{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:24px 28px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.report-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;padding-bottom:1.25rem;border-bottom:2px solid #378ADD}
+.report-main-title{font-size:24px;font-weight:700;color:#1a1a1a;letter-spacing:-0.3px}
+.report-date{font-size:14px;color:#555;font-weight:500}
 
-  /* ─── LAYOUT ─── */
-  .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
+/* KPI */
+.kpi-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border:0.5px solid #d0dcee;border-radius:12px;padding:1rem 1.25rem}
+.kpi-blue{border-top:3px solid #378ADD}
+.kpi-red{border-top:3px solid #a32d2d}
+.kpi-gray{border-top:3px solid #888}
+.kpi-lbl{font-size:12px;font-weight:500;color:#888;margin-bottom:10px;letter-spacing:0.3px}
+.kpi-row{display:flex;align-items:center;gap:0}
+.kpi-divider{width:1px;background:#e5e7eb;height:40px;margin:0 20px}
+.kpi-sub-lbl{font-size:12px;color:#aaa;margin-bottom:4px}
+.kpi-val{font-size:28px;font-weight:700;color:#1a1a1a;line-height:1.1}
+.kpi-val.red{color:#a32d2d}
+.kpi-issue{font-size:14px;color:#555;line-height:1.7;margin-top:4px;min-height:40px}
 
-  /* ─── SUMMARY CARDS ─── */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px 22px;
-  }
-  .card-label {
-    color: var(--text2);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .card-value {
-    font-size: 32px;
-    font-weight: 900;
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1;
-  }
-  .card-sub {
-    font-size: 12px;
-    color: var(--text3);
-    margin-top: 6px;
-  }
-  .c-accent  { color: var(--accent); }
-  .c-accent2 { color: var(--accent2); }
-  .c-accent3 { color: var(--accent3); }
-  .c-text    { color: var(--text); }
+/* 섹션 */
+.sec-title{font-size:17px;font-weight:600;margin:18px 0 8px;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';display:inline-block;width:3px;height:16px;background:#378ADD;border-radius:2px}
 
-  /* ─── FLOW STEPS ─── */
-  .flow-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px 24px;
-    margin-bottom: 28px;
-  }
-  .section-eyebrow {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .section-title {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 18px;
-    color: var(--text);
-  }
-  .flow-steps {
-    display: flex;
-    gap: 0;
-    align-items: center;
-  }
-  .step {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    text-align: center;
-    position: relative;
-  }
-  .step-num {
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .step-name {
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 2px;
-  }
-  .step-desc {
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .step-arrow {
-    width: 24px;
-    text-align: center;
-    color: var(--text3);
-    font-size: 16px;
-    flex-shrink: 0;
-  }
+/* 검사현황 테이블 */
+.st{width:100%;border-collapse:collapse;font-size:15px;margin-bottom:4px;border:1px solid #d0d8e8}
+.st{table-layout:fixed}
+.st col.col-group{width:80px}
+.st col.col-metric{width:calc((100% - 80px) / 6)}
+.st th{background:#f0f4fa;padding:10px 10px;border:1px solid #d0d8e8;text-align:center;font-weight:600;color:#555;font-size:14px}
+.st td{padding:10px 10px;border:1px solid #d0d8e8;text-align:center;background:#fff;font-size:15px}
+.st .gh{background:#f5f5f3;font-weight:600;color:#1a1a1a}
+.st .tr-total td{background:#ddeaf9;font-weight:700;color:#185fa5;border-color:#b0cce8}
+.ng-red{color:#1a1a1a;font-weight:400}
 
-  /* ─── TABS ─── */
-  .tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 18px;
-  }
-  .tab {
-    padding: 8px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid transparent;
-    background: none;
-    color: var(--text2);
-    transition: all .15s;
-  }
-  .tab.active {
-    background: var(--surface2);
-    border-color: var(--border);
-    color: var(--text);
-  }
+/* 검사내용 테이블 */
+.ct{width:100%;border-collapse:collapse;font-size:15px;border:1px solid #d0d8e8}
+.ct th{background:#f0f4fa;padding:10px 10px;border:1px solid #d0d8e8;text-align:center;font-weight:600;color:#555;font-size:14px}
+.ct td{padding:10px 10px;border:1px solid #d0d8e8;text-align:center;background:#fff;vertical-align:middle;font-size:15px}
+.ct thead th:nth-child(1),.ct tbody td:nth-child(1),
+.ct thead th:nth-child(4),.ct tbody td:nth-child(4),
+.ct thead th:nth-child(5),.ct tbody td:nth-child(5),
+.ct thead th:nth-child(6),.ct tbody td:nth-child(6),
+.ct thead th:nth-child(7),.ct tbody td:nth-child(7){width:84px;min-width:84px;white-space:nowrap}
+.ct thead th:nth-child(8),.ct tbody td:nth-child(8){width:200px;min-width:200px}
+.ct .tr-total td{background:#f0f4fa;font-weight:700;border-color:#d0d8e8}
+.badge-ok{background:#dcfce7;color:#166534;padding:3px 10px;border-radius:10px;font-size:13px;font-weight:700}
+.badge-ng{background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:10px;font-size:13px;font-weight:700}
+.photo-thumb{width:150px;height:100px;object-fit:cover;border-radius:4px;border:1px solid #d0d8e8;display:block;margin:0 auto}
+.photo-empty{width:150px;height:100px;background:#f9fafb;border:1px dashed #d0d8e8;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px;margin:0 auto}
 
-  /* ─── MAIN GRID ─── */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-    margin-bottom: 28px;
-  }
-  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+/* 특이사항 / 첨부 */
+.note-box{background:#f9f9f8;border:0.5px solid #e0e0da;border-radius:8px;padding:1rem;min-height:60px;font-size:15px;color:#1a1a1a;line-height:1.7}
+.note-text{white-space:pre-wrap}
+.note-photo-report{margin-top:10px}
+.note-photo-report img{max-width:320px;max-height:220px;object-fit:contain;border:1px solid #e5e7eb;border-radius:4px;display:block}
+.attach-box{background:#fff;border:none;padding:4px 0;font-size:15px}
+.attach-box li{list-style:none;color:#1a1a1a;display:flex;align-items:center;gap:10px;padding:7px 0}
+.attach-box li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#378ADD;flex-shrink:0}
+.attach-box li a,.attach-box li span{color:#1a1a1a;text-decoration:none}
+.report-footer{text-align:right;font-size:13px;color:#888;margin-top:14px;padding-top:10px;border-top:0!important;box-shadow:none!important;background-image:none!important}
+.report-footer::before,.report-footer::after{content:none!important;display:none!important}
 
-  /* ─── KANBAN COLUMNS ─── */
-  .kanban-wrap {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-  .kanban-col {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .kanban-header {
-    padding: 14px 16px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .kanban-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-  }
-  .dot-wait { background: var(--status-wait); box-shadow: 0 0 6px var(--status-wait); }
-  .dot-prog { background: var(--status-prog); box-shadow: 0 0 6px var(--status-prog); }
-  .dot-done { background: var(--status-done); box-shadow: 0 0 6px var(--status-done); }
-  .kanban-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--text2);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 2px 10px;
-  }
-  .kanban-body { padding: 10px; min-height: 200px; }
+/* 이미지 복사 전용 강조 스타일 */
+.report-paper.capture-strong{color:#000;font-weight:650}
+.report-paper.capture-strong .kpi-lbl,
+.report-paper.capture-strong .kpi-sub-lbl{color:#000!important;font-weight:850!important}
+.report-paper.capture-strong .kpi-val{color:#000;font-weight:900!important}
+.report-paper.capture-strong .kpi-val.red{color:#a51f24!important}
+.report-paper.capture-strong .sec-title{font-size:30px!important;font-weight:900!important;margin:42px 0 18px!important;color:#000!important}
+.report-paper.capture-strong .st,
+.report-paper.capture-strong .ct{margin-bottom:38px!important;border:1.6px solid #555!important}
+.report-paper.capture-strong .st th,
+.report-paper.capture-strong .ct th{background:#e9eef6!important;border:1.4px solid #666!important;color:#000!important;font-weight:900!important}
+.report-paper.capture-strong .st td,
+.report-paper.capture-strong .ct td{border:1.4px solid #777!important;color:#000!important;font-weight:650!important}
+.report-paper.capture-strong .st .gh,
+.report-paper.capture-strong .ct .tr-total td{font-weight:900!important;color:#000!important}
+.report-paper.capture-strong .st .tr-total td{font-weight:900!important}
+.report-paper.capture-strong .note-box{min-height:145px!important;margin-bottom:42px!important;border:1.4px solid #777!important;color:#000!important;font-size:22px!important;font-weight:800!important}
+.report-paper.capture-strong .note-photo-report img{width:760px!important;max-width:100%!important;max-height:none!important;border:1.4px solid #777!important}
+.report-paper.capture-strong .attach-box{margin-top:10px!important;margin-bottom:36px!important}
+.report-paper.capture-strong .attach-box li{font-size:22px!important;font-weight:800!important;color:#000!important;padding:10px 0!important}
+.report-paper.capture-strong .report-footer{font-size:20px!important;font-weight:800!important;color:#000!important;border-top:none!important}
 
-  .exp-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: border-color .15s, transform .1s;
-    position: relative;
-  }
-  .exp-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-1px);
-  }
-  .exp-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-  }
-  .exp-id {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    font-weight: 600;
-  }
-  .priority-badge {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 7px;
-    border-radius: 4px;
-  }
-  .p-high { background: rgba(239,68,68,.15); color: #ef4444; }
-  .p-mid  { background: rgba(245,158,11,.15); color: #f59e0b; }
-  .p-low  { background: rgba(100,200,120,.15); color: #4ade80; }
-  .exp-name {
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    line-height: 1.3;
-  }
-  .exp-meta {
-    display: flex;
-    gap: 10px;
-    font-size: 11px;
-    color: var(--text3);
-  }
-  .exp-meta span { display: flex; align-items: center; gap: 3px; }
+/* ══ 데이터 입력 ══ */
+.inp-page{max-width:1100px;margin:0 auto;padding:20px}
+.inp-card{background:#fff;border:0.5px solid #e0e0da;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.inp-card-hd{padding:10px 16px;font-weight:600;font-size:15px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;color:#185fa5;border-left:3px solid #378ADD}
+.inp-card-bd{padding:14px 16px}
+.inp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+.inp-f{display:flex;flex-direction:column;gap:3px}
+.inp-f label{font-size:13px;color:#555;font-weight:600}
+.inp-f input{border:0.5px solid #ddd;padding:6px 8px;font-size:14px;font-family:'Noto Sans KR',sans-serif;border-radius:4px;background:#fff;height:34px;width:100%}
+.inp-f input:focus{outline:none;border-color:#378ADD}
+.inp-f input.ro{background:#f5f5f5;color:#9ca3af;cursor:default}
+.inp-t{width:100%;border-collapse:collapse;font-size:14px}
+.inp-t th{background:#f0f4fa;padding:10px 10px;border:1px solid #d0d8e8;text-align:center;font-weight:600;color:#555;font-size:14px}
+.inp-t td{padding:6px 6px;border:1px solid #d0d8e8;text-align:center;vertical-align:middle}
+.inp-t-name{font-weight:600;background:#f5f5f3;color:#1a1a1a}
+.inp-t input[type=number],
+.inp-t input[type=text]{border:0.5px solid #ddd;padding:5px 6px;font-size:14px;font-family:'Noto Sans KR',sans-serif;width:100%;background:#fff;border-radius:4px;text-align:center;height:32px;box-sizing:border-box}
+.inp-t input:focus,.inp-t textarea:focus{outline:none;border-color:#378ADD}
+.inp-t input.fixed-value{background:#f5f5f3;color:#555;border-color:#ddd;font-weight:600;cursor:default}
+.case-name-input{border:0.5px solid #ddd;padding:5px 6px;font-size:14px;font-family:'Noto Sans KR',sans-serif;width:100%;min-width:150px;background:#fff;border-radius:4px;text-align:left;height:48px;line-height:1.5;box-sizing:border-box;resize:vertical;overflow:auto}
+.inp-t select{border:0.5px solid #ddd;padding:3px 4px;font-size:13px;font-family:'Noto Sans KR',sans-serif;width:100%;background:#fff;border-radius:4px;height:32px}
+.inp-t-total td{background:#ddeaf9;font-weight:700;color:#185fa5;padding:8px 10px;border:1px solid #b0cce8;font-size:14px;text-align:center}
+.inp-textarea{width:100%;border:0.5px solid #ddd;padding:8px 10px;font-size:14px;font-family:'Noto Sans KR',sans-serif;border-radius:4px;background:#fff;resize:vertical;line-height:1.7}
+.inp-textarea:focus{outline:none;border-color:#378ADD}
+.note-photo-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.note-photo-box{margin-top:8px;width:220px;min-height:120px;border:1px dashed #ddd;border-radius:4px;background:#f9f9f8;color:#9ca3af;font-size:13px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.note-photo-box img{width:100%;height:100%;max-height:180px;object-fit:contain;background:#fff}
+.ph-cell{width:86px;height:58px;background:#f9f9f8;cursor:pointer;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:11px;text-align:center;border:1px dashed #ddd;margin:0 auto}
+.ph-cell img{width:100%;height:100%;object-fit:cover}
+.rbt{background:#f0f0ee;border:0.5px solid #ddd;padding:6px 14px;font-size:13px;cursor:pointer;border-radius:6px;font-family:'Noto Sans KR',sans-serif;color:#555}
+.rbt:hover{background:#e5e5e3}
+.apply-btn{background:#378ADD;color:#fff;border:none;padding:10px 22px;font-size:15px;border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:500}
+.apply-btn:hover{background:#2a6fb5}
+.reset-btn{background:#f0f0ee;border:0.5px solid #ddd;padding:9px 16px;font-size:15px;border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;color:#555}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-  /* ─── ADD BUTTON ─── */
-  .add-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-    border: 1px dashed var(--border);
-    color: var(--text3);
-    border-radius: 8px;
-    padding: 8px 12px;
-    width: 100%;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all .15s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .add-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  /* ─── CERTIFICATE SECTION ─── */
-  .cert-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 28px;
-    overflow: hidden;
-  }
-  .cert-header {
-    padding: 18px 24px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .cert-body { padding: 24px; }
-
-  .cert-form-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px 20px;
-    margin-bottom: 20px;
-  }
-  .cert-form-full { grid-column: 1 / -1; }
-  .cert-form-half { grid-column: span 1; }
-
-  .field-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--text2);
-    margin-bottom: 5px;
-  }
-  .field-input, .field-select, .field-textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
-    padding: 8px 12px;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .field-input:focus, .field-select:focus, .field-textarea:focus {
-    border-color: var(--accent);
-  }
-  .field-select option { background: var(--surface2); }
-  .field-textarea { resize: vertical; min-height: 80px; }
-
-  /* result table */
-  .result-table-wrap { overflow-x: auto; margin-bottom: 20px; }
-  .result-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .result-table th {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    padding: 8px 12px;
-    font-weight: 600;
-    color: var(--text2);
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    text-align: center;
-    white-space: nowrap;
-  }
-  .result-table td {
-    border: 1px solid var(--border);
-    padding: 7px 10px;
-    text-align: center;
-    vertical-align: middle;
-  }
-  .result-table td input {
-    background: none;
-    border: none;
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
-    text-align: center;
-    width: 100%;
-    outline: none;
-  }
-  .result-table td input:focus {
-    background: rgba(0,200,160,.07);
-    border-radius: 4px;
-  }
-  .result-table tr:hover td { background: rgba(255,255,255,.02); }
-  .del-row-btn {
-    background: none;
-    border: none;
-    color: var(--text3);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-  .del-row-btn:hover { color: var(--danger); background: rgba(239,68,68,.1); }
-
-  .cert-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-  }
-  .btn {
-    padding: 9px 20px;
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all .15s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #0d1117;
-    border-radius: 22px;
-  }
-  .btn-primary:hover { filter: brightness(1.1); }
-  .btn-cert {
-    background: var(--accent);
-    color: #0d1117;
-    border-radius: 22px;
-    font-weight: 700;
-    letter-spacing: -0.2px;
-    border: none;
-  }
-  .btn-cert:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,200,160,.35); }
-  .btn-outline {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text2);
-  }
-  .btn-outline:hover { border-color: var(--text2); color: var(--text); }
-  .btn-danger {
-    background: rgba(239,68,68,.1);
-    border: 1px solid rgba(239,68,68,.3);
-    color: #ef4444;
-  }
-  .btn-danger:hover { background: rgba(239,68,68,.2); }
-
-  /* PASS/FAIL */
-  .pass-fail-wrap { display: flex; gap: 10px; }
-  .pf-btn {
-    flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text2);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    text-align: center;
-    transition: all .15s;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .pf-btn.pass-sel {
-    background: rgba(0,200,160,.15);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .pf-btn.fail-sel {
-    background: rgba(239,68,68,.15);
-    border-color: var(--danger);
-    color: var(--danger);
-  }
-
-  /* ─── LIST TABLE ─── */
-  .list-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 28px;
-    overflow: hidden;
-  }
-  .list-header {
-    padding: 16px 24px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .list-search {
-    flex: 1;
-    max-width: 280px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 13px;
-    padding: 7px 12px;
-    outline: none;
-    font-family: 'Noto Sans KR', sans-serif;
-  }
-  .list-search:focus { border-color: var(--accent); }
-  .list-table-wrap { overflow-x: auto; }
-  .list-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .list-table th {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 14px;
-    font-weight: 600;
-    color: var(--text2);
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    text-align: left;
-    white-space: nowrap;
-  }
-  .list-table td {
-    border-bottom: 1px solid var(--border);
-    padding: 10px 14px;
-    color: var(--text);
-    vertical-align: middle;
-  }
-  .list-table tr:last-child td { border-bottom: none; }
-  .list-table tr:hover td { background: rgba(255,255,255,.02); cursor: pointer; }
-
-  .status-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 20px;
-  }
-  .chip-wait { background: rgba(59,130,246,.15); color: #60a5fa; }
-  .chip-prog { background: rgba(245,158,11,.15); color: #fbbf24; }
-  .chip-done { background: rgba(0,200,160,.15); color: var(--accent); }
-
-  /* ─── MODAL ─── */
-  .modal-bg {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px;
-    width: 560px;
-    max-width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-title {
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .modal-close {
-    background: none;
-    border: none;
-    color: var(--text3);
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1;
-    padding: 2px 6px;
-  }
-  .modal-close:hover { color: var(--text); }
-  .modal-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-  .modal-full { grid-column: 1 / -1; }
-
-  /* toast */
-  .toast {
-    position: fixed;
-    bottom: 28px; right: 28px;
-    background: var(--surface2);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 300;
-    display: none;
-    animation: toastIn .2s ease;
-  }
-  @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
-  .divider { height: 1px; background: var(--border); margin: 20px 0; }
-  .row-label { color: var(--text2); font-size: 12px; font-weight: 500; }
+@media print{
+  .tab-bar,.preview-topbar,.btn-row,.no-print{display:none!important}
+  .panel{display:block!important}
+  body{background:#fff}
+  .report-paper{border:none;box-shadow:none}
+  .preview-page{padding:0}
+}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    실험 관리 대시보드
+<div class="tab-bar">
+  <div class="tab-inner">
+    <button class="active" onclick="switchTab('preview')">보고서 미리보기</button>
+    <button onclick="switchTab('input')">데이터 입력</button>
   </div>
-  <div class="header-right">
-    <span id="nowDate"></span>
-    <button class="btn btn-cert" onclick="scrollToCert()">📄 시험 성적서 작성</button>
-    <button class="btn btn-primary" onclick="openModal()">+ 시험 접수</button>
-  </div>
-</header>
+</div>
 
-<div class="wrap">
+<!-- ══ 탭1: 보고서 미리보기 ══ -->
+<div class="panel active" id="tab-preview">
+<div class="preview-page">
 
-  <!-- SUMMARY -->
-  <div class="summary-grid">
-    <div class="card">
-      <div class="card-label">전체 시험</div>
-      <div class="card-value c-text" id="cnt-total">0</div>
-      <div class="card-sub">등록된 시험 건수</div>
-    </div>
-    <div class="card">
-      <div class="card-label">시험 접수</div>
-      <div class="card-value c-accent2" id="cnt-wait">0</div>
-      <div class="card-sub">접수 대기 중</div>
-    </div>
-    <div class="card">
-      <div class="card-label">시험 진행 중</div>
-      <div class="card-value c-accent3" id="cnt-prog">0</div>
-      <div class="card-sub">현재 시험 중</div>
-    </div>
-    <div class="card">
-      <div class="card-label">시험 완료</div>
-      <div class="card-value c-accent" id="cnt-done">0</div>
-      <div class="card-sub">성적서 발행 완료</div>
-    </div>
+  <div class="preview-topbar no-print">
+    <button class="btn-img-copy" id="copyBtn" onclick="copyDashboard()">📋 대시보드 이미지 복사</button>
+    <div class="sync-pill" id="syncStatus"><span class="dot"></span><span id="syncText">최신 데이터 확인 중</span></div>
   </div>
 
-  <!-- FLOW -->
-  <div class="flow-section">
-    <div class="section-eyebrow">SYSTEM FLOW</div>
-    <div class="section-title">시험 운영 흐름</div>
-    <div class="flow-steps">
-      <div class="step">
-        <div class="step-num">STEP 01</div>
-        <div class="step-name">시험 접수</div>
-        <div class="step-desc">의뢰서 등록</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 02</div>
-        <div class="step-name">시료 확인</div>
-        <div class="step-desc">시료 식별·상태 검토</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 03</div>
-        <div class="step-name">시험 진행</div>
-        <div class="step-desc">측정 및 데이터 수집</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 04</div>
-        <div class="step-name">결과 검토</div>
-        <div class="step-desc">판정·서명</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 05</div>
-        <div class="step-name">성적서 발행</div>
-        <div class="step-desc">출력·보관</div>
-      </div>
+  <div class="report-paper">
+    <div class="report-head">
+      <div class="report-main-title" id="pv_title">수출건 검사 보고서</div>
+      <div class="report-date" id="pv_date"></div>
     </div>
-  </div>
 
-  <!-- KANBAN -->
-  <div class="kanban-wrap">
-    <!-- 접수 -->
-    <div class="kanban-col">
-      <div class="kanban-header">
-        <div class="kanban-title">
-          <div class="status-dot dot-wait"></div>
-          시험 접수
-        </div>
-        <div class="kanban-count" id="k-cnt-wait">0</div>
-      </div>
-      <div class="kanban-body" id="col-wait">
-        <button class="add-btn" onclick="openModal('접수')">＋ 시험 접수 추가</button>
-      </div>
-    </div>
-    <!-- 진행 -->
-    <div class="kanban-col">
-      <div class="kanban-header">
-        <div class="kanban-title">
-          <div class="status-dot dot-prog"></div>
-          시험 진행 중
-        </div>
-        <div class="kanban-count" id="k-cnt-prog">0</div>
-      </div>
-      <div class="kanban-body" id="col-prog">
-        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">진행 중인 시험 없음</p>
-      </div>
-    </div>
-    <!-- 완료 -->
-    <div class="kanban-col">
-      <div class="kanban-header">
-        <div class="kanban-title">
-          <div class="status-dot dot-done"></div>
-          시험 완료
-        </div>
-        <div class="kanban-count" id="k-cnt-done">0</div>
-      </div>
-      <div class="kanban-body" id="col-done">
-        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료된 시험 없음</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- CERTIFICATE FORM -->
-  <div class="cert-section">
-    <div class="cert-header">
-      <div>
-        <div class="section-eyebrow">CERTIFICATE</div>
-        <div class="section-title" style="margin:0">시험 성적서 작성</div>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-outline" onclick="clearCertForm()">초기화</button>
-        <button class="btn btn-outline" onclick="printCert()">🖨 인쇄</button>
-        <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
-      </div>
-    </div>
-    <div class="cert-body" id="cert-print-area">
-
-      <!-- 기본 정보 -->
-      <div style="margin-bottom:6px;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;">기본 정보</div>
-      <div class="cert-form-grid">
-        <div class="cert-form-half">
-          <div class="field-label">성적서 번호</div>
-          <input class="field-input" id="cf-no" placeholder="예) TEST-2024-001">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">발행일자</div>
-          <input class="field-input" type="date" id="cf-date">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 의뢰 기관</div>
-          <input class="field-input" id="cf-client" placeholder="기관명 입력">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">담당자</div>
-          <input class="field-input" id="cf-person" placeholder="담당자명">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 항목</div>
-          <input class="field-input" id="cf-item" placeholder="예) 인장강도, 경도 등">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 규격/방법</div>
-          <input class="field-input" id="cf-spec" placeholder="예) KS B 0802">
-        </div>
-        <div class="cert-form-full">
-          <div class="field-label">시료 정보</div>
-          <input class="field-input" id="cf-sample" placeholder="시료명, 시료 번호, 수량 등">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 조건 (온도/습도)</div>
-          <input class="field-input" id="cf-cond" placeholder="예) 23±2°C / 50±5%RH">
-        </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험 기간</div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <input class="field-input" type="date" id="cf-start" style="flex:1">
-            <span style="color:var(--text3);font-size:12px;">~</span>
-            <input class="field-input" type="date" id="cf-end" style="flex:1">
+    <!-- KPI -->
+    <div class="kpi-strip">
+      <!-- 카드1: 일 고객클레임 현황 -->
+      <div class="kpi kpi-blue">
+        <div class="kpi-lbl">일 고객클레임 현황</div>
+        <div class="kpi-row">
+          <div>
+            <div class="kpi-sub-lbl">품목</div>
+            <div class="kpi-val" id="db_claim_d_item">0</div>
+          </div>
+          <div class="kpi-divider"></div>
+          <div>
+            <div class="kpi-sub-lbl">수량</div>
+            <div class="kpi-val" id="db_claim_d_qty">0</div>
           </div>
         </div>
       </div>
-
-      <div class="divider"></div>
-
-      <!-- 시험 결과 테이블 -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
-        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
-      </div>
-      <div class="result-table-wrap">
-        <table class="result-table" id="result-table">
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>시험 항목</th>
-              <th>단위</th>
-              <th>규격 기준</th>
-              <th>측정값 1</th>
-              <th>측정값 2</th>
-              <th>측정값 3</th>
-              <th>평균</th>
-              <th>판정</th>
-              <th>비고</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="result-tbody">
-          </tbody>
-        </table>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- 종합 판정 & 비고 -->
-      <div class="cert-form-grid">
-        <div class="cert-form-half">
-          <div class="field-label">종합 판정</div>
-          <div class="pass-fail-wrap">
-            <button class="pf-btn" id="pf-pass" onclick="setPF('pass')">✔ PASS</button>
-            <button class="pf-btn" id="pf-fail" onclick="setPF('fail')">✘ FAIL</button>
+      <!-- 카드2: 월 고객클레임 현황 -->
+      <div class="kpi kpi-red">
+        <div class="kpi-lbl">월 고객클레임 현황</div>
+        <div class="kpi-row">
+          <div>
+            <div class="kpi-sub-lbl">품목</div>
+            <div class="kpi-val red" id="db_claim_m_item">0</div>
+          </div>
+          <div class="kpi-divider"></div>
+          <div>
+            <div class="kpi-sub-lbl">수량</div>
+            <div class="kpi-val red" id="db_claim_m_qty">0</div>
           </div>
         </div>
-        <div class="cert-form-half">
-          <div class="field-label">시험자 서명</div>
-          <input class="field-input" id="cf-signer" placeholder="시험자 이름">
+      </div>
+      <!-- 카드3: 누적 고객클레임 현황 -->
+      <div class="kpi kpi-gray">
+        <div class="kpi-lbl">누적 고객클레임 현황</div>
+        <div class="kpi-row">
+          <div>
+            <div class="kpi-sub-lbl">품목</div>
+            <div class="kpi-val" id="db_claim_y_item">2</div>
+          </div>
+          <div class="kpi-divider"></div>
+          <div>
+            <div class="kpi-sub-lbl">수량</div>
+            <div class="kpi-val" id="db_claim_y_qty">2</div>
+          </div>
         </div>
-        <div class="cert-form-full">
-          <div class="field-label">특이사항 / 비고</div>
-          <textarea class="field-textarea" id="cf-note" placeholder="시험 중 특이사항, 참고 사항 등을 입력하세요"></textarea>
-        </div>
+      </div>
+    </div>
+
+    <!-- 1. 검사현황 -->
+    <div class="sec-title">1. 검사현황</div>
+    <table class="st">
+      <colgroup>
+        <col class="col-group">
+        <col class="col-metric"><col class="col-metric">
+        <col class="col-metric"><col class="col-metric">
+        <col class="col-metric"><col class="col-metric">
+      </colgroup>
+      <thead>
+        <tr>
+          <th rowspan="2" style="width:80px">구분</th>
+          <th colspan="2" id="pv_lbl_today">금일</th>
+          <th colspan="2" id="pv_lbl_month">6월 누적</th>
+          <th colspan="2">26년 누적</th>
+        </tr>
+        <tr>
+          <th>품목</th><th>수량</th>
+          <th>품목</th><th>수량</th>
+          <th>품목</th><th>수량</th>
+        </tr>
+      </thead>
+      <tbody id="pvSBody"></tbody>
+      <tfoot>
+        <tr class="tr-total">
+          <td>합계</td>
+          <td id="pv_t1">0</td><td id="pv_t2">0</td>
+          <td id="pv_t3">0</td><td id="pv_t4">0</td>
+          <td id="pv_t5">0</td><td id="pv_t6">0</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- 2. 검사내용 -->
+    <div class="sec-title">2. 검사내용</div>
+    <table class="ct">
+      <thead>
+        <tr>
+          <th style="width:84px">번호</th>
+          <th style="width:160px">건명</th><th>단품코드</th>
+          <th style="width:84px">색상</th>
+          <th style="width:84px">수량</th>
+          <th style="width:84px">검사자</th>
+          <th style="width:84px">결과</th>
+          <th style="width:200px">검사 사진</th>
+        </tr>
+      </thead>
+      <tbody id="pvCBody"></tbody>
+      <tfoot>
+        <tr class="tr-total">
+          <td colspan="2">합계</td>
+          <td id="pv_c_item">0 품목</td>
+          <td id="pv_c_qty" colspan="2">0 박스</td>
+          <td>–</td><td>–</td><td>–</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- 3. 특이사항 -->
+    <div class="sec-title">3. 특이사항</div>
+    <div class="note-box" id="pvNote">&nbsp;</div>
+
+    <!-- 4. 첨부 -->
+    <div class="sec-title">4. 첨부</div>
+    <ul class="attach-box" id="pvAttach">
+      <li>4-1. 수출건 검사 세부내역</li>
+      <li>4-2. 생산지시서</li>
+    </ul>
+
+    <div class="report-footer" id="pvOrg">충주공장 품질보증팀</div>
+  </div>
+</div>
+</div>
+
+<!-- ══ 탭2: 데이터 입력 ══ -->
+<div class="panel" id="tab-input">
+<div class="inp-page">
+
+  <!-- 기본 정보 -->
+  <div class="inp-card">
+    <div class="inp-card-hd">기본 정보</div>
+    <div class="inp-card-bd">
+      <div class="inp-grid" style="grid-template-columns:260px;gap:8px 14px">
+        <div class="inp-f"><label>작성일</label><input id="in_date" type="date"></div>
       </div>
     </div>
   </div>
 
-  <!-- LIST TABLE -->
-  <div class="list-section">
-    <div class="list-header">
-      <div>
-        <div class="section-eyebrow" style="margin-bottom:4px;">RECORDS</div>
-        <div style="font-size:15px;font-weight:700;">저장된 성적서 목록</div>
-      </div>
-      <input class="list-search" placeholder="🔍 검색..." oninput="filterList(this.value)" id="list-search">
-    </div>
-    <div class="list-table-wrap">
-      <table class="list-table">
+  <!-- 고객클레임 현황 -->
+  <div class="inp-card">
+    <div class="inp-card-hd">고객클레임 현황</div>
+    <div class="inp-card-bd">
+      <table class="inp-t">
         <thead>
           <tr>
-            <th>성적서 번호</th>
-            <th>시험 항목</th>
-            <th>의뢰 기관</th>
-            <th>시료 정보</th>
-            <th>시험 기간</th>
-            <th>담당자</th>
-            <th>판정</th>
-            <th>상태</th>
-            <th></th>
+            <th style="width:180px">구분</th>
+            <th>품목</th>
+            <th>수량</th>
           </tr>
         </thead>
-        <tbody id="list-tbody">
-          <tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>
+        <tbody>
+          <tr>
+            <td class="inp-t-name">일 고객클레임 현황</td>
+            <td><input type="number" id="claim_d_item" value="0" min="0" oninput="liveSync()"></td>
+            <td><input type="number" id="claim_d_qty" value="0" min="0" oninput="liveSync()"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">월 고객클레임 현황</td>
+            <td><input type="number" id="claim_m_item" value="0" min="0" oninput="liveSync()"></td>
+            <td><input type="number" id="claim_m_qty" value="0" min="0" oninput="liveSync()"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">누적 고객클레임 현황</td>
+            <td><input type="number" id="claim_y_item" value="2" min="0" oninput="liveSync()"></td>
+            <td><input type="number" id="claim_y_qty" value="2" min="0" oninput="liveSync()"></td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-</div><!-- /wrap -->
-
-<!-- ADD MODAL -->
-<div class="modal-bg" id="modal-bg">
-  <div class="modal">
-    <div class="modal-title">
-      시험 접수 등록
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-grid">
-      <div>
-        <div class="field-label">시험 ID</div>
-        <input class="field-input" id="m-id" placeholder="자동 생성">
-      </div>
-      <div>
-        <div class="field-label">접수일</div>
-        <input class="field-input" type="date" id="m-date">
-      </div>
-      <div class="modal-full">
-        <div class="field-label">시험명</div>
-        <input class="field-input" id="m-name" placeholder="예) KS B 0802 인장강도 시험">
-      </div>
-      <div>
-        <div class="field-label">의뢰 기관</div>
-        <input class="field-input" id="m-client" placeholder="기관명">
-      </div>
-      <div>
-        <div class="field-label">담당자</div>
-        <input class="field-input" id="m-person" placeholder="담당자명">
-      </div>
-      <div>
-        <div class="field-label">우선순위</div>
-        <select class="field-select" id="m-priority">
-          <option value="상">상 (긴급)</option>
-          <option value="중" selected>중 (보통)</option>
-          <option value="하">하 (여유)</option>
-        </select>
-      </div>
-      <div>
-        <div class="field-label">초기 상태</div>
-        <select class="field-select" id="m-status">
-          <option value="접수">접수</option>
-          <option value="진행">진행 중</option>
-          <option value="완료">완료</option>
-        </select>
-      </div>
-      <div class="modal-full">
-        <div class="field-label">비고</div>
-        <textarea class="field-textarea" id="m-note" style="min-height:60px;" placeholder="특이사항"></textarea>
-      </div>
-    </div>
-    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-      <button class="btn btn-outline" onclick="closeModal()">취소</button>
-      <button class="btn btn-primary" onclick="addExperiment()">등록</button>
+  <!-- 1. 검사현황 -->
+  <div class="inp-card">
+    <div class="inp-card-hd">1. 검사현황</div>
+    <div class="inp-card-bd" style="overflow-x:auto">
+      <table class="inp-t">
+        <thead>
+          <tr>
+            <th style="width:72px">구분</th>
+            <th>금일 품목</th><th>금일 수량</th>
+            <th>6월 누적품목</th><th>6월 누적수량</th>
+            <th>26년 누적품목</th><th>26년 누적수량</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="inp-t-name">충주1</td>
+            <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s0_mi" value="59" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mq" value="1027" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_yi" value="269" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_yq" value="4317" readonly tabindex="-1" class="fixed-value"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">충주2</td>
+            <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s1_mi" value="14" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s1_mq" value="79" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s1_yi" value="71" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s1_yq" value="288" readonly tabindex="-1" class="fixed-value"></td>
+          </tr>
+          <tr>
+            <td class="inp-t-name">양지</td>
+            <td><input type="number" id="s2_ti" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_tq" value="0" min="0" oninput="calcS()"></td>
+            <td><input type="number" id="s2_mi" value="0" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s2_mq" value="0" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s2_yi" value="0" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s2_yq" value="0" readonly tabindex="-1" class="fixed-value"></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="inp-t-total">
+            <td>합계</td>
+            <td id="in_t1">0</td><td id="in_t2">0</td>
+            <td id="in_t3">0</td><td id="in_t4">0</td>
+            <td id="in_t5">0</td><td id="in_t6">0</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
+
+  <!-- 2. 검사내용 -->
+  <div class="inp-card">
+    <div class="inp-card-hd">2. 검사내용</div>
+    <div class="inp-card-bd" style="overflow-x:auto">
+      <table class="inp-t">
+        <thead>
+          <tr>
+            <th style="width:44px">번호</th>
+            <th>건명</th>
+            <th>단품코드</th>
+            <th style="width:80px">색상</th>
+            <th style="width:70px">수량</th>
+            <th style="width:100px">검사자</th>
+            <th style="width:80px">결과</th>
+            <th style="width:90px">사진</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="inp-t-name">1번</td><td><input type="text" id="c0_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c0_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c0_color" placeholder="WW"></td><td><input type="number" id="c0_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c0_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c0_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c0_photo" onclick="trigPhFixed(0)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">2번</td><td><input type="text" id="c1_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c1_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c1_color" placeholder="WW"></td><td><input type="number" id="c1_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c1_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c1_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c1_photo" onclick="trigPhFixed(1)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">3번</td><td><input type="text" id="c2_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c2_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c2_color" placeholder="WW"></td><td><input type="number" id="c2_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c2_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c2_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c2_photo" onclick="trigPhFixed(2)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">4번</td><td><input type="text" id="c3_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c3_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c3_color" placeholder="WW"></td><td><input type="number" id="c3_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c3_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c3_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c3_photo" onclick="trigPhFixed(3)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">5번</td><td><input type="text" id="c4_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c4_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c4_color" placeholder="WW"></td><td><input type="number" id="c4_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c4_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c4_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c4_photo" onclick="trigPhFixed(4)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">6번</td><td><input type="text" id="c5_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c5_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c5_color" placeholder="WW"></td><td><input type="number" id="c5_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c5_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c5_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c5_photo" onclick="trigPhFixed(5)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">7번</td><td><input type="text" id="c6_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c6_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c6_color" placeholder="WW"></td><td><input type="number" id="c6_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c6_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c6_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c6_photo" onclick="trigPhFixed(6)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">8번</td><td><input type="text" id="c7_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c7_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c7_color" placeholder="WW"></td><td><input type="number" id="c7_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c7_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c7_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c7_photo" onclick="trigPhFixed(7)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">9번</td><td><input type="text" id="c8_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c8_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c8_color" placeholder="WW"></td><td><input type="number" id="c8_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c8_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c8_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c8_photo" onclick="trigPhFixed(8)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">10번</td><td><input type="text" id="c9_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c9_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c9_color" placeholder="WW"></td><td><input type="number" id="c9_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c9_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c9_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c9_photo" onclick="trigPhFixed(9)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">11번</td><td><input type="text" id="c10_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c10_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c10_color" placeholder="WW"></td><td><input type="number" id="c10_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c10_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c10_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c10_photo" onclick="trigPhFixed(10)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">12번</td><td><input type="text" id="c11_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c11_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c11_color" placeholder="WW"></td><td><input type="number" id="c11_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c11_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c11_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c11_photo" onclick="trigPhFixed(11)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">13번</td><td><input type="text" id="c12_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c12_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c12_color" placeholder="WW"></td><td><input type="number" id="c12_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c12_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c12_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c12_photo" onclick="trigPhFixed(12)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">14번</td><td><input type="text" id="c13_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c13_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c13_color" placeholder="WW"></td><td><input type="number" id="c13_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c13_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c13_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c13_photo" onclick="trigPhFixed(13)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">15번</td><td><input type="text" id="c14_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c14_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c14_color" placeholder="WW"></td><td><input type="number" id="c14_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c14_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c14_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c14_photo" onclick="trigPhFixed(14)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">16번</td><td><input type="text" id="c15_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c15_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c15_color" placeholder="WW"></td><td><input type="number" id="c15_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c15_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c15_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c15_photo" onclick="trigPhFixed(15)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">17번</td><td><input type="text" id="c16_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c16_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c16_color" placeholder="WW"></td><td><input type="number" id="c16_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c16_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c16_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c16_photo" onclick="trigPhFixed(16)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">18번</td><td><input type="text" id="c17_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c17_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c17_color" placeholder="WW"></td><td><input type="number" id="c17_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c17_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c17_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c17_photo" onclick="trigPhFixed(17)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">19번</td><td><input type="text" id="c18_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c18_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c18_color" placeholder="WW"></td><td><input type="number" id="c18_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c18_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c18_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c18_photo" onclick="trigPhFixed(18)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+          <tr><td class="inp-t-name">20번</td><td><input type="text" id="c19_name" placeholder="예) FAM-CLEV-01(미국)" oninput="calcC()" style="text-align:left"></td><td><input type="text" id="c19_code" placeholder="예) XCRE181200A"></td><td><input type="text" id="c19_color" placeholder="WW"></td><td><input type="number" id="c19_qty" placeholder="0" min="0" oninput="calcC()"></td><td><select id="c19_inspector"><option value="">선택</option><option value="정일성">정일성</option><option value="배훈기">배훈기</option></select></td><td><select id="c19_result"><option value="적합">적합</option><option value="부적합">부적합</option></select></td><td><div id="c19_photo" onclick="trigPhFixed(19)" class="ph-cell">📷<br>클릭/붙여넣기</div></td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="inp-t-total">
+            <td colspan="2">합계</td>
+            <td id="in_c_item" colspan="2">0 품목</td>
+            <td id="in_c_qty">0 박스</td>
+            <td>–</td><td>–</td><td>–</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. 특이사항 -->
+  <div class="inp-card">
+    <div class="inp-card-hd">3. 특이사항</div>
+    <div class="inp-card-bd">
+      <textarea id="in_note" class="inp-textarea" rows="3" placeholder="특이사항을 입력하세요..."></textarea>
+      <div class="note-photo-row">
+        <button type="button" class="rbt" onclick="trigNotePhoto()">사진 첨부</button>
+        <button type="button" class="rbt" id="notePhotoRemove" onclick="clearNotePhoto()" style="display:none">사진 삭제</button>
+      </div>
+      <div class="note-photo-box" id="notePhotoPreview">특이사항 사진 없음</div>
+    </div>
+  </div>
+
+  <div class="btn-row" style="justify-content:flex-start">
+    <button class="apply-btn" onclick="applyAll()">보고서에 적용 및 저장</button>
+    <button class="reset-btn" onclick="resetAll()">초기화</button>
+  </div>
+
+</div>
 </div>
 
-<div class="toast" id="toast"></div>
+<input type="file" id="photoInput" accept="image/*" style="display:none">
+<input type="file" id="notePhotoInput" accept="image/*" style="display:none">
 
 <script>
-// ─── STATE ───
-let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
-let certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
-let pfState = '';
-let rowCount = 0;
+let attachItems=['4-1. 수출건 검사 세부내역','4-2. 생산지시서'];
 
-// ─── INIT ───
-document.addEventListener('DOMContentLoaded', () => {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('cf-date').value = today;
-  document.getElementById('m-date').value = today;
-  document.getElementById('nowDate').textContent =
-    new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-  addResultRow();
-  addResultRow();
-  addResultRow();
-  render();
-  renderCertList();
-});
-
-// ─── RENDER KANBAN ───
-function render() {
-  const wait = experiments.filter(e=>e.status==='접수');
-  const prog = experiments.filter(e=>e.status==='진행');
-  const done = experiments.filter(e=>e.status==='완료');
-
-  document.getElementById('cnt-total').textContent = experiments.length;
-  document.getElementById('cnt-wait').textContent = wait.length;
-  document.getElementById('cnt-prog').textContent = prog.length;
-  document.getElementById('cnt-done').textContent = done.length;
-  document.getElementById('k-cnt-wait').textContent = wait.length;
-  document.getElementById('k-cnt-prog').textContent = prog.length;
-  document.getElementById('k-cnt-done').textContent = done.length;
-
-  renderCol('col-wait', wait, '접수', '시험 접수 추가');
-  renderCol('col-prog', prog, '진행', null);
-  renderCol('col-done', done, '완료', null);
-
-  save();
-}
-
-function renderCol(id, items, status, addLabel) {
-  const el = document.getElementById(id);
-  if (items.length === 0 && !addLabel) {
-    el.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">항목 없음</p>';
-    return;
-  }
-  let html = '';
-  items.forEach(e => {
-    const pClass = e.priority==='상'?'p-high':e.priority==='중'?'p-mid':'p-low';
-    html += `
-      <div class="exp-card" onclick="openDetailModal('${e.id}')">
-        <div class="exp-card-top">
-          <span class="exp-id">${e.id}</span>
-          <span class="priority-badge ${pClass}">${e.priority}</span>
-        </div>
-        <div class="exp-name">${e.name}</div>
-        <div class="exp-meta">
-          <span>📋 ${e.client||'—'}</span>
-          <span>👤 ${e.person||'—'}</span>
-          <span>📅 ${e.date}</span>
-        </div>
-        <div style="margin-top:8px;display:flex;gap:6px;">
-          ${status!=='진행'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','진행')">→ 진행</button>`:''}
-          ${status!=='완료'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','완료')">→ 완료</button>`:''}
-          <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">삭제</button>
-        </div>
-      </div>`;
+function renderAttach(){
+  const list=document.getElementById('attachList');
+  if(!list)return;
+  list.innerHTML='';
+  attachItems.forEach((text,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px';
+    row.innerHTML=`
+      <span style="font-size:12px;color:#6b7280;min-width:20px">${i+1}.</span>
+      <input type="text" value="${text}" oninput="attachItems[${i}]=this.value"
+        style="flex:1;border:1px solid #e5e7eb;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;height:30px">`;
+    list.appendChild(row);
   });
-  if (addLabel) {
-    html += `<button class="add-btn" onclick="openModal()">＋ ${addLabel}</button>`;
-  }
-  el.innerHTML = html;
+}
+function addAttachRow(){
+  attachItems.push(`${attachItems.length+1}. `);
+  renderAttach();
+}
+function delAttachRow(){
+  if(attachItems.length>0){attachItems.pop();renderAttach();}
+}
+const S_NAMES=['충주1','충주2','양지'];
+const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
+const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV5';
+
+(function(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('in_date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  document.getElementById('in_lbl_month_val') || (window._lbl_month = `${d.getMonth()+1}월 누적`);
+  window._lbl_year = `${String(d.getFullYear()).slice(2)}년 누적`;
+  document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+  const todayLabel=document.getElementById('kpi_today_lbl');
+  if(todayLabel) todayLabel.textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
+  renderAttach();
+})();
+
+function switchTab(t){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.tab-bar button')[{preview:0,input:1}[t]].classList.add('active');
+}
+function setSyncStatus(done=false){
+  const pill=document.getElementById('syncStatus');
+  const text=document.getElementById('syncText');
+  if(!pill||!text) return;
+  pill.classList.toggle('synced',done);
+  text.textContent=done?'실시간 동기화 중':'최신 데이터 확인 중';
 }
 
-// ─── MODAL ───
-let nextId = () => {
-  const n = experiments.length + 1;
-  return 'EXP-' + String(n).padStart(4,'0');
-};
-function openModal() {
-  document.getElementById('m-id').value = nextId();
-  document.getElementById('modal-bg').classList.add('open');
+function getS(i,f){return parseInt(document.getElementById(`s${i}_${f}`)?.value)||0;}
+function saveInspectionState(){
+  const rows=[0,1,2].map(i=>({
+    ti:0,tq:0,
+    mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq'),
+    savedTi:0,
+    savedTq:0
+  }));
+  localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(rows));
 }
-function closeModal() {
-  document.getElementById('modal-bg').classList.remove('open');
-}
-function addExperiment() {
-  const name = document.getElementById('m-name').value.trim();
-  if (!name) { showToast('시험명을 입력해주세요.'); return; }
-  experiments.push({
-    id: document.getElementById('m-id').value,
-    name,
-    client: document.getElementById('m-client').value,
-    person: document.getElementById('m-person').value,
-    priority: document.getElementById('m-priority').value,
-    status: document.getElementById('m-status').value,
-    date: document.getElementById('m-date').value,
-    note: document.getElementById('m-note').value
-  });
-  render();
-  closeModal();
-  showToast('시험이 접수되었습니다.');
-  // clear
-  ['m-name','m-client','m-person','m-note'].forEach(id=>document.getElementById(id).value='');
-}
-
-function moveStatus(id, status) {
-  const e = experiments.find(x=>x.id===id);
-  if (e) { e.status = status; render(); showToast(`${id} → ${status} 처리되었습니다.`); }
-}
-function deleteExp(id) {
-  experiments = experiments.filter(x=>x.id!==id);
-  render();
-  showToast('삭제되었습니다.');
-}
-
-// ─── CERTIFICATE ───
-function addResultRow() {
-  rowCount++;
-  const tbody = document.getElementById('result-tbody');
-  const tr = document.createElement('tr');
-  tr.id = 'row-' + rowCount;
-  tr.innerHTML = `
-    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px;">${rowCount}</td>
-    <td><input placeholder="항목명"></td>
-    <td><input placeholder="단위" style="width:60px;"></td>
-    <td><input placeholder="기준값"></td>
-    <td><input placeholder="측정1" oninput="calcAvg(this)"></td>
-    <td><input placeholder="측정2" oninput="calcAvg(this)"></td>
-    <td><input placeholder="측정3" oninput="calcAvg(this)"></td>
-    <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);" class="avg-cell">—</td>
-    <td>
-      <select style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:12px;">
-        <option>—</option><option>합격</option><option>불합격</option>
-      </select>
-    </td>
-    <td><input placeholder="비고"></td>
-    <td><button class="del-row-btn" onclick="delRow('row-${rowCount}')">✕</button></td>
-  `;
-  tbody.appendChild(tr);
-}
-
-function calcAvg(inp) {
-  const row = inp.closest('tr');
-  const inputs = row.querySelectorAll('input');
-  const vals = [inputs[3], inputs[4], inputs[5]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
-  row.querySelector('.avg-cell').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(3) : '—';
-}
-function delRow(id) {
-  const el = document.getElementById(id);
-  if (el) el.remove();
-}
-
-function setPF(v) {
-  pfState = v;
-  document.getElementById('pf-pass').className = 'pf-btn' + (v==='pass'?' pass-sel':'');
-  document.getElementById('pf-fail').className = 'pf-btn' + (v==='fail'?' fail-sel':'');
-}
-
-function saveCert() {
-  const no = document.getElementById('cf-no').value.trim();
-  if (!no) { showToast('성적서 번호를 입력해주세요.'); return; }
-
-  // collect rows
-  const rows = [];
-  document.querySelectorAll('#result-tbody tr').forEach(tr => {
-    const inputs = tr.querySelectorAll('input');
-    rows.push({
-      item: inputs[0]?.value,
-      unit: inputs[1]?.value,
-      spec: inputs[2]?.value,
-      m1: inputs[3]?.value,
-      m2: inputs[4]?.value,
-      m3: inputs[5]?.value,
-      avg: tr.querySelector('.avg-cell')?.textContent,
-      judge: tr.querySelector('select')?.value,
-      note: inputs[6]?.value
+function restoreInspectionState(){
+  let rows=[];
+  try{rows=JSON.parse(localStorage.getItem(INSPECTION_STORAGE_KEY)||'[]');}catch(e){}
+  [0,1,2].forEach(i=>{
+    const row=rows[i]||{};
+    ['ti','tq','mi','mq','yi','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el&&Number.isFinite(Number(row[f]))) el.value=Number(row[f]);
+    });
+    const ti=document.getElementById(`s${i}_ti`);
+    const tq=document.getElementById(`s${i}_tq`);
+    const savedTi=Number(row.savedTi)||0;
+    const savedTq=Number(row.savedTq)||0;
+    if(ti) ti.dataset.saved=String(savedTi);
+    if(tq) tq.dataset.saved=String(savedTq);
+    ['mi','yi'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.dataset.base=String(Math.max(0,getS(i,f)-savedTi));
+    });
+    ['mq','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.dataset.base=String(Math.max(0,getS(i,f)-savedTq));
     });
   });
-
-  const cert = {
-    no,
-    date: document.getElementById('cf-date').value,
-    client: document.getElementById('cf-client').value,
-    person: document.getElementById('cf-person').value,
-    item: document.getElementById('cf-item').value,
-    spec: document.getElementById('cf-spec').value,
-    sample: document.getElementById('cf-sample').value,
-    cond: document.getElementById('cf-cond').value,
-    start: document.getElementById('cf-start').value,
-    end: document.getElementById('cf-end').value,
-    signer: document.getElementById('cf-signer').value,
-    note: document.getElementById('cf-note').value,
-    pf: pfState,
-    rows,
-    status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
-    savedAt: new Date().toISOString()
-  };
-
-  const idx = certificates.findIndex(c=>c.no===no);
-  if (idx>=0) { certificates[idx]=cert; showToast('성적서가 수정되었습니다.'); }
-  else { certificates.push(cert); showToast('성적서가 저장되었습니다.'); }
-
-  localStorage.setItem('cert_data', JSON.stringify(certificates));
-  renderCertList();
+}
+function ensureCumulativeBases(){
+  [0,1,2].forEach(i=>{
+    ['mi','mq','yi','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el&&!el.dataset.base) el.dataset.base=String(getS(i,f));
+    });
+  });
+}
+function projectCumulativeFromToday(){
+  ensureCumulativeBases();
+  [0,1,2].forEach(i=>{
+    const todayItems=getS(i,'ti');
+    const todayQty=getS(i,'tq');
+    ['mi','yi'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.value=(Number(el.dataset.base)||0)+todayItems;
+    });
+    ['mq','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.value=(Number(el.dataset.base)||0)+todayQty;
+    });
+  });
+}
+function commitTodayToCumulative(){
+  projectCumulativeFromToday();
+  const committedRows=getSRows();
+  [0,1,2].forEach(i=>{
+    const ti=document.getElementById(`s${i}_ti`);
+    const tq=document.getElementById(`s${i}_tq`);
+    ['mi','mq','yi','yq'].forEach(f=>{
+      const el=document.getElementById(`s${i}_${f}`);
+      if(el) el.dataset.base=String(getS(i,f));
+    });
+    if(ti){ti.value='0';ti.dataset.saved='0';}
+    if(tq){tq.value='0';tq.dataset.saved='0';}
+  });
+  calcS();
+  saveInspectionState();
+  return committedRows;
+}
+function calcS(){
+  projectCumulativeFromToday();
+  const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
+  [0,1,2].forEach(i=>S_FIELDS.forEach(f=>s[f]+=getS(i,f)));
+  S_FIELDS.forEach((k,i)=>document.getElementById('in_t'+(i+1)).textContent=s[k].toLocaleString());
+}
+function getSRows(){
+  return S_NAMES.map((name,i)=>({
+    name,ti:getS(i,'ti'),tq:getS(i,'tq'),
+    mi:getS(i,'mi'),mq:getS(i,'mq'),
+    yi:getS(i,'yi'),yq:getS(i,'yq')
+  }));
+}
+function claimValue(id,fallback){
+  const el=document.getElementById(id);
+  if(!el) return fallback;
+  const value=parseInt(el.value);
+  return Number.isFinite(value)?value:fallback;
+}
+function syncClaimKpis(){
+  document.getElementById('db_claim_d_item').textContent=claimValue('claim_d_item',0).toLocaleString();
+  document.getElementById('db_claim_d_qty').textContent=claimValue('claim_d_qty',0).toLocaleString();
+  document.getElementById('db_claim_m_item').textContent=claimValue('claim_m_item',0).toLocaleString();
+  document.getElementById('db_claim_m_qty').textContent=claimValue('claim_m_qty',0).toLocaleString();
+  document.getElementById('db_claim_y_item').textContent=claimValue('claim_y_item',2).toLocaleString();
+  document.getElementById('db_claim_y_qty').textContent=claimValue('claim_y_qty',2).toLocaleString();
 }
 
-function renderCertList(filter='') {
-  const tbody = document.getElementById('list-tbody');
-  const list = filter
-    ? certificates.filter(c => JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()))
-    : certificates;
+const C_COUNT=20;
+function gC(i,f){return document.getElementById(`c${i}_${f}`);}
+function setupCaseNameInputs(){
+  for(let i=0;i<C_COUNT;i++){
+    const input=gC(i,'name');
+    if(!input||input.tagName==='TEXTAREA') continue;
+    const textarea=document.createElement('textarea');
+    textarea.id=input.id;
+    textarea.className='case-name-input';
+    textarea.placeholder='예) VAN-REX6\n(싱가폴)';
+    textarea.value=input.value;
+    textarea.rows=2;
+    textarea.addEventListener('input',calcC);
+    textarea.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey) e.preventDefault();
+    });
+    input.replaceWith(textarea);
+  }
+}
+function escapeHtml(text){
+  return String(text).replace(/[&<>"']/g,ch=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
+}
+function formatCaseName(name){
+  const text=(name||'').trim();
+  if(!text) return '–';
+  const lines=text.split(/\r?\n/);
+  if(lines.length===1) return escapeHtml(text).replace(/\s*\(/g,'<br>(');
+  return lines.map(escapeHtml).join('<br>');
+}
+setupCaseNameInputs();
+function calcC(){
+  let items=0,qty=0;
+  for(let i=0;i<C_COUNT;i++){
+    const name=gC(i,'name')?.value.trim()||'';
+    const code=gC(i,'code')?.value.trim()||'';
+    const q=parseInt(gC(i,'qty')?.value)||0;
+    if(name!==''||code!==''||q>0) items++;
+    qty+=q;
+  }
+  document.getElementById('in_c_item').textContent=items+' 품목';
+  document.getElementById('in_c_qty').textContent=qty+' 박스';
+}
+function trigPhFixed(idx){
+  photoTarget={uid:`c${idx}_photo`,idx};
+  document.getElementById('photoInput').click();
+}
 
-  if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
+function trigPh(uid,idx){photoTarget={uid,idx};document.getElementById('photoInput').click();}
+document.getElementById('photoInput').addEventListener('change',function(){
+  if(!this.files.length||!photoTarget)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const c=document.getElementById(photoTarget.uid);
+    if(c){c.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;c.style.border='none';}
+    photoTarget=null;
+  };
+  r.readAsDataURL(this.files[0]);this.value='';
+});
+
+// 사진 붙여넣기 (Ctrl+V) - 마지막으로 클릭한 사진 셀에 붙여넣기
+let lastClickedPhoto=null;
+document.addEventListener('click',function(e){
+  const cell=e.target.closest('[id^="c"][id$="_photo"]');
+  if(cell) lastClickedPhoto=cell.id;
+});
+document.addEventListener('paste',function(e){
+  const items=e.clipboardData?.items;
+  if(!items) return;
+  for(const item of items){
+    if(item.type.startsWith('image/')){
+      const file=item.getAsFile();
+      if(!file) continue;
+      if(document.activeElement?.id==='in_note'){
+        const r=new FileReader();
+        r.onload=ev=>{
+          notePhotoData=ev.target.result;
+          renderNoteInputPhoto();
+          liveSync();
+        };
+        r.readAsDataURL(file);
+        e.preventDefault();
+        return;
+      }
+      const targetId=lastClickedPhoto||null;
+      if(!targetId){
+        alert('먼저 사진을 붙여넣을 셀을 클릭하세요.');
+        return;
+      }
+      const r=new FileReader();
+      r.onload=ev=>{
+        const c=document.getElementById(targetId);
+        if(c){c.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover">`;c.style.border='none';}
+      };
+      r.readAsDataURL(file);
+      e.preventDefault();
+      return;
+    }
+  }
+});
+
+let notePhotoData='';
+function renderNoteInputPhoto(){
+  const box=document.getElementById('notePhotoPreview');
+  const removeBtn=document.getElementById('notePhotoRemove');
+  if(!box||!removeBtn) return;
+  if(notePhotoData){
+    box.innerHTML=`<img src="${notePhotoData}" alt="특이사항 사진">`;
+    removeBtn.style.display='';
+  }else{
+    box.textContent='특이사항 사진 없음';
+    removeBtn.style.display='none';
+  }
+}
+function renderNotePreview(){
+  const note=(document.getElementById('in_note')?.value||'').trim();
+  const parts=[];
+  if(note) parts.push(`<div class="note-text">${escapeHtml(note).replace(/\r?\n/g,'<br>')}</div>`);
+  if(notePhotoData) parts.push(`<div class="note-photo-report"><img src="${notePhotoData}" alt="특이사항 사진"></div>`);
+  document.getElementById('pvNote').innerHTML=parts.length?parts.join(''):'&nbsp;';
+}
+function trigNotePhoto(){
+  document.getElementById('notePhotoInput').click();
+}
+function clearNotePhoto(){
+  notePhotoData='';
+  renderNoteInputPhoto();
+  liveSync();
+}
+document.getElementById('notePhotoInput').addEventListener('change',function(){
+  if(!this.files.length) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    notePhotoData=e.target.result;
+    renderNoteInputPhoto();
+    liveSync();
+  };
+  r.readAsDataURL(this.files[0]);
+  this.value='';
+});
+
+function applyAll(){
+  const v=id=>document.getElementById(id)?.value||'';
+  const committedRows=commitTodayToCumulative();
+
+  document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
+  document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
+
+  // 보고서 표시 날짜: 월요일이면 -3일(직전 금요일), 나머지는 -1일
+  let reportDate='';
+  if(v('in_date')){
+    const d=new Date(v('in_date'));
+    const day=d.getDay(); // 0=일, 1=월 ... 6=토
+    const offset=day===1?3:1;
+    d.setDate(d.getDate()-offset);
+    reportDate=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('pv_date').textContent=reportDate;
+  }
+
+  const todayLbl=v('in_date')?(()=>{
+    const d=new Date(v('in_date'));
+    const day=d.getDay();
+    const offset=day===1?3:1;
+    d.setDate(d.getDate()-offset);
+    return `${d.getMonth()+1}월 ${d.getDate()}일`;
+  })():'금일';
+  const monthLbl=v('in_date')?(()=>{const d=new Date(v('in_date'));return `${d.getMonth()+1}월 누적`;})():(window._lbl_month||'월 누적');
+  const yearLbl=window._lbl_year||'26년 누적';
+  document.getElementById('pv_lbl_today').textContent=todayLbl;
+  document.getElementById('pv_lbl_month').textContent=monthLbl;
+
+  const rows=committedRows||getSRows();
+  const sb=document.getElementById('pvSBody');
+  sb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    const fmt=n=>n.toLocaleString();
+    tr.innerHTML=`<td class="gh">${r.name}</td>
+      <td>${fmt(r.ti)}</td><td class="${r.tq>0?'ng-red':''}">${fmt(r.tq)}</td>
+      <td>${fmt(r.mi)}</td><td class="${r.mq>0?'ng-red':''}">${fmt(r.mq)}</td>
+      <td>${fmt(r.yi)}</td><td class="${r.yq>0?'ng-red':''}">${fmt(r.yq)}</td>`;
+    sb.appendChild(tr);
+  });
+  const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
+  rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
+  S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k].toLocaleString());
+
+  // KPI 카드1 - 금일 (보고서와 동일한 날짜 기준)
+  const todayLbl2=v('in_date')?(()=>{
+    const d=new Date(v('in_date'));
+    const day=d.getDay();
+    const offset=day===1?3:1;
+    d.setDate(d.getDate()-offset);
+    return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
+  })():'금일';
+  syncClaimKpis();
+
+  const cb=document.getElementById('pvCBody');
+  cb.innerHTML='';
+  let pvNum=0, pvQty=0;
+  for(let i=0;i<C_COUNT;i++){
+    const name=gC(i,'name')?.value.trim()||'';
+    const code=gC(i,'code')?.value.trim()||'';
+    const color=gC(i,'color')?.value.trim()||'';
+    const qty=parseInt(gC(i,'qty')?.value)||0;
+    const inspector=gC(i,'inspector')?.value.trim()||'';
+    const result=gC(i,'result')?.value.trim()||'적합';
+    if(!name&&!code&&qty===0) continue;
+    pvNum++;pvQty+=qty;
+    const photoEl=document.getElementById(`c${i}_photo`);
+    const img=photoEl?.querySelector('img');
+    const photo=img?`<img src="${img.src}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
+    const badge=result==='부적합'?`<span class="badge-ng">부적합</span>`:result||'적합';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${formatCaseName(name)}</td>
+      <td>${code||'–'}</td><td>${color||'–'}</td>
+      <td>${qty||'–'}</td><td>${inspector||'–'}</td>
+      <td>${badge}</td><td>${photo}</td>`;
+    cb.appendChild(tr);
+  }
+  if(pvNum===0){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td colspan="8" style="text-align:center;color:#aaa;padding:16px">입력된 검사내용이 없습니다.</td>`;
+    cb.appendChild(tr);
+  }
+  document.getElementById('pv_c_item').textContent=pvNum+' 품목';
+  document.getElementById('pv_c_qty').textContent=pvQty+' 박스';
+
+  renderNotePreview();
+
+  const lines=attachItems.filter(s=>s.trim());
+  document.getElementById('pvAttach').innerHTML=
+    lines.length?lines.map(s=>`<li>${s.trim()}</li>`).join(''):'<li>첨부 없음</li>';
+
+  switchTab('preview');
+}
+
+function resetAll(){
+  if(!confirm('모든 내용을 초기화할까요?'))return;
+  [0,1,2].forEach(i=>['ti','tq'].forEach(f=>{const el=document.getElementById(`s${i}_${f}`);if(el)el.value=0;}));
+  [0,1,2].forEach(i=>{
+    const ti=document.getElementById(`s${i}_ti`);
+    const tq=document.getElementById(`s${i}_tq`);
+    if(ti) ti.dataset.saved='0';
+    if(tq) tq.dataset.saved='0';
+  });
+  calcS();
+  saveInspectionState();
+  for(let i=0;i<C_COUNT;i++){
+    ['name','code','color','inspector','result'].forEach(f=>{const el=gC(i,f);if(el)el.value='';});
+    const q=gC(i,'qty');if(q)q.value='';
+    const ph=document.getElementById(`c${i}_photo`);
+    if(ph){ph.innerHTML='📷<br>사진';ph.style.border='1px dashed #d1d5db';}
+  }
+  const note=document.getElementById('in_note');
+  if(note) note.value='';
+  notePhotoData='';
+  renderNoteInputPhoto();
+  renderNotePreview();
+  ['claim_d_item','claim_d_qty','claim_m_item','claim_m_qty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=0;});
+  ['claim_y_item','claim_y_qty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=2;});
+  syncClaimKpis();
+  calcC();
+}
+
+// 실시간 동기화
+function liveSync(){
+  // 보고서 미리보기 탭이 아니어도 항상 동기화
+  applyAll_silent();
+  setSyncStatus(true);
+}
+function applyAll_silent(){
+  // switchTab 없이 applyAll 내용만 실행
+  const v=id=>document.getElementById(id)?.value||'';
+  document.getElementById('pv_title').textContent=v('in_title')||'수출건 검사 보고서';
+  document.getElementById('pvOrg').textContent=v('in_org')||'충주공장 품질보증팀';
+  syncClaimKpis();
+  if(v('in_date')){
+    const d=new Date(v('in_date'));
+    const day=d.getDay();
+    const offset=day===1?3:1;
+    d.setDate(d.getDate()-offset);
+    document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('pv_lbl_today').textContent=`${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.getElementById('pv_lbl_month').textContent=`${new Date(v('in_date')).getMonth()+1}월 누적`;
+  }
+  const rows=getSRows();
+  const sb=document.getElementById('pvSBody');
+  sb.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    const fmt=n=>n.toLocaleString();
+    tr.innerHTML=`<td class="gh">${r.name}</td>
+      <td>${fmt(r.ti)}</td><td class="${r.tq>0?'ng-red':''}">${fmt(r.tq)}</td>
+      <td>${fmt(r.mi)}</td><td class="${r.mq>0?'ng-red':''}">${fmt(r.mq)}</td>
+      <td>${fmt(r.yi)}</td><td class="${r.yq>0?'ng-red':''}">${fmt(r.yq)}</td>`;
+    sb.appendChild(tr);
+  });
+  const s={ti:0,tq:0,mi:0,mq:0,yi:0,yq:0};
+  rows.forEach(r=>{for(const k in s)s[k]+=(r[k]||0);});
+  S_FIELDS.forEach((k,i)=>document.getElementById('pv_t'+(i+1)).textContent=s[k].toLocaleString());
+  // 검사내용
+  const cb=document.getElementById('pvCBody');
+  cb.innerHTML='';
+  let pvNum=0,pvQty=0;
+  for(let i=0;i<C_COUNT;i++){
+    const name=gC(i,'name')?.value.trim()||'';
+    const code=gC(i,'code')?.value.trim()||'';
+    const color=gC(i,'color')?.value.trim()||'';
+    const qty=parseInt(gC(i,'qty')?.value)||0;
+    const inspector=gC(i,'inspector')?.value||'';
+    const result=gC(i,'result')?.value||'적합';
+    if(!name&&!code&&qty===0)continue;
+    pvNum++;pvQty+=qty;
+    const photoEl=document.getElementById(`c${i}_photo`);
+    const img=photoEl?.querySelector('img');
+    const photo=img?`<img src="${img.src}" class="photo-thumb">`:`<div class="photo-empty">사진 없음</div>`;
+    const badge=result==='부적합'?`<span class="badge-ng">부적합</span>`:result||'적합';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${pvNum}</td><td style="text-align:center">${formatCaseName(name)}</td>
+      <td>${code||'–'}</td><td>${color||'–'}</td>
+      <td>${qty||'–'}</td><td>${inspector||'–'}</td>
+      <td>${badge}</td><td>${photo}</td>`;
+    cb.appendChild(tr);
+  }
+  if(pvNum===0){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td colspan="8" style="text-align:center;color:#aaa;padding:16px">입력된 검사내용이 없습니다.</td>`;
+    cb.appendChild(tr);
+  }
+  document.getElementById('pv_c_item').textContent=pvNum+' 품목';
+  document.getElementById('pv_c_qty').textContent=pvQty+' 박스';
+  renderNotePreview();
+}
+
+// 입력 이벤트 감지 → 실시간 동기화
+document.addEventListener('input',function(e){
+  const inp=e.target;
+  if(inp.closest('#tab-input')) liveSync();
+});
+document.addEventListener('change',function(e){
+  const inp=e.target;
+  if(inp.closest('#tab-input')) liveSync();
+});
+
+// 고정 누적값을 첫 화면의 합계와 보고서 미리보기에 즉시 반영한다.
+restoreInspectionState();
+calcS();
+applyAll_silent();
+setTimeout(()=>setSyncStatus(true),700);
+
+async function copyDashboard(){
+  const btn=document.getElementById('copyBtn');
+  const target=document.querySelector('.report-paper');
+  if(!target){alert('보고서 영역을 찾을 수 없습니다.');return;}
+  if(!window.isSecureContext||!navigator.clipboard||!window.ClipboardItem){
+    alert('이 브라우저에서는 이미지 복사를 지원하지 않습니다. GitHub 공개 링크를 Chrome 또는 Edge에서 열어 주세요.');
     return;
   }
-  tbody.innerHTML = list.map(c => {
-    const chip = c.pf==='pass' ? '<span class="status-chip chip-done">✔ PASS</span>'
-                : c.pf==='fail' ? '<span class="status-chip" style="background:rgba(239,68,68,.15);color:#ef4444;">✘ FAIL</span>'
-                : '<span class="status-chip chip-prog">— 미판정</span>';
-    const stChip = c.status==='완료'?'chip-done':c.status==='진행'?'chip-prog':'chip-wait';
-    return `<tr onclick="loadCert('${c.no}')">
-      <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:12px;">${c.no}</td>
-      <td>${c.item||'—'}</td>
-      <td>${c.client||'—'}</td>
-      <td>${c.sample||'—'}</td>
-      <td>${c.start||'—'} ~ ${c.end||'—'}</td>
-      <td>${c.person||'—'}</td>
-      <td>${chip}</td>
-      <td><span class="status-chip ${stChip}">${c.status||'—'}</span></td>
-      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">삭제</button></td>
-    </tr>`;
-  }).join('');
-}
+  btn.textContent='⏳ 캡처 중...';
+  btn.disabled=true;
 
-function loadCert(no) {
-  const c = certificates.find(x=>x.no===no);
-  if (!c) return;
-  document.getElementById('cf-no').value = c.no;
-  document.getElementById('cf-date').value = c.date||'';
-  document.getElementById('cf-client').value = c.client||'';
-  document.getElementById('cf-person').value = c.person||'';
-  document.getElementById('cf-item').value = c.item||'';
-  document.getElementById('cf-spec').value = c.spec||'';
-  document.getElementById('cf-sample').value = c.sample||'';
-  document.getElementById('cf-cond').value = c.cond||'';
-  document.getElementById('cf-start').value = c.start||'';
-  document.getElementById('cf-end').value = c.end||'';
-  document.getElementById('cf-signer').value = c.signer||'';
-  document.getElementById('cf-note').value = c.note||'';
-  setPF(c.pf||'');
+  // 제목·날짜 숨기기
+  const head=document.querySelector('.report-head');
+  const prevDisplay=head?head.style.display:'';
+  if(head) head.style.display='none';
+  target.classList.add('capture-strong');
 
-  // rebuild rows
-  document.getElementById('result-tbody').innerHTML = '';
-  rowCount = 0;
-  (c.rows||[]).forEach(r => {
-    addResultRow();
-    const tr = document.querySelector('#result-tbody tr:last-child');
-    const inputs = tr.querySelectorAll('input');
-    inputs[0].value = r.item||''; inputs[1].value = r.unit||''; inputs[2].value = r.spec||'';
-    inputs[3].value = r.m1||''; inputs[4].value = r.m2||''; inputs[5].value = r.m3||'';
-    tr.querySelector('.avg-cell').textContent = r.avg||'—';
-    tr.querySelector('select').value = r.judge||'—';
-    inputs[6].value = r.note||'';
+  // 캡처용 폰트 확대
+  const kpiLabels=document.querySelectorAll('.kpi-lbl');
+  const kpiSubLabels=document.querySelectorAll('.kpi-sub-lbl');
+  const secTitles=document.querySelectorAll('.sec-title');
+  const stThs=document.querySelectorAll('.st th');
+  const stTds=document.querySelectorAll('.st td');
+  const ctThs=document.querySelectorAll('.ct th');
+  const ctTds=document.querySelectorAll('.ct td');
+  const ctHorizontalCells=document.querySelectorAll('.ct thead th:nth-child(1),.ct tbody td:nth-child(1),.ct thead th:nth-child(4),.ct tbody td:nth-child(4),.ct thead th:nth-child(5),.ct tbody td:nth-child(5),.ct thead th:nth-child(6),.ct tbody td:nth-child(6),.ct thead th:nth-child(7),.ct tbody td:nth-child(7)');
+  const caseNameCells=document.querySelectorAll('.ct th:nth-child(2),.ct td:nth-child(2)');
+  const photoCells=document.querySelectorAll('.ct th:nth-child(8),.ct td:nth-child(8)');
+  const photoThumbs=document.querySelectorAll('.ct .photo-thumb,.ct .photo-empty');
+  const attachItems=document.querySelectorAll('.attach-box li');
+  const reportFooter=document.querySelector('.report-footer');
+  kpiLabels.forEach(el=>el.style.fontSize='20px');
+  kpiSubLabels.forEach(el=>el.style.fontSize='20px');
+  secTitles.forEach(el=>el.style.fontSize='25px');
+  stThs.forEach(el=>el.style.fontSize='20px');
+  stTds.forEach(el=>el.style.fontSize='20px');
+  ctThs.forEach(el=>el.style.fontSize='20px');
+  ctTds.forEach(el=>el.style.fontSize='20px');
+  ctHorizontalCells.forEach(el=>{
+    el.style.whiteSpace='nowrap';
+    el.style.width='84px';
+    el.style.minWidth='84px';
   });
+  caseNameCells.forEach(el=>{
+    el.style.width='160px';
+    el.style.maxWidth='160px';
+    el.style.whiteSpace='normal';
+  });
+  photoCells.forEach(el=>{
+    el.style.width='200px';
+    el.style.minWidth='200px';
+  });
+  photoThumbs.forEach(el=>{
+    el.style.width='180px';
+    el.style.height='120px';
+  });
+  attachItems.forEach(el=>el.style.fontSize='20px');
+  if(reportFooter) reportFooter.style.fontSize='20px';
 
-  document.querySelector('.cert-section').scrollIntoView({behavior:'smooth'});
-  showToast(`성적서 ${no} 불러오기 완료`);
+  let canvas;
+  const blobPromise=(async()=>{
+    canvas=await html2canvas(target,{
+      scale:2,
+      useCORS:true,
+      backgroundColor:'#ffffff',
+      logging:false
+    });
+    return new Promise((resolve,reject)=>{
+      canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG 이미지 생성에 실패했습니다.')),'image/png');
+    });
+  })();
+
+  try{
+    // 사용자 클릭 권한이 유지되는 동안 복사를 먼저 요청하고 이미지 생성을 기다린다.
+    await navigator.clipboard.write([
+      new ClipboardItem({'image/png':blobPromise})
+    ]);
+    btn.textContent='✅ 복사 완료!';
+    btn.style.background='#166534';
+  }catch(e){
+    try{
+      await blobPromise;
+      if(canvas){
+        const a=document.createElement('a');
+        a.href=canvas.toDataURL('image/png');
+        a.download='보고서_'+new Date().toISOString().slice(0,10)+'.png';
+        a.click();
+        btn.textContent='💾 복사 권한 없음 · 이미지 저장됨';
+        alert('브라우저가 클립보드 이미지 복사를 차단해 PNG 파일로 저장했습니다. 주소창의 사이트 권한에서 클립보드를 허용한 뒤 다시 눌러 주세요.');
+      }
+    }catch(captureError){
+      alert('캡처에 실패했습니다: '+captureError.message);
+      btn.textContent='❌ 복사 실패';
+    }
+  }finally{
+    if(head) head.style.display=prevDisplay;
+    target.classList.remove('capture-strong');
+    kpiLabels.forEach(el=>el.style.fontSize='');
+    kpiSubLabels.forEach(el=>el.style.fontSize='');
+    secTitles.forEach(el=>el.style.fontSize='');
+    stThs.forEach(el=>el.style.fontSize='');
+    stTds.forEach(el=>el.style.fontSize='');
+    ctThs.forEach(el=>el.style.fontSize='');
+    ctTds.forEach(el=>el.style.fontSize='');
+    ctHorizontalCells.forEach(el=>{
+      el.style.whiteSpace='';
+      el.style.width='';
+      el.style.minWidth='';
+    });
+    caseNameCells.forEach(el=>{
+      el.style.width='';
+      el.style.maxWidth='';
+      el.style.whiteSpace='';
+    });
+    photoCells.forEach(el=>{
+      el.style.width='';
+      el.style.minWidth='';
+    });
+    photoThumbs.forEach(el=>{
+      el.style.width='';
+      el.style.height='';
+    });
+    attachItems.forEach(el=>el.style.fontSize='');
+    if(reportFooter) reportFooter.style.fontSize='';
+    setTimeout(()=>{
+      btn.textContent='📋 대시보드 이미지 복사';
+      btn.style.background='';
+      btn.disabled=false;
+    },2500);
+  }
 }
-
-function deleteCert(no) {
-  certificates = certificates.filter(c=>c.no!==no);
-  localStorage.setItem('cert_data', JSON.stringify(certificates));
-  renderCertList();
-  showToast('삭제되었습니다.');
-}
-
-function clearCertForm() {
-  ['cf-no','cf-client','cf-person','cf-item','cf-spec','cf-sample','cf-cond','cf-signer','cf-note'].forEach(id=>document.getElementById(id).value='');
-  ['cf-date','cf-start','cf-end'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('result-tbody').innerHTML='';
-  rowCount=0; pfState='';
-  setPF('');
-  addResultRow(); addResultRow(); addResultRow();
-  showToast('초기화되었습니다.');
-}
-
-function filterList(v) { renderCertList(v); }
-
-function printCert() {
-  window.print();
-}
-
-function save() {
-  localStorage.setItem('exp_data', JSON.stringify(experiments));
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  clearTimeout(t._tid);
-  t._tid = setTimeout(()=>{ t.style.display='none'; }, 2600);
-}
-
-function scrollToCert() {
-  document.querySelector('.cert-section').scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-// close modal on bg click
-document.getElementById('modal-bg').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-bg')) closeModal();
-});
 </script>
 </body>
 </html>
+
