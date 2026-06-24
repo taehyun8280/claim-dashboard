@@ -1059,14 +1059,13 @@
       <table class="result-table" id="result-table">
         <thead>
           <tr>
-            <th>No</th>
-            <th>시험 항목</th>
+            <th style="width:40px;">No</th>
+            <th>시험</th>
             <th>기준</th>
             <th>결과</th>
-            <th>판정</th>
-            <th>이미지</th>
+            <th style="width:180px;">시험사진</th>
             <th>비고</th>
-            <th></th>
+            <th style="width:30px;"></th>
           </tr>
         </thead>
         <tbody id="result-tbody"></tbody>
@@ -1246,24 +1245,19 @@ function addResultRow() {
   tr.id = 'row-' + rowCount;
   const rc = rowCount;
   tr.innerHTML = `
-    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;">${rc}</td>
-    <td><input placeholder="항목명"></td>
-    <td><input placeholder="기준값"></td>
-    <td><input placeholder="결과값"></td>
-    <td>
-      <select style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 5px;font-size:11px;">
-        <option>—</option><option>합격</option><option>불합격</option>
-      </select>
-    </td>
-    <td class="img-cell" style="width:90px;min-width:80px;">
+    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;">${rc}</td>
+    <td><textarea style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;" placeholder="시험 항목명"></textarea></td>
+    <td><textarea style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;" placeholder="기준 내용"></textarea></td>
+    <td style="text-align:center;"><input placeholder="결과" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;"></td>
+    <td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" tabindex="0"
-        style="width:80px;height:56px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--text3);overflow:hidden;position:relative;">
-        <span class="img-placeholder">📋 붙여넣기</span>
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>
+        style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
+        <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
       </div>
     </td>
-    <td><input placeholder="비고"></td>
-    <td><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
+    <td><textarea style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;" placeholder="비고"></textarea></td>
+    <td style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
   tbody.appendChild(tr);
 
@@ -1335,15 +1329,15 @@ function saveCert() {
 
   const rows = [];
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
-    const inputs = tr.querySelectorAll('input');
+    const tas = tr.querySelectorAll('textarea');
+    const inp = tr.querySelector('input');
     const imgEl = tr.querySelector('.img-drop img');
     rows.push({
-      item: inputs[0]?.value,
-      spec: inputs[1]?.value,
-      result: inputs[2]?.value,
-      judge: tr.querySelector('select')?.value,
+      item: tas[0]?.value,
+      spec: tas[1]?.value,
+      result: inp?.value,
       img: imgEl ? imgEl.dataset.src : '',
-      note: inputs[3]?.value
+      note: tas[2]?.value
     });
   });
 
@@ -1426,16 +1420,17 @@ function loadCert(no) {
     addResultRow();
     const tr = document.querySelector('#result-tbody tr:last-child');
     const inputs = tr.querySelectorAll('input');
-    inputs[0].value = r.item||'';
-    inputs[1].value = r.spec||'';
-    inputs[2].value = r.result||'';
-    tr.querySelector('select').value = r.judge||'—';
+    const tas = tr.querySelectorAll('textarea');
+    const inp = tr.querySelector('input');
+    tas[0].value = r.item||'';
+    tas[1].value = r.spec||'';
+    inp.value = r.result||'';
     if (r.img) {
       const drop = tr.querySelector('.img-drop');
       drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
     }
-    inputs[3].value = r.note||'';
+    tas[2].value = r.note||'';
   });
 
   openCertPanel();
@@ -1520,11 +1515,13 @@ function applyExcelData(data) {
     addResultRow();
     const tr = document.querySelector('#result-tbody tr:last-child');
     const inputs = tr.querySelectorAll('input');
-    // map columns: 항목, 기준, 결과, 비고
-    inputs[0].value = r[0] !== undefined ? String(r[0]) : '';
-    inputs[1].value = r[1] !== undefined ? String(r[1]) : '';
-    inputs[2].value = r[2] !== undefined ? String(r[2]) : '';
-    inputs[3].value = r[3] !== undefined ? String(r[3]) : '';
+    // map columns: 시험, 기준, 결과, 비고
+    const tas2 = tr.querySelectorAll('textarea');
+    const inp2 = tr.querySelector('input');
+    tas2[0].value = r[0] !== undefined ? String(r[0]) : '';
+    tas2[1].value = r[1] !== undefined ? String(r[1]) : '';
+    inp2.value   = r[2] !== undefined ? String(r[2]) : '';
+    tas2[2].value = r[3] !== undefined ? String(r[3]) : '';
   });
   showToast(`엑셀 데이터 ${dataRows.length}행 가져오기 완료`);
 }
