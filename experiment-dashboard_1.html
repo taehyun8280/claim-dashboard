@@ -758,6 +758,17 @@
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
+      <button class="hero-btn" style="background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.15);" onclick="triggerExcelImport()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="8" y1="13" x2="16" y2="13"/>
+          <line x1="8" y1="17" x2="16" y2="17"/>
+          <line x1="8" y1="9" x2="10" y2="9"/>
+        </svg>
+        엑셀 데이터 가져오기
+      </button>
+      <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
       <button class="hero-btn hero-btn-cert" onclick="openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -996,11 +1007,8 @@
 
     <!-- 기본 정보 -->
     <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
+    <input type="hidden" id="cf-no" value="">
     <div class="cert-form-grid">
-      <div>
-        <div class="field-label">성적서 번호</div>
-        <input class="field-input" id="cf-no" placeholder="예) TEST-2024-001">
-      </div>
       <div>
         <div class="field-label">발행일자</div>
         <input class="field-input" type="date" id="cf-date">
@@ -1052,13 +1060,13 @@
           <tr>
             <th>No</th>
             <th>시험 항목</th>
-            <th>단위</th>
             <th>규격 기준</th>
             <th>측정값 1</th>
             <th>측정값 2</th>
             <th>측정값 3</th>
             <th>평균</th>
             <th>판정</th>
+            <th>이미지</th>
             <th>비고</th>
             <th></th>
           </tr>
@@ -1234,10 +1242,10 @@ function addResultRow() {
   const tbody = document.getElementById('result-tbody');
   const tr = document.createElement('tr');
   tr.id = 'row-' + rowCount;
+  const rc = rowCount;
   tr.innerHTML = `
-    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;">${rowCount}</td>
+    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;">${rc}</td>
     <td><input placeholder="항목명"></td>
-    <td><input placeholder="단위" style="width:50px;"></td>
     <td><input placeholder="기준값"></td>
     <td><input placeholder="측정1" oninput="calcAvg(this)"></td>
     <td><input placeholder="측정2" oninput="calcAvg(this)"></td>
@@ -1248,16 +1256,58 @@ function addResultRow() {
         <option>—</option><option>합격</option><option>불합격</option>
       </select>
     </td>
+    <td class="img-cell" style="width:90px;min-width:80px;">
+      <div class="img-drop" data-row="${rc}" tabindex="0"
+        style="width:80px;height:56px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--text3);overflow:hidden;position:relative;">
+        <span class="img-placeholder">📋 붙여넣기</span>
+      </div>
+    </td>
     <td><input placeholder="비고"></td>
-    <td><button class="del-row-btn" onclick="delRow('row-${rowCount}')">✕</button></td>
+    <td><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
   tbody.appendChild(tr);
+
+  // paste event on the img-drop div
+  const drop = tr.querySelector('.img-drop');
+  drop.addEventListener('paste', e => handleImgPaste(e, drop));
+  drop.addEventListener('click', () => drop.focus());
+  drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
 }
+
+function handleImgPaste(e, drop) {
+  const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const blob = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ev => {
+        drop.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;" data-src="${ev.target.result}">`;
+        drop.title = '클릭 후 Delete로 삭제';
+      };
+      reader.readAsDataURL(blob);
+      break;
+    }
+  }
+}
+
+function clearImg(drop) {
+  drop.innerHTML = '<span class="img-placeholder">📋 붙여넣기</span>';
+}
+
+// global paste: if cert panel open, try to paste into focused img-drop
+document.addEventListener('paste', e => {
+  const focused = document.activeElement;
+  if (focused && focused.classList.contains('img-drop')) {
+    handleImgPaste(e, focused);
+  }
+});
 
 function calcAvg(inp) {
   const row = inp.closest('tr');
   const inputs = row.querySelectorAll('input');
-  const vals = [inputs[3], inputs[4], inputs[5]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
+  const vals = [inputs[2], inputs[3], inputs[4]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
   row.querySelector('.avg-cell').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(3) : '—';
 }
 function delRow(id) {
@@ -1272,22 +1322,27 @@ function setPF(v) {
 }
 
 function saveCert() {
-  const no = document.getElementById('cf-no').value.trim();
-  if (!no) { showToast('성적서 번호를 입력해주세요.'); return; }
+  // auto-generate no if empty
+  let no = document.getElementById('cf-no').value.trim();
+  if (!no) {
+    no = 'CERT-' + Date.now();
+    document.getElementById('cf-no').value = no;
+  }
 
   const rows = [];
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
     const inputs = tr.querySelectorAll('input');
+    const imgEl = tr.querySelector('.img-drop img');
     rows.push({
       item: inputs[0]?.value,
-      unit: inputs[1]?.value,
-      spec: inputs[2]?.value,
-      m1: inputs[3]?.value,
-      m2: inputs[4]?.value,
-      m3: inputs[5]?.value,
+      spec: inputs[1]?.value,
+      m1: inputs[2]?.value,
+      m2: inputs[3]?.value,
+      m3: inputs[4]?.value,
       avg: tr.querySelector('.avg-cell')?.textContent,
       judge: tr.querySelector('select')?.value,
-      note: inputs[6]?.value
+      img: imgEl ? imgEl.dataset.src : '',
+      note: inputs[5]?.value
     });
   });
 
@@ -1370,11 +1425,18 @@ function loadCert(no) {
     addResultRow();
     const tr = document.querySelector('#result-tbody tr:last-child');
     const inputs = tr.querySelectorAll('input');
-    inputs[0].value = r.item||''; inputs[1].value = r.unit||''; inputs[2].value = r.spec||'';
-    inputs[3].value = r.m1||''; inputs[4].value = r.m2||''; inputs[5].value = r.m3||'';
+    inputs[0].value = r.item||'';
+    inputs[1].value = r.spec||'';
+    inputs[2].value = r.m1||'';
+    inputs[3].value = r.m2||'';
+    inputs[4].value = r.m3||'';
     tr.querySelector('.avg-cell').textContent = r.avg||'—';
     tr.querySelector('select').value = r.judge||'—';
-    inputs[6].value = r.note||'';
+    if (r.img) {
+      const drop = tr.querySelector('.img-drop');
+      drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">`;
+    }
+    inputs[5].value = r.note||'';
   });
 
   openCertPanel();
@@ -1396,6 +1458,81 @@ function clearCertForm() {
   setPF('');
   addResultRow(); addResultRow(); addResultRow();
   showToast('초기화되었습니다.');
+}
+
+// ─── EXCEL IMPORT ───
+function triggerExcelImport() {
+  document.getElementById('excel-file-input').click();
+}
+
+function handleExcelFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'csv') {
+    const reader = new FileReader();
+    reader.onload = e => parseCSVToTable(e.target.result);
+    reader.readAsText(file, 'UTF-8');
+  } else {
+    // xlsx/xls: use SheetJS via CDN (lazy load)
+    if (!window.XLSX) {
+      showToast('SheetJS 라이브러리 로딩 중...');
+      const script = document.createElement('script');
+      script.src = 'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js';
+      script.onload = () => readXLSX(file);
+      document.head.appendChild(script);
+    } else {
+      readXLSX(file);
+    }
+  }
+  input.value = '';
+}
+
+function readXLSX(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    applyExcelData(data);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseCSVToTable(text) {
+  const rows = text.split(/\r?\n/).map(r => r.split(','));
+  applyExcelData(rows);
+}
+
+function applyExcelData(data) {
+  if (!data || data.length < 2) { showToast('데이터가 없습니다.'); return; }
+  // first row = header, skip it; remaining = data rows
+  const dataRows = data.slice(1).filter(r => r.some(c => String(c).trim()));
+  if (!dataRows.length) { showToast('데이터 행이 없습니다.'); return; }
+
+  // open cert panel first
+  openCertPanel();
+
+  // clear existing rows and re-populate
+  document.getElementById('result-tbody').innerHTML = '';
+  rowCount = 0;
+  dataRows.forEach(r => {
+    addResultRow();
+    const tr = document.querySelector('#result-tbody tr:last-child');
+    const inputs = tr.querySelectorAll('input');
+    // map columns: 항목, 규격기준, 측정1, 측정2, 측정3, 비고
+    inputs[0].value = r[0] !== undefined ? String(r[0]) : '';
+    inputs[1].value = r[1] !== undefined ? String(r[1]) : '';
+    inputs[2].value = r[2] !== undefined ? String(r[2]) : '';
+    inputs[3].value = r[3] !== undefined ? String(r[3]) : '';
+    inputs[4].value = r[4] !== undefined ? String(r[4]) : '';
+    inputs[5].value = r[5] !== undefined ? String(r[5]) : '';
+    // recalc avg
+    const vals = [inputs[2], inputs[3], inputs[4]].map(i=>parseFloat(i.value)).filter(v=>!isNaN(v));
+    tr.querySelector('.avg-cell').textContent = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(3) : '—';
+  });
+  showToast(`엑셀 데이터 ${dataRows.length}행 가져오기 완료`);
 }
 
 function filterList(v) { renderCertList(v); }
