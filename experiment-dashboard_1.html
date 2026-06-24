@@ -34,6 +34,60 @@
     min-height: 100vh;
   }
 
+  /* ─── IMAGE MODAL ─── */
+  .img-modal-overlay {
+    display:none;position:fixed;inset:0;z-index:9999;
+    background:rgba(0,0,0,.88);align-items:center;justify-content:center;
+  }
+  .img-modal-overlay.open { display:flex; }
+  .img-modal-overlay img {
+    max-width:90vw;max-height:90vh;object-fit:contain;
+    border-radius:8px;box-shadow:0 0 60px rgba(0,0,0,.8);
+  }
+  .img-modal-overlay .close-btn {
+    position:absolute;top:18px;right:22px;background:none;border:none;
+    color:#fff;font-size:32px;cursor:pointer;line-height:1;opacity:.8;
+  }
+  .img-modal-overlay .close-btn:hover { opacity:1; }
+
+  /* ─── MULTI-SELECT COMBO ─── */
+  .mc-wrap { position:relative; }
+  .mc-tags-input {
+    min-height:38px;padding:4px 36px 4px 8px;
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:6px;cursor:pointer;display:flex;flex-wrap:wrap;gap:4px;
+    align-items:center;
+  }
+  .mc-tags-input:focus-within { border-color:var(--accent); }
+  .mc-tag {
+    background:var(--accent);color:#000;font-size:11px;font-weight:600;
+    padding:2px 6px;border-radius:4px;display:flex;align-items:center;gap:4px;
+    white-space:nowrap;
+  }
+  .mc-tag .mc-tag-del { cursor:pointer;font-size:12px;line-height:1;opacity:.7; }
+  .mc-tag .mc-tag-del:hover { opacity:1; }
+  .mc-input {
+    flex:1;min-width:80px;background:transparent;border:none;outline:none;
+    color:var(--text);font-size:13px;padding:2px 0;
+  }
+  .mc-arrow {
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:0;
+  }
+  .mc-dropdown {
+    display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+    background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+    z-index:3000;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .mc-dropdown.open { display:block; }
+  .mc-opt {
+    padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--text);
+  }
+  .mc-opt:hover { background:rgba(0,200,160,.08); }
+  .mc-opt.selected { color:var(--accent); }
+  .mc-opt input[type=checkbox] { accent-color:var(--accent);cursor:pointer; }
+
   /* ─── HERO HEADER BANNER ─── */
   .hero-header {
     background: linear-gradient(135deg, #0d1b2e 0%, #0f2340 40%, #0a1628 100%);
@@ -910,7 +964,7 @@
       <table class="list-table">
         <thead>
           <tr>
-            <th>성적서 번호</th>
+            <th>제목</th>
             <th>시험</th>
             <th>의뢰 기관</th>
             <th>시료 정보</th>
@@ -930,6 +984,12 @@
   </div>
 
 </div><!-- /wrap -->
+
+<!-- ─── IMAGE ZOOM MODAL ─── -->
+<div class="img-modal-overlay" id="img-modal" onclick="closeImgModal()">
+  <button class="close-btn" onclick="closeImgModal()">✕</button>
+  <img id="img-modal-img" src="" alt="">
+</div>
 
 <!-- ─── ADD MODAL ─── -->
 <div class="modal-bg" id="modal-bg">
@@ -1021,6 +1081,10 @@
     <!-- 기본 정보 -->
     <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
     <input type="hidden" id="cf-no" value="">
+    <div style="margin-bottom:12px;">
+      <div class="field-label">제목</div>
+      <input class="field-input" id="cf-title" placeholder="성적서 제목을 입력하세요" style="width:100%;">
+    </div>
     <div class="cert-form-grid">
       <div>
         <div class="field-label">발행일자</div>
@@ -1051,50 +1115,27 @@
       </div>
       <div>
         <div class="field-label">시험 항목</div>
-        <select class="field-select" id="cf-item">
-          <option value="">선택</option>
-          <option>수직 하중</option>
-          <option>상판 측방 하중</option>
-          <option>안정성</option>
-          <option>동하중</option>
-          <option>지속 수직력</option>
-          <option>정적 수평력</option>
-          <option>전도(수직력 및 수평력에 대한 안정성)</option>
-          <option>집중보증부하</option>
-          <option>집중기능부하</option>
-          <option>수평력</option>
-          <option>충격성</option>
-          <option>내마모성</option>
-          <option>스크래치</option>
-          <option>내오염성</option>
-          <option>내광성</option>
-          <option>크랙</option>
-          <option>박리</option>
-          <option>항온항습(CYCLE)</option>
-          <option>굴곡성(결방향)</option>
-          <option>SCUFF(결방향)</option>
-          <option>내충격성</option>
-          <option>전도(수직력에 대한 안정성)</option>
-          <option>내오염성(과산화수소수)</option>
-          <option>내오염성(시너 세척)</option>
-          <option>접착력</option>
-          <option>도어 개폐 시험</option>
-          <option>지속 수직력(추 부하, 추 제거)</option>
-        </select>
+        <div class="mc-wrap" id="mc-cf-item">
+          <div class="mc-tags-input" onclick="mcToggle('cf-item',event)">
+            <span class="mc-tags" id="mc-cf-item-tags"></span>
+            <input class="mc-input" id="cf-item-input" placeholder="선택 또는 직접 입력..." oninput="mcFilter('cf-item',this.value)" onkeydown="mcInputKey('cf-item',event)">
+          </div>
+          <button class="mc-arrow" onclick="mcToggle('cf-item',event)">▾</button>
+          <div class="mc-dropdown" id="mc-cf-item-dd"></div>
+          <input type="hidden" id="cf-item">
+        </div>
       </div>
       <div>
         <div class="field-label">시험 규격/방법</div>
-        <select class="field-select" id="cf-spec">
-          <option value="">선택</option>
-          <option>KS G 4009(가정용 목제 식탁 및 의자)</option>
-          <option>ANSI/BIFMA X 5.5(Desk/Table Products)</option>
-          <option>KS G 4203(사무용 책상 및 테이블)</option>
-          <option>기준-품관22. LPM 시험 기준서</option>
-          <option>기준-품관-0025 엣지, 핫멜트 및 수성접착제 시험기준</option>
-          <option>엣지핫멜트 수정접착제 시험 방법 응용</option>
-          <option>KS G ISO 7170:2005</option>
-          <option>의뢰자 요청에 의한 시험 및 기준</option>
-        </select>
+        <div class="mc-wrap" id="mc-cf-spec">
+          <div class="mc-tags-input" onclick="mcToggle('cf-spec',event)">
+            <span class="mc-tags" id="mc-cf-spec-tags"></span>
+            <input class="mc-input" id="cf-spec-input" placeholder="선택 또는 직접 입력..." oninput="mcFilter('cf-spec',this.value)" onkeydown="mcInputKey('cf-spec',event)">
+          </div>
+          <button class="mc-arrow" onclick="mcToggle('cf-spec',event)">▾</button>
+          <div class="mc-dropdown" id="mc-cf-spec-dd"></div>
+          <input type="hidden" id="cf-spec">
+        </div>
       </div>
       <div class="cert-form-full">
         <div class="field-label">시료 정보</div>
@@ -1190,6 +1231,8 @@ document.addEventListener('DOMContentLoaded', () => {
   addResultRow(); addResultRow(); addResultRow();
   render();
   renderCertList();
+  mcInit('cf-item');
+  mcInit('cf-spec');
 });
 
 // ─── RENDER KANBAN ───
@@ -1408,11 +1451,12 @@ function saveCert() {
 
   const cert = {
     no,
+    title: document.getElementById('cf-title').value.trim(),
     date: document.getElementById('cf-date').value,
     client: document.getElementById('cf-client').value,
     person: document.getElementById('cf-person').value,
-    item: document.getElementById('cf-item').value,
-    spec: document.getElementById('cf-spec').value,
+    item: getMultiComboValue('cf-item'),
+    spec: getMultiComboValue('cf-spec'),
     sample: document.getElementById('cf-sample').value,
     cond: document.getElementById('cf-cond').value,
     start: document.getElementById('cf-start').value,
@@ -1461,15 +1505,19 @@ function renderCertList(filter='') {
     // 비고: 모든 행의 비고 줄바꿈으로 표시
     const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
 
-    return `<tr onclick="loadCert('${c.no}')">
-      <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:12px;">${c.no}</td>
+    const titleDisplay = c.title || c.no || '—';
+    const imgCellDbl = firstImg
+      ? `<img src="${firstImg.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;" ondblclick="event.stopPropagation();openImgModal('${firstImg.img}')">`
+      : '—';
+    return `<tr>
+      <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
       <td style="max-width:160px;line-height:1.6;">${itemText}</td>
       <td>${c.client||'—'}</td>
       <td>${c.sample||'—'}</td>
       <td style="white-space:nowrap;">${c.start||'—'} ~ ${c.end||'—'}</td>
       <td>${c.person||'—'}</td>
       <td style="max-width:100px;line-height:1.6;">${resultText}</td>
-      <td style="text-align:center;">${imgCell}</td>
+      <td style="text-align:center;">${imgCellDbl}</td>
       <td style="max-width:160px;line-height:1.6;">${noteText}</td>
       <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">삭제</button></td>
     </tr>`;
@@ -1480,11 +1528,12 @@ function loadCert(no) {
   const c = certificates.find(x=>x.no===no);
   if (!c) return;
   document.getElementById('cf-no').value = c.no;
+  document.getElementById('cf-title').value = c.title||'';
   document.getElementById('cf-date').value = c.date||'';
   document.getElementById('cf-client').value = c.client||'';
   document.getElementById('cf-person').value = c.person||'';
-  document.getElementById('cf-item').value = c.item||'';
-  document.getElementById('cf-spec').value = c.spec||'';
+  setMultiComboValue('cf-item', c.item||'');
+  setMultiComboValue('cf-spec', c.spec||'');
   document.getElementById('cf-sample').value = c.sample||'';
   document.getElementById('cf-cond').value = c.cond||'';
   document.getElementById('cf-start').value = c.start||'';
@@ -1522,7 +1571,8 @@ function deleteCert(no) {
 }
 
 function clearCertForm() {
-  ['cf-no','cf-client','cf-person','cf-item','cf-spec','cf-sample','cf-cond','cf-signer','cf-note'].forEach(id=>document.getElementById(id).value='');
+  ['cf-no','cf-title','cf-client','cf-person','cf-sample','cf-cond','cf-signer','cf-note'].forEach(id=>document.getElementById(id).value='');
+  clearMultiCombo('cf-item'); clearMultiCombo('cf-spec');
   ['cf-date','cf-start','cf-end'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('result-tbody').innerHTML='';
   rowCount=0; pfState='';
@@ -1629,6 +1679,131 @@ function printCert() { window.print(); }
 function save() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
+
+/* ─── IMAGE MODAL ─── */
+function openImgModal(src) {
+  document.getElementById('img-modal-img').src = src;
+  document.getElementById('img-modal').classList.add('open');
+}
+function closeImgModal() {
+  document.getElementById('img-modal').classList.remove('open');
+  document.getElementById('img-modal-img').src = '';
+}
+
+/* ─── MULTI-SELECT COMBO ─── */
+const MC_OPTIONS = {
+  'cf-item': ['수직 하중','상판 측방 하중','안정성','동하중','지속 수직력','정적 수평력',
+    '전도(수직력 및 수평력에 대한 안정성)','집중보증부하','집중기능부하','수평력','충격성',
+    '내마모성','스크래치','내오염성','내광성','크랙','박리','항온항습(CYCLE)','굴곡성(결방향)',
+    'SCUFF(결방향)','내충격성','전도(수직력에 대한 안정성)','내오염성(과산화수소수)',
+    '내오염성(시너 세척)','접착력','도어 개폐 시험','지속 수직력(추 부하, 추 제거)'],
+  'cf-spec': ['KS G 4009(가정용 목제 식탁 및 의자)','ANSI/BIFMA X 5.5(Desk/Table Products)',
+    'KS G 4203(사무용 책상 및 테이블)','기준-품관22. LPM 시험 기준서',
+    '기준-품관-0025 엣지, 핫멜트 및 수성접착제 시험기준','엣지핫멜트 수정접착제 시험 방법 응용',
+    'KS G ISO 7170:2005','의뢰자 요청에 의한 시험 및 기준']
+};
+const mcState = {}; // { id: Set<string> }
+
+function mcInit(id) {
+  if (!mcState[id]) mcState[id] = new Set();
+  mcRenderDropdown(id, '');
+}
+
+function mcRenderDropdown(id, filter) {
+  const dd = document.getElementById(`mc-${id}-dd`);
+  const opts = MC_OPTIONS[id] || [];
+  const sel = mcState[id] || new Set();
+  const filtered = filter ? opts.filter(o => o.toLowerCase().includes(filter.toLowerCase())) : opts;
+  dd.innerHTML = filtered.map(o => `
+    <div class="mc-opt${sel.has(o)?' selected':''}" onclick="mcToggleOpt('${id}','${o.replace(/'/g,"\\'")}',event)">
+      <input type="checkbox" ${sel.has(o)?'checked':''} onclick="event.stopPropagation()"> ${o}
+    </div>`).join('');
+}
+
+function mcToggle(id, e) {
+  e && e.stopPropagation();
+  const dd = document.getElementById(`mc-${id}-dd`);
+  const isOpen = dd.classList.contains('open');
+  // close all
+  document.querySelectorAll('.mc-dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) { mcRenderDropdown(id,''); dd.classList.add('open'); document.getElementById(`${id}-input`).focus(); }
+}
+
+function mcFilter(id, val) {
+  const dd = document.getElementById(`mc-${id}-dd`);
+  dd.classList.add('open');
+  mcRenderDropdown(id, val);
+}
+
+function mcInputKey(id, e) {
+  if (e.key === 'Enter') {
+    const val = e.target.value.trim();
+    if (val) { mcAddOpt(id, val); e.target.value = ''; mcRenderDropdown(id,''); }
+    e.preventDefault();
+  }
+}
+
+function mcToggleOpt(id, val, e) {
+  e && e.stopPropagation();
+  if (!mcState[id]) mcState[id] = new Set();
+  if (mcState[id].has(val)) mcState[id].delete(val); else mcState[id].add(val);
+  mcRenderTags(id);
+  mcRenderDropdown(id, document.getElementById(`${id}-input`).value);
+  syncHiddenInput(id);
+}
+
+function mcAddOpt(id, val) {
+  if (!mcState[id]) mcState[id] = new Set();
+  mcState[id].add(val);
+  mcRenderTags(id);
+  syncHiddenInput(id);
+}
+
+function mcRemoveOpt(id, val) {
+  mcState[id] && mcState[id].delete(val);
+  mcRenderTags(id);
+  mcRenderDropdown(id, '');
+  syncHiddenInput(id);
+}
+
+function mcRenderTags(id) {
+  const container = document.getElementById(`mc-${id}-tags`);
+  const sel = mcState[id] || new Set();
+  container.innerHTML = [...sel].map(v =>
+    `<span class="mc-tag">${v}<span class="mc-tag-del" onclick="event.stopPropagation();mcRemoveOpt('${id}','${v.replace(/'/g,"\\'")}')">✕</span></span>`
+  ).join('');
+}
+
+function syncHiddenInput(id) {
+  document.getElementById(id).value = [...(mcState[id]||new Set())].join(', ');
+}
+
+function getMultiComboValue(id) {
+  return [...(mcState[id]||new Set())].join(', ');
+}
+
+function setMultiComboValue(id, val) {
+  mcState[id] = new Set();
+  if (val) val.split(/,\s*/).forEach(v => { if(v.trim()) mcState[id].add(v.trim()); });
+  mcRenderTags(id);
+  mcRenderDropdown(id, '');
+  syncHiddenInput(id);
+}
+
+function clearMultiCombo(id) {
+  mcState[id] = new Set();
+  mcRenderTags(id);
+  const dd = document.getElementById(`mc-${id}-dd`);
+  if (dd) { mcRenderDropdown(id,''); dd.classList.remove('open'); }
+  syncHiddenInput(id);
+  const inp = document.getElementById(`${id}-input`);
+  if (inp) inp.value = '';
+}
+
+// close dropdowns on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.mc-dropdown.open').forEach(d => d.classList.remove('open'));
+});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
