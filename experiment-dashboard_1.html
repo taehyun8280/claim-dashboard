@@ -1260,6 +1260,7 @@ function addResultRow() {
       <div class="img-drop" data-row="${rc}" tabindex="0"
         style="width:80px;height:56px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px;color:var(--text3);overflow:hidden;position:relative;">
         <span class="img-placeholder">📋 붙여넣기</span>
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>
       </div>
     </td>
     <td><input placeholder="비고"></td>
@@ -1272,6 +1273,8 @@ function addResultRow() {
   drop.addEventListener('paste', e => handleImgPaste(e, drop));
   drop.addEventListener('click', () => drop.focus());
   drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
+
+  renumberRows();
 }
 
 function handleImgPaste(e, drop) {
@@ -1283,8 +1286,9 @@ function handleImgPaste(e, drop) {
       const blob = item.getAsFile();
       const reader = new FileReader();
       reader.onload = ev => {
-        drop.innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;" data-src="${ev.target.result}">`;
-        drop.title = '클릭 후 Delete로 삭제';
+        drop.innerHTML = `
+          <img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;" data-src="${ev.target.result}">
+          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
       };
       reader.readAsDataURL(blob);
       break;
@@ -1293,7 +1297,8 @@ function handleImgPaste(e, drop) {
 }
 
 function clearImg(drop) {
-  drop.innerHTML = '<span class="img-placeholder">📋 붙여넣기</span>';
+  drop.innerHTML = `<span class="img-placeholder">📋 붙여넣기</span>
+    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
 
 // global paste: if cert panel open, try to paste into focused img-drop
@@ -1312,7 +1317,13 @@ function calcAvg(inp) {
 }
 function delRow(id) {
   const el = document.getElementById(id);
-  if (el) el.remove();
+  if (el) { el.remove(); renumberRows(); }
+}
+
+function renumberRows() {
+  document.querySelectorAll('#result-tbody tr').forEach((tr, i) => {
+    tr.cells[0].textContent = i + 1;
+  });
 }
 
 function setPF(v) {
