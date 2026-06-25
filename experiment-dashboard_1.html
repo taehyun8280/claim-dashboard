@@ -1170,7 +1170,7 @@
     </div>
     <div class="result-table-wrap">
       <table class="result-table" id="result-table">
-        <thead>
+        <thead id="result-thead">
           <tr>
             <th style="width:40px;">No</th>
             <th>시험</th>
@@ -1235,6 +1235,9 @@ let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
 let certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
 let pfState = '';
 let rowCount = 0;
+let complexMode = false;
+let complexTableData = [];
+let complexColIdx = {};
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1452,21 +1455,38 @@ function saveCert() {
     document.getElementById('cf-no').value = no;
   }
 
-  const rows = [];
-  document.querySelectorAll('#result-tbody tr').forEach(tr => {
-    const imgEl = tr.querySelector('.img-drop img');
-    rows.push({
-      item: tr.querySelector('[data-field="item"]')?.value || '',
-      spec: tr.querySelector('[data-field="spec"]')?.value || '',
-      result: tr.querySelector('[data-field="result"]')?.value || '',
-      img: imgEl ? imgEl.dataset.src : '',
-      note: tr.querySelector('[data-field="note"]')?.value || ''
-    });
+  // 이미지 수집 (복잡/단순 공통)
+  const imgMap = [];
+  document.querySelectorAll('#result-tbody .img-drop img').forEach((img, i) => {
+    imgMap.push(img.dataset.src || '');
   });
+
+  const rows = [];
+  if (complexMode) {
+    // 복잡 모드: 각 행에서 텍스트 셀만 수집, 이미지는 imgMap으로
+    document.querySelectorAll('#result-tbody tr').forEach((tr, ti) => {
+      const cells = [...tr.cells].map(td => td.textContent.trim());
+      rows.push({ _cells: cells, img: imgMap[ti] || '' });
+    });
+  } else {
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const imgEl = tr.querySelector('.img-drop img');
+      rows.push({
+        item: tr.querySelector('[data-field="item"]')?.value || '',
+        spec: tr.querySelector('[data-field="spec"]')?.value || '',
+        result: tr.querySelector('[data-field="result"]')?.value || '',
+        img: imgEl ? imgEl.dataset.src : '',
+        note: tr.querySelector('[data-field="note"]')?.value || ''
+      });
+    });
+  }
 
   const cert = {
     no,
     title: document.getElementById('cf-title').value.trim(),
+    complexMode,
+    complexTableData: complexMode ? complexTableData : null,
+    complexColIdx: complexMode ? complexColIdx : null,
     date: document.getElementById('cf-date').value,
     client: document.getElementById('cf-client').value,
     person: document.getElementById('cf-person').value,
@@ -1557,20 +1577,33 @@ function loadCert(no) {
 
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
-  (c.rows||[]).forEach(r => {
-    addResultRow();
-    const tr = document.querySelector('#result-tbody tr:last-child');
-    const inputs = tr.querySelectorAll('input');
-    tr.querySelector('[data-field="item"]').value = r.item||'';
-    tr.querySelector('[data-field="spec"]').value = r.spec||'';
-    tr.querySelector('[data-field="result"]').value = r.result||'';
-    tr.querySelector('[data-field="note"]').value = r.note||'';
-    if (r.img) {
-      const drop = tr.querySelector('.img-drop');
-      drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-    }
-  });
+
+  if (c.complexMode && c.complexTableData && c.complexColIdx) {
+    renderComplexTable(c.complexTableData, c.complexColIdx);
+    // 저장된 이미지 복원
+    const drops = document.querySelectorAll('#result-tbody .img-drop');
+    (c.rows||[]).forEach((r, i) => {
+      if (r.img && drops[i]) {
+        drops[i].innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
+          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+      }
+    });
+  } else {
+    resetToSimpleTable();
+    (c.rows||[]).forEach(r => {
+      addResultRow();
+      const tr = document.querySelector('#result-tbody tr:last-child');
+      tr.querySelector('[data-field="item"]').value = r.item||'';
+      tr.querySelector('[data-field="spec"]').value = r.spec||'';
+      tr.querySelector('[data-field="result"]').value = r.result||'';
+      tr.querySelector('[data-field="note"]').value = r.note||'';
+      if (r.img) {
+        const drop = tr.querySelector('.img-drop');
+        drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
+          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+      }
+    });
+  }
 
   openCertPanel();
   showToast(`성적서 ${no} 불러오기 완료`);
@@ -1590,6 +1623,7 @@ function clearCertForm() {
   document.getElementById('result-tbody').innerHTML='';
   rowCount=0; pfState='';
   setPF('');
+  resetToSimpleTable();
   addResultRow(); addResultRow(); addResultRow();
   showToast('초기화되었습니다.');
 }
@@ -1706,11 +1740,18 @@ function applyExcelData(data) {
   const rawRows = data.slice(startIdx).filter(r => r.some(c => String(c ?? '').trim()));
   if (!rawRows.length) { showToast('데이터 행이 없습니다.'); return; }
 
-  // ── 4. 병합 셀 carry-forward (빈 셀 → 위 값 유지) ──
+  // ── 4. 번호 컬럼 탐지 (구분과 전 사이) ──
+  if (colIdx.category >= 0 && colIdx.before >= 0 && colIdx.before > colIdx.category + 1) {
+    colIdx.num = colIdx.category + 1;
+  }
+
+  // ── 5. carry-forward: item/spec/category만 적용 ──
+  const carrySet = new Set([colIdx.item, colIdx.spec, colIdx.category].filter(c => c >= 0));
   const filled = rawRows.map((r, ri) => {
     return r.map((cell, ci) => {
-      if (cell != null && String(cell).trim() !== '') return String(cell).trim();
-      // 위 행에서 값 찾기
+      const v = cell != null ? String(cell).trim() : '';
+      if (v !== '') return v;
+      if (!carrySet.has(ci)) return '';
       for (let k = ri - 1; k >= 0; k--) {
         const prev = rawRows[k][ci];
         if (prev != null && String(prev).trim() !== '') return String(prev).trim();
@@ -1719,45 +1760,165 @@ function applyExcelData(data) {
     });
   });
 
-  // ── 5. 결과 테이블에 삽입 ──
+  // ── 6. 복잡 구조 or 단순 구조 분기 ──
   openCertPanel();
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
 
-  filled.forEach(r => {
-    const get = idx => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
+  if (hasSubResult || hasCategory) {
+    renderComplexTable(filled, colIdx);
+  } else {
+    filled.forEach(r => {
+      const get = idx => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
+      addResultRow();
+      const tr = document.querySelector('#result-tbody tr:last-child');
+      tr.querySelector('[data-field="item"]').value   = get(colIdx.item);
+      tr.querySelector('[data-field="spec"]').value   = get(colIdx.spec);
+      tr.querySelector('[data-field="result"]').value = get(colIdx.result);
+      tr.querySelector('[data-field="note"]').value   = get(colIdx.note);
+    });
+    showToast(`엑셀 데이터 ${filled.length}행 가져오기 완료`);
+  }
+}
 
-    let itemVal   = get(colIdx.item);
-    let specVal   = get(colIdx.spec);
-    let resultVal = '';
-    let noteVal   = get(colIdx.note);
-
-    // 구분이 있으면 기준 컬럼에 합침: "기준값\n[구분값]"
-    if (hasCategory) {
-      const cat = get(colIdx.category);
-      if (cat) specVal = specVal ? specVal + '\n[' + cat + ']' : cat;
+/* ─── COMPLEX TABLE (엑셀 구분/전/후/변화량 구조) ─── */
+function calculateRowspans(rows, colIndices) {
+  const n = rows.length;
+  const map = rows.map(() => ({}));
+  colIndices.forEach(ci => {
+    if (ci < 0) return;
+    let i = 0;
+    while (i < n) {
+      const val = String(rows[i][ci] ?? '').trim();
+      let j = i + 1;
+      while (j < n && String(rows[j][ci] ?? '').trim() === val) j++;
+      map[i][ci] = j - i;
+      for (let k = i + 1; k < j; k++) map[k][ci] = 0;
+      i = j;
     }
+  });
+  return map;
+}
 
-    // 전/후/변화량이 있으면 결과 컬럼에 포맷
-    if (hasSubResult) {
-      const parts = [];
-      if (colIdx.before  >= 0) parts.push('전: '   + get(colIdx.before));
-      if (colIdx.after   >= 0) parts.push('후: '   + get(colIdx.after));
-      if (colIdx.change  >= 0) parts.push('변화량: ' + get(colIdx.change));
-      resultVal = parts.join(' / ');
+function makeImgDrop(rowSpan) {
+  const td = document.createElement('td');
+  if (rowSpan > 1) td.rowSpan = rowSpan;
+  td.style.cssText = 'padding:6px;vertical-align:middle;text-align:center;';
+  const drop = document.createElement('div');
+  drop.className = 'img-drop';
+  drop.tabIndex = 0;
+  drop.style.cssText = 'width:100%;min-height:90px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);';
+  drop.innerHTML = '<span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span><button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest(\'.img-drop\'))" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;z-index:2;">✕</button>';
+  drop.addEventListener('paste', e => handleImgPaste(e, drop));
+  drop.addEventListener('click', () => drop.focus());
+  td.appendChild(drop);
+  return td;
+}
+
+function renderComplexTable(rows, ci) {
+  complexMode = true;
+  complexTableData = rows;
+  complexColIdx = { ...ci };
+
+  const hasNum = ci.num >= 0;
+  const hasSub = ci.before >= 0 || ci.after >= 0 || ci.change >= 0;
+
+  // ── thead 교체 ──
+  const thead = document.getElementById('result-thead');
+  thead.innerHTML = `
+    <tr>
+      <th rowspan="2" style="width:90px;">시험</th>
+      <th rowspan="2">기준</th>
+      <th rowspan="2">구분</th>
+      ${hasNum ? '<th rowspan="2" style="width:48px;">번호</th>' : ''}
+      ${hasSub ? '<th colspan="3">결과</th>' : '<th>결과</th>'}
+      <th rowspan="2" style="width:160px;">시험사진</th>
+      <th rowspan="2">비고</th>
+    </tr>
+    ${hasSub ? '<tr><th style="width:70px;">전</th><th style="width:70px;">후</th><th style="width:70px;">변화량</th></tr>' : '<tr></tr>'}
+  `;
+
+  // ── rowspan 계산: 시험·기준·구분 기준 ──
+  const spanCols = [ci.item, ci.spec, ci.category].filter(c => c >= 0);
+  const rsMap = calculateRowspans(rows, spanCols);
+  // 시험사진은 구분(category) 그룹, 비고는 시험(item) 그룹
+  const imgGroupCol = ci.category >= 0 ? ci.category : ci.item;
+
+  // ── tbody 생성 ──
+  const tbody = document.getElementById('result-tbody');
+  tbody.innerHTML = '';
+
+  const get = (r, idx) => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
+
+  rows.forEach((r, ri) => {
+    const tr = document.createElement('tr');
+    const addTd = (val, rs, extra) => {
+      const td = document.createElement('td');
+      if (rs > 1) td.rowSpan = rs;
+      if (extra) Object.assign(td.style, extra);
+      td.textContent = val;
+      tr.appendChild(td);
+    };
+
+    // 시험
+    const itemRs = rsMap[ri][ci.item] ?? 1;
+    if (rsMap[ri][ci.item] !== 0) addTd(get(r, ci.item), itemRs, {verticalAlign:'middle', textAlign:'center'});
+
+    // 기준
+    if (ci.spec >= 0 && rsMap[ri][ci.spec] !== 0)
+      addTd(get(r, ci.spec), rsMap[ri][ci.spec] ?? 1, {verticalAlign:'middle'});
+
+    // 구분
+    if (ci.category >= 0 && rsMap[ri][ci.category] !== 0)
+      addTd(get(r, ci.category), rsMap[ri][ci.category] ?? 1, {verticalAlign:'middle', textAlign:'center'});
+
+    // 번호
+    if (hasNum) addTd(get(r, ci.num), 1, {textAlign:'center'});
+
+    // 결과
+    if (hasSub) {
+      const bv = get(r, ci.before), av = get(r, ci.after), cv = get(r, ci.change);
+      const isText = bv && !av && !cv && isNaN(parseFloat(bv));
+      if (isText) {
+        const td = document.createElement('td');
+        td.colSpan = 3; td.textContent = bv;
+        td.style.cssText = 'text-align:center;vertical-align:middle;';
+        tr.appendChild(td);
+      } else {
+        [bv, av, cv].forEach(v => addTd(v, 1, {textAlign:'center', verticalAlign:'middle'}));
+      }
     } else {
-      resultVal = get(colIdx.result);
+      addTd(get(r, ci.result), 1, {textAlign:'center', verticalAlign:'middle'});
     }
 
-    addResultRow();
-    const tr = document.querySelector('#result-tbody tr:last-child');
-    tr.querySelector('[data-field="item"]').value   = itemVal;
-    tr.querySelector('[data-field="spec"]').value   = specVal;
-    tr.querySelector('[data-field="result"]').value = resultVal;
-    tr.querySelector('[data-field="note"]').value   = noteVal;
+    // 시험사진 (구분 그룹)
+    if (rsMap[ri][imgGroupCol] !== 0)
+      tr.appendChild(makeImgDrop(rsMap[ri][imgGroupCol] ?? 1));
+
+    // 비고 (시험 그룹)
+    if (rsMap[ri][ci.item] !== 0)
+      addTd(get(r, ci.note), itemRs, {verticalAlign:'middle', textAlign:'center'});
+
+    tbody.appendChild(tr);
   });
 
-  showToast(`엑셀 데이터 ${filled.length}행 가져오기 완료`);
+  showToast(`엑셀 데이터 ${rows.length}행 가져오기 완료`);
+}
+
+function resetToSimpleTable() {
+  complexMode = false;
+  complexTableData = [];
+  complexColIdx = {};
+  document.getElementById('result-thead').innerHTML = `
+    <tr>
+      <th style="width:40px;">No</th>
+      <th>시험</th>
+      <th>기준</th>
+      <th>결과</th>
+      <th style="width:180px;">시험사진</th>
+      <th>비고</th>
+      <th style="width:30px;"></th>
+    </tr>`;
 }
 
 function filterList(v) { renderCertList(v); }
