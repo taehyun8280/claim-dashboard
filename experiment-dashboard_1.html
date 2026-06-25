@@ -1080,6 +1080,9 @@
 
   <div class="cert-panel-body" id="cert-print-area">
 
+  <!-- 캡처 범위: 기본정보 + 시험결과 테이블만 -->
+  <div id="cert-capture-area">
+
     <!-- 기본 정보 -->
     <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
     <input type="hidden" id="cf-no" value="">
@@ -1181,6 +1184,8 @@
         <tbody id="result-tbody"></tbody>
       </table>
     </div>
+
+  </div><!-- /cert-capture-area -->
 
     <div class="divider"></div>
 
@@ -1693,34 +1698,45 @@ async function copyCertImage(btn) {
   btn.textContent = '캡처 중...';
   btn.disabled = true;
   try {
-    const panel = document.getElementById('cert-panel');
-    const body  = document.getElementById('cert-print-area');
+    const target = document.getElementById('cert-capture-area');
 
-    // 패널 전체 높이를 한 번에 캡처하기 위해 임시로 스크롤 제한 해제
-    const prevOverflow = panel.style.overflow;
-    const prevBodyOverflow = body.style.overflowY;
-    panel.style.overflow = 'visible';
-    body.style.overflowY = 'visible';
-    body.style.maxHeight = 'none';
+    // 임시로 흰 배경 + 검은 글씨 스타일 적용
+    const styleEl = document.createElement('style');
+    styleEl.id = 'cert-capture-style';
+    styleEl.textContent = `
+      #cert-capture-area, #cert-capture-area * {
+        color: #111 !important;
+        background: #fff !important;
+        border-color: #ccc !important;
+      }
+      #cert-capture-area .field-label { color: #444 !important; font-size: 15px !important; }
+      #cert-capture-area .field-input,
+      #cert-capture-area .field-select { font-size: 17px !important; padding: 10px 12px !important; }
+      #cert-capture-area .result-table th { background: #e8f0fe !important; color: #333 !important; font-size: 15px !important; }
+      #cert-capture-area .result-table td { font-size: 15px !important; padding: 10px 8px !important; }
+      #cert-capture-area .mc-tags-input { background: #fff !important; }
+      #cert-capture-area .mc-tag { background: #1a73e8 !important; color: #fff !important; }
+      #cert-capture-area [style*="color:var(--accent)"] { color: #1a73e8 !important; }
+      #cert-capture-area .divider { background: #ccc !important; }
+      #cert-capture-area .btn { display: none !important; }
+    `;
+    document.head.appendChild(styleEl);
 
-    // 전체 scrollHeight 기준으로 캡처
-    const fullHeight = panel.scrollHeight;
-    const canvas = await html2canvas(panel, {
-      backgroundColor: '#161b22',
-      scale: 5,
+    const fullHeight = target.scrollHeight;
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#ffffff',
+      scale: 4,
       useCORS: true,
       logging: false,
-      width: panel.offsetWidth,
+      width: target.offsetWidth,
       height: fullHeight,
       windowHeight: fullHeight,
       scrollX: 0,
       scrollY: 0
     });
 
-    // 스타일 복원
-    panel.style.overflow = prevOverflow;
-    body.style.overflowY = prevBodyOverflow;
-    body.style.maxHeight = '';
+    // 스타일 제거
+    styleEl.remove();
 
     canvas.toBlob(async blob => {
       try {
