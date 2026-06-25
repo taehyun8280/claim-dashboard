@@ -1716,8 +1716,16 @@ function applyExcelData(data) {
         if (norm(row[j]) === '구분') categoryIndices.push(j);
       }
       if (categoryIndices.length >= 2) {
-        colIdx.category = categoryIndices[0];
-        colIdx.num = categoryIndices[1];
+        // 두 번째 구분 열에 실제로 다른 데이터가 있을 때만 번호 열로 처리
+        const col1 = categoryIndices[0], col2 = categoryIndices[1];
+        const dataRows = data.slice(i + 1).filter(r => r.some(c => String(c ?? '').trim()));
+        const col2HasDistinct = dataRows.some(r => {
+          const v1 = String(r[col1] ?? '').trim();
+          const v2 = String(r[col2] ?? '').trim();
+          return v2 && v2 !== v1;
+        });
+        colIdx.category = col1;
+        if (col2HasDistinct) colIdx.num = col2;
       } else if (categoryIndices.length === 1) {
         colIdx.category = categoryIndices[0];
       }
