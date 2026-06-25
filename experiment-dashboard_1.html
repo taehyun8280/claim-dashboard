@@ -1760,10 +1760,8 @@ function applyExcelData(data) {
   });
   if (!rawRows.length) { showToast('데이터 행이 없습니다.'); return; }
 
-  // ── 4. 번호 컬럼 탐지 (구분과 전 사이, 이미 설정되지 않은 경우만) ──
-  if (colIdx.num < 0 && colIdx.category >= 0 && colIdx.before >= 0 && colIdx.before > colIdx.category + 1) {
-    colIdx.num = colIdx.category + 1;
-  }
+  // ── 4. 번호 컬럼: 병합된 구분 헤더(두 열)에서만 자동 설정됨 ──
+  // (자동 탐지 제거 — category+1 방식은 없는 열을 만들어낼 수 있음)
 
   // ── 5. carry-forward: item/spec/category만 적용 ──
   const carrySet = new Set([colIdx.item, colIdx.spec, colIdx.category].filter(c => c >= 0));
