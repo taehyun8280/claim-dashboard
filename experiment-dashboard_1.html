@@ -1642,56 +1642,49 @@ function parseCSVToTable(text) {
 function applyExcelData(data) {
   if (!data || !data.length) { showToast('데이터가 없습니다.'); return; }
 
-  // ── 1. 헤더 행 탐지: '시험' 셀이 있는 행 ──
+  // ── 1. 헤더 행 탐지: 공백 제거 후 '시험' 셀이 있는 행 ──
   let headerRowIdx = -1;
-  const colIdx = { item:-1, spec:-1, category:-1, before:-1, after:-1, change:-1, result:-1, note:-1, img:-1 };
+  const colIdx = { item:-1, spec:-1, category:-1, num:-1, before:-1, after:-1, change:-1, result:-1, note:-1, img:-1 };
+  const norm = v => String(v ?? '').replace(/\s/g, '');
 
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     let foundItem = false;
     for (let j = 0; j < row.length; j++) {
-      const v = String(row[j] ?? '').trim();
+      const v = norm(row[j]);
       if (v === '시험')    { colIdx.item = j; foundItem = true; }
       if (v === '기준')      colIdx.spec = j;
       if (v === '구분')      colIdx.category = j;
       if (v === '결과')      colIdx.result = j;
-      if (v.replace(/\s/g,'').includes('비고')) colIdx.note = j;
-      if (v.replace(/\s/g,'').includes('사진'))  colIdx.img = j;
+      if (v.includes('비고')) colIdx.note = j;
+      if (v.includes('사진')) colIdx.img = j;
     }
     if (foundItem) { headerRowIdx = i; break; }
   }
 
   if (headerRowIdx === -1) { showToast('헤더 행(시험 열)을 찾을 수 없습니다.'); return; }
 
-  // ── 2. 다음 행에서 서브헤더 탐지(전/후/변화량) ──
-  if (headerRowIdx + 1 < data.length) {
-    const subRow = data[headerRowIdx + 1];
-    for (let j = 0; j < subRow.length; j++) {
-      const v = String(subRow[j] ?? '').trim();
-      if (v === '전')   colIdx.before = j;
-      if (v === '후')   colIdx.after  = j;
+  // ── 2. 현재 행 + 이후 2행까지 서브헤더 탐지(전/후/변화량) ──
+  for (let si = headerRowIdx; si <= Math.min(headerRowIdx + 2, data.length - 1); si++) {
+    const srow = data[si] || [];
+    for (let j = 0; j < srow.length; j++) {
+      const v = norm(srow[j]);
+      if (v === '전')    colIdx.before = j;
+      if (v === '후')    colIdx.after  = j;
       if (v === '변화량') colIdx.change = j;
     }
-  }
-  // 서브헤더가 같은 행에 있을 수도 있으므로 헤더 행도 추가 탐색
-  const hrow = data[headerRowIdx];
-  for (let j = 0; j < hrow.length; j++) {
-    const v = String(hrow[j] ?? '').trim();
-    if (v === '전')   colIdx.before = j;
-    if (v === '후')   colIdx.after  = j;
-    if (v === '변화량') colIdx.change = j;
   }
 
   const hasSubResult = colIdx.before >= 0 || colIdx.after >= 0 || colIdx.change >= 0;
   const hasCategory  = colIdx.category >= 0;
 
-  // ── 3. 데이터 행 수집 (서브헤더 행 제외) ──
+  // ── 3. 데이터 시작 행: 헤더 다음부터, 서브헤더 행(전/후/변화량만 있는 행) 건너뜀 ──
   let startIdx = headerRowIdx + 1;
-  if (hasSubResult) {
-    // 서브헤더 행(전/후/변화량)이 별도 행이면 건너뜀
-    const possibleSub = data[startIdx] || [];
-    const subVals = possibleSub.map(c => String(c ?? '').trim());
-    if (subVals.includes('전') || subVals.includes('후') || subVals.includes('변화량')) startIdx++;
+  while (startIdx < data.length) {
+    const subVals = (data[startIdx] || []).map(c => norm(c));
+    const isSubHeader = subVals.some(v => v === '전' || v === '후' || v === '변화량');
+    const hasRealData = subVals.some(v => v && v !== '전' && v !== '후' && v !== '변화량');
+    if (isSubHeader && !hasRealData) { startIdx++; } else { break; }
   }
 
   const rawRows = data.slice(startIdx).filter(r => r.some(c => String(c ?? '').trim()));
