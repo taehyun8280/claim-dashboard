@@ -1091,7 +1091,7 @@
       <input class="field-input" id="cf-title" placeholder="성적서 제목을 입력하세요" style="width:100%;">
     </div>
     <div class="cert-form-grid">
-      <div>
+      <div id="cf-date-wrap">
         <div class="field-label">발행일자</div>
         <input class="field-input" type="date" id="cf-date">
       </div>
@@ -1708,17 +1708,22 @@ async function copyCertImage(btn) {
         color: #111 !important;
         background: #fff !important;
         border-color: #ccc !important;
+        text-align: center !important;
       }
-      #cert-capture-area .field-label { color: #444 !important; font-size: 15px !important; }
+      #cert-capture-area .field-label { color: #444 !important; font-size: 20px !important; font-weight: 700 !important; }
       #cert-capture-area .field-input,
-      #cert-capture-area .field-select { font-size: 17px !important; padding: 10px 12px !important; }
-      #cert-capture-area .result-table th { background: #e8f0fe !important; color: #333 !important; font-size: 15px !important; }
-      #cert-capture-area .result-table td { font-size: 15px !important; padding: 10px 8px !important; }
-      #cert-capture-area .mc-tags-input { background: #fff !important; }
-      #cert-capture-area .mc-tag { background: #1a73e8 !important; color: #fff !important; }
-      #cert-capture-area [style*="color:var(--accent)"] { color: #1a73e8 !important; }
+      #cert-capture-area .field-select { font-size: 20px !important; padding: 10px 12px !important; text-align: center !important; }
+      #cert-capture-area .result-table th { background: #e8f0fe !important; color: #333 !important; font-size: 25px !important; text-align: center !important; }
+      #cert-capture-area .result-table td { font-size: 20px !important; padding: 12px 8px !important; text-align: center !important; }
+      #cert-capture-area .result-table td textarea,
+      #cert-capture-area .result-table td input { font-size: 20px !important; text-align: center !important; }
+      #cert-capture-area .mc-tags-input { background: #fff !important; justify-content: center !important; }
+      #cert-capture-area .mc-tag { background: #1a73e8 !important; color: #fff !important; font-size: 19px !important; }
       #cert-capture-area .divider { background: #ccc !important; }
       #cert-capture-area .btn { display: none !important; }
+      #cert-capture-area .img-del-btn { display: none !important; }
+      #cert-capture-area [id="cf-date-wrap"] { display: none !important; }
+      #cert-capture-area .cert-date-row { display: none !important; }
     `;
     document.head.appendChild(styleEl);
 
