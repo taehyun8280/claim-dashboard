@@ -1779,11 +1779,11 @@ function applyExcelData(data) {
     });
   });
 
-  // ── 6. 데이터 열이 모두 비어있는 행 제거 (구분만 carry-forward된 빈 행) ──
-  const dataCols = [colIdx.num, colIdx.before, colIdx.after, colIdx.change, colIdx.result, colIdx.note].filter(c => c >= 0);
-  const finalRows = dataCols.length > 0
-    ? filled.filter(r => dataCols.some(c => String(r[c] ?? '').trim() !== ''))
-    : filled;
+  // ── 6. carry-forward 열(시험/기준/구분) 외 데이터가 없는 빈 행 제거 ──
+  const carryColsSet = new Set([colIdx.item, colIdx.spec, colIdx.category].filter(c => c >= 0));
+  const finalRows = filled.filter(r =>
+    r.some((cell, ci) => !carryColsSet.has(ci) && String(cell ?? '').trim() !== '')
+  );
 
   // ── 7. 복잡 구조 or 단순 구조 분기 ──
   openCertPanel();
