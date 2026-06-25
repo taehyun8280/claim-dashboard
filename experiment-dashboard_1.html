@@ -1663,17 +1663,16 @@ function readXLSX(file) {
     const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
 
-    // ── 병합 셀 처리: 상단 왼쪽 값을 병합 범위 전체에 복사 ──
+    // 병합 셀 처리: 수직 병합(같은 열, 여러 행)만 아래로 채움 — 수평 병합은 건너뜀
     if (ws['!merges']) {
       ws['!merges'].forEach(merge => {
+        if (merge.s.c !== merge.e.c) return; // 수평 병합 제외
         const srcAddr = XLSX.utils.encode_cell({r: merge.s.r, c: merge.s.c});
         const srcCell = ws[srcAddr];
         if (!srcCell) return;
         for (let r = merge.s.r; r <= merge.e.r; r++) {
-          for (let c = merge.s.c; c <= merge.e.c; c++) {
-            const addr = XLSX.utils.encode_cell({r, c});
-            if (!ws[addr]) ws[addr] = { ...srcCell };
-          }
+          const addr = XLSX.utils.encode_cell({r, c: merge.s.c});
+          if (!ws[addr]) ws[addr] = { ...srcCell };
         }
       });
     }
@@ -1710,24 +1709,18 @@ function applyExcelData(data) {
     }
     if (foundItem) {
       headerRowIdx = i;
-      // '구분' 헤더가 병합으로 여러 열에 걸쳐 있을 때: 첫 번째=카테고리명, 두 번째=번호
-      const categoryIndices = [];
+      // 구분 열 탐지
       for (let j = 0; j < row.length; j++) {
-        if (norm(row[j]) === '구분') categoryIndices.push(j);
+        if (norm(row[j]) === '구분') { colIdx.category = j; break; }
       }
-      if (categoryIndices.length >= 2) {
-        // 두 번째 구분 열에 실제로 다른 데이터가 있을 때만 번호 열로 처리
-        const col1 = categoryIndices[0], col2 = categoryIndices[1];
+      // 번호 열 탐지: 구분 다음 열에 ①②③ 또는 숫자값이 있으면 번호 열로 처리
+      if (colIdx.category >= 0) {
+        const numCol = colIdx.category + 1;
+        const numPattern = /^[①②③④⑤⑥⑦⑧⑨⑩]$|^\d+$/;
         const dataRows = data.slice(i + 1).filter(r => r.some(c => String(c ?? '').trim()));
-        const col2HasDistinct = dataRows.some(r => {
-          const v1 = String(r[col1] ?? '').trim();
-          const v2 = String(r[col2] ?? '').trim();
-          return v2 && v2 !== v1;
-        });
-        colIdx.category = col1;
-        if (col2HasDistinct) colIdx.num = col2;
-      } else if (categoryIndices.length === 1) {
-        colIdx.category = categoryIndices[0];
+        if (dataRows.some(r => numPattern.test(String(r[numCol] ?? '').trim()))) {
+          colIdx.num = numCol;
+        }
       }
       break;
     }
