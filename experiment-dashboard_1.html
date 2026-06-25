@@ -1494,9 +1494,10 @@ function saveCert() {
 
 function renderCertList(filter='') {
   const tbody = document.getElementById('list-tbody');
-  const list = filter
+  const list = (filter
     ? certificates.filter(c => JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()))
-    : certificates;
+    : [...certificates]
+  ).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
