@@ -1692,15 +1692,35 @@ async function copyCertImage(btn) {
   btn.textContent = '캡처 중...';
   btn.disabled = true;
   try {
-    const target = document.getElementById('cert-panel');
-    const canvas = await html2canvas(target, {
+    const panel = document.getElementById('cert-panel');
+    const body  = document.getElementById('cert-print-area');
+
+    // 패널 전체 높이를 한 번에 캡처하기 위해 임시로 스크롤 제한 해제
+    const prevOverflow = panel.style.overflow;
+    const prevBodyOverflow = body.style.overflowY;
+    panel.style.overflow = 'visible';
+    body.style.overflowY = 'visible';
+    body.style.maxHeight = 'none';
+
+    // 전체 scrollHeight 기준으로 캡처
+    const fullHeight = panel.scrollHeight;
+    const canvas = await html2canvas(panel, {
       backgroundColor: '#161b22',
-      scale: 2,
+      scale: 3,
       useCORS: true,
       logging: false,
+      width: panel.offsetWidth,
+      height: fullHeight,
+      windowHeight: fullHeight,
       scrollX: 0,
-      scrollY: -window.scrollY
+      scrollY: 0
     });
+
+    // 스타일 복원
+    panel.style.overflow = prevOverflow;
+    body.style.overflowY = prevBodyOverflow;
+    body.style.maxHeight = '';
+
     canvas.toBlob(async blob => {
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
