@@ -1728,16 +1728,23 @@ function applyExcelData(data) {
   const hasSubResult = colIdx.before >= 0 || colIdx.after >= 0 || colIdx.change >= 0;
   const hasCategory  = colIdx.category >= 0;
 
-  // ── 3. 데이터 시작 행: 헤더 다음부터, 서브헤더 행(전/후/변화량만 있는 행) 건너뜀 ──
-  let startIdx = headerRowIdx + 1;
-  while (startIdx < data.length) {
-    const subVals = (data[startIdx] || []).map(c => norm(c));
-    const isSubHeader = subVals.some(v => v === '전' || v === '후' || v === '변화량');
-    const hasRealData = subVals.some(v => v && v !== '전' && v !== '후' && v !== '변화량');
-    if (isSubHeader && !hasRealData) { startIdx++; } else { break; }
-  }
+  // ── 3. 헤더/서브헤더 라벨 세트 ──
+  const META = new Set(['시험','기준','구분','결과','전','후','변화량','번호','사진','시험사진','비고']);
 
-  const rawRows = data.slice(startIdx).filter(r => r.some(c => String(c ?? '').trim()));
+  // 데이터 시작은 headerRowIdx 이후의 모든 행 중 실제 데이터만 유지
+  const rawRows = data.slice(headerRowIdx + 1).filter(r => {
+    // 빈 행 제외
+    if (!r.some(c => String(c ?? '').trim())) return false;
+    const nv = r.map(c => norm(c ?? ''));
+    // 모든 non-empty 셀이 메타 라벨이면 헤더 행 → 제외
+    const nonempty = nv.filter(v => v);
+    if (nonempty.length > 0 && nonempty.every(v => META.has(v))) return false;
+    // item 컬럼이 메타 라벨이면 헤더 행 → 제외
+    if (colIdx.item >= 0 && nv[colIdx.item] && META.has(nv[colIdx.item])) return false;
+    // before 컬럼이 메타 라벨이면 서브헤더 행 → 제외
+    if (colIdx.before >= 0 && nv[colIdx.before] && META.has(nv[colIdx.before])) return false;
+    return true;
+  });
   if (!rawRows.length) { showToast('데이터 행이 없습니다.'); return; }
 
   // ── 4. 번호 컬럼 탐지 (구분과 전 사이) ──
