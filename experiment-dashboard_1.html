@@ -1628,7 +1628,23 @@ function readXLSX(file) {
   reader.onload = e => {
     const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+    // ── 병합 셀 처리: 상단 왼쪽 값을 병합 범위 전체에 복사 ──
+    if (ws['!merges']) {
+      ws['!merges'].forEach(merge => {
+        const srcAddr = XLSX.utils.encode_cell({r: merge.s.r, c: merge.s.c});
+        const srcCell = ws[srcAddr];
+        if (!srcCell) return;
+        for (let r = merge.s.r; r <= merge.e.r; r++) {
+          for (let c = merge.s.c; c <= merge.e.c; c++) {
+            const addr = XLSX.utils.encode_cell({r, c});
+            if (!ws[addr]) ws[addr] = { ...srcCell };
+          }
+        }
+      });
+    }
+
+    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
     applyExcelData(data);
   };
   reader.readAsArrayBuffer(file);
