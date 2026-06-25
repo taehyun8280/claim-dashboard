@@ -1642,47 +1642,113 @@ function parseCSVToTable(text) {
 function applyExcelData(data) {
   if (!data || !data.length) { showToast('데이터가 없습니다.'); return; }
 
-  // ── 헤더 행 자동 탐지: '시험' 셀이 있는 행 ──
+  // ── 1. 헤더 행 탐지: '시험' 셀이 있는 행 ──
   let headerRowIdx = -1;
-  const colIdx = { item: -1, spec: -1, result: -1, note: -1 };
+  const colIdx = { item:-1, spec:-1, category:-1, before:-1, after:-1, change:-1, result:-1, note:-1, img:-1 };
 
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     let foundItem = false;
     for (let j = 0; j < row.length; j++) {
       const v = String(row[j] ?? '').trim();
-      if (v === '시험') { colIdx.item = j; foundItem = true; }        // 시험
-      if (v === '기준') colIdx.spec = j;                               // 기준
-      if (v === '결과') colIdx.result = j;                             // 결과
-      if (v.replace(/\s/g,'').includes('비고')) colIdx.note = j;       // 비고
+      if (v === '시험')    { colIdx.item = j; foundItem = true; }
+      if (v === '기준')      colIdx.spec = j;
+      if (v === '구분')      colIdx.category = j;
+      if (v === '결과')      colIdx.result = j;
+      if (v.replace(/\s/g,'').includes('비고')) colIdx.note = j;
+      if (v.replace(/\s/g,'').includes('사진'))  colIdx.img = j;
     }
     if (foundItem) { headerRowIdx = i; break; }
   }
 
-  if (headerRowIdx === -1) {
-    showToast('헤더 행(시험/기준/결과)을 찾을 수 없습니다.'); return;
+  if (headerRowIdx === -1) { showToast('헤더 행(시험 열)을 찾을 수 없습니다.'); return; }
+
+  // ── 2. 다음 행에서 서브헤더 탐지(전/후/변화량) ──
+  if (headerRowIdx + 1 < data.length) {
+    const subRow = data[headerRowIdx + 1];
+    for (let j = 0; j < subRow.length; j++) {
+      const v = String(subRow[j] ?? '').trim();
+      if (v === '전')   colIdx.before = j;
+      if (v === '후')   colIdx.after  = j;
+      if (v === '변화량') colIdx.change = j;
+    }
+  }
+  // 서브헤더가 같은 행에 있을 수도 있으므로 헤더 행도 추가 탐색
+  const hrow = data[headerRowIdx];
+  for (let j = 0; j < hrow.length; j++) {
+    const v = String(hrow[j] ?? '').trim();
+    if (v === '전')   colIdx.before = j;
+    if (v === '후')   colIdx.after  = j;
+    if (v === '변화량') colIdx.change = j;
   }
 
-  const dataRows = data.slice(headerRowIdx + 1)
-    .filter(r => r.some(c => String(c ?? '').trim()));
+  const hasSubResult = colIdx.before >= 0 || colIdx.after >= 0 || colIdx.change >= 0;
+  const hasCategory  = colIdx.category >= 0;
 
-  if (!dataRows.length) { showToast('데이터 행이 없습니다.'); return; }
+  // ── 3. 데이터 행 수집 (서브헤더 행 제외) ──
+  let startIdx = headerRowIdx + 1;
+  if (hasSubResult) {
+    // 서브헤더 행(전/후/변화량)이 별도 행이면 건너뜀
+    const possibleSub = data[startIdx] || [];
+    const subVals = possibleSub.map(c => String(c ?? '').trim());
+    if (subVals.includes('전') || subVals.includes('후') || subVals.includes('변화량')) startIdx++;
+  }
 
+  const rawRows = data.slice(startIdx).filter(r => r.some(c => String(c ?? '').trim()));
+  if (!rawRows.length) { showToast('데이터 행이 없습니다.'); return; }
+
+  // ── 4. 병합 셀 carry-forward (빈 셀 → 위 값 유지) ──
+  const filled = rawRows.map((r, ri) => {
+    return r.map((cell, ci) => {
+      if (cell != null && String(cell).trim() !== '') return String(cell).trim();
+      // 위 행에서 값 찾기
+      for (let k = ri - 1; k >= 0; k--) {
+        const prev = rawRows[k][ci];
+        if (prev != null && String(prev).trim() !== '') return String(prev).trim();
+      }
+      return '';
+    });
+  });
+
+  // ── 5. 결과 테이블에 삽입 ──
   openCertPanel();
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
 
-  dataRows.forEach(r => {
+  filled.forEach(r => {
+    const get = idx => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
+
+    let itemVal   = get(colIdx.item);
+    let specVal   = get(colIdx.spec);
+    let resultVal = '';
+    let noteVal   = get(colIdx.note);
+
+    // 구분이 있으면 기준 컬럼에 합침: "기준값\n[구분값]"
+    if (hasCategory) {
+      const cat = get(colIdx.category);
+      if (cat) specVal = specVal ? specVal + '\n[' + cat + ']' : cat;
+    }
+
+    // 전/후/변화량이 있으면 결과 컬럼에 포맷
+    if (hasSubResult) {
+      const parts = [];
+      if (colIdx.before  >= 0) parts.push('전: '   + get(colIdx.before));
+      if (colIdx.after   >= 0) parts.push('후: '   + get(colIdx.after));
+      if (colIdx.change  >= 0) parts.push('변화량: ' + get(colIdx.change));
+      resultVal = parts.join(' / ');
+    } else {
+      resultVal = get(colIdx.result);
+    }
+
     addResultRow();
     const tr = document.querySelector('#result-tbody tr:last-child');
-    const get = idx => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
-    tr.querySelector('[data-field="item"]').value   = get(colIdx.item);
-    tr.querySelector('[data-field="spec"]').value   = get(colIdx.spec);
-    tr.querySelector('[data-field="result"]').value = get(colIdx.result);
-    tr.querySelector('[data-field="note"]').value   = get(colIdx.note);
+    tr.querySelector('[data-field="item"]').value   = itemVal;
+    tr.querySelector('[data-field="spec"]').value   = specVal;
+    tr.querySelector('[data-field="result"]').value = resultVal;
+    tr.querySelector('[data-field="note"]').value   = noteVal;
   });
 
-  showToast(`엑셀 데이터 ${dataRows.length}행 가져오기 완료`);
+  showToast(`엑셀 데이터 ${filled.length}행 가져오기 완료`);
 }
 
 function filterList(v) { renderCertList(v); }
