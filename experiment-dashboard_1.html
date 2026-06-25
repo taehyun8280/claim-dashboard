@@ -1779,15 +1779,21 @@ function applyExcelData(data) {
     });
   });
 
-  // ── 6. 복잡 구조 or 단순 구조 분기 ──
+  // ── 6. 데이터 열이 모두 비어있는 행 제거 (구분만 carry-forward된 빈 행) ──
+  const dataCols = [colIdx.num, colIdx.before, colIdx.after, colIdx.change, colIdx.result, colIdx.note].filter(c => c >= 0);
+  const finalRows = dataCols.length > 0
+    ? filled.filter(r => dataCols.some(c => String(r[c] ?? '').trim() !== ''))
+    : filled;
+
+  // ── 7. 복잡 구조 or 단순 구조 분기 ──
   openCertPanel();
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
 
   if (hasSubResult || hasCategory) {
-    renderComplexTable(filled, colIdx);
+    renderComplexTable(finalRows, colIdx);
   } else {
-    filled.forEach(r => {
+    finalRows.forEach(r => {
       const get = idx => (idx >= 0 && r[idx] != null) ? String(r[idx]).trim() : '';
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
@@ -1796,7 +1802,7 @@ function applyExcelData(data) {
       tr.querySelector('[data-field="result"]').value = get(colIdx.result);
       tr.querySelector('[data-field="note"]').value   = get(colIdx.note);
     });
-    showToast(`엑셀 데이터 ${filled.length}행 가져오기 완료`);
+    showToast(`엑셀 데이터 ${finalRows.length}행 가져오기 완료`);
   }
 }
 
