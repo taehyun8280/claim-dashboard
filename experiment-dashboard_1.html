@@ -1704,12 +1704,25 @@ function applyExcelData(data) {
       const v = norm(row[j]);
       if (v === '시험')    { colIdx.item = j; foundItem = true; }
       if (v === '기준')      colIdx.spec = j;
-      if (v === '구분')      colIdx.category = j;
       if (v === '결과')      colIdx.result = j;
       if (v.includes('비고')) colIdx.note = j;
       if (v.includes('사진')) colIdx.img = j;
     }
-    if (foundItem) { headerRowIdx = i; break; }
+    if (foundItem) {
+      headerRowIdx = i;
+      // '구분' 헤더가 병합으로 여러 열에 걸쳐 있을 때: 첫 번째=카테고리명, 두 번째=번호
+      const categoryIndices = [];
+      for (let j = 0; j < row.length; j++) {
+        if (norm(row[j]) === '구분') categoryIndices.push(j);
+      }
+      if (categoryIndices.length >= 2) {
+        colIdx.category = categoryIndices[0];
+        colIdx.num = categoryIndices[1];
+      } else if (categoryIndices.length === 1) {
+        colIdx.category = categoryIndices[0];
+      }
+      break;
+    }
   }
 
   if (headerRowIdx === -1) { showToast('헤더 행(시험 열)을 찾을 수 없습니다.'); return; }
@@ -1747,8 +1760,8 @@ function applyExcelData(data) {
   });
   if (!rawRows.length) { showToast('데이터 행이 없습니다.'); return; }
 
-  // ── 4. 번호 컬럼 탐지 (구분과 전 사이) ──
-  if (colIdx.category >= 0 && colIdx.before >= 0 && colIdx.before > colIdx.category + 1) {
+  // ── 4. 번호 컬럼 탐지 (구분과 전 사이, 이미 설정되지 않은 경우만) ──
+  if (colIdx.num < 0 && colIdx.category >= 0 && colIdx.before >= 0 && colIdx.before > colIdx.category + 1) {
     colIdx.num = colIdx.category + 1;
   }
 
