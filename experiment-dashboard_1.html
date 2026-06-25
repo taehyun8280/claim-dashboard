@@ -1708,22 +1708,48 @@ async function copyCertImage(btn) {
         color: #111 !important;
         background: #fff !important;
         border-color: #ccc !important;
-        text-align: center !important;
       }
       #cert-capture-area .field-label { color: #444 !important; font-size: 20px !important; font-weight: 700 !important; }
       #cert-capture-area .field-input,
-      #cert-capture-area .field-select { font-size: 20px !important; padding: 10px 12px !important; text-align: center !important; }
-      #cert-capture-area .result-table th { background: #e8f0fe !important; color: #333 !important; font-size: 25px !important; text-align: center !important; }
-      #cert-capture-area .result-table td { font-size: 20px !important; padding: 12px 8px !important; text-align: center !important; }
+      #cert-capture-area .field-select { font-size: 20px !important; padding: 10px 12px !important; }
+      #cert-capture-area .result-table th {
+        background: #e8f0fe !important; color: #333 !important;
+        font-size: 25px !important; text-align: center !important;
+      }
+      #cert-capture-area .result-table td {
+        font-size: 20px !important; padding: 12px 8px !important;
+        text-align: center !important; vertical-align: middle !important;
+        word-break: keep-all !important; white-space: normal !important;
+        overflow: visible !important;
+      }
       #cert-capture-area .result-table td textarea,
-      #cert-capture-area .result-table td input { font-size: 20px !important; text-align: center !important; }
-      #cert-capture-area .mc-tags-input { background: #fff !important; justify-content: center !important; }
+      #cert-capture-area .result-table td input {
+        font-size: 20px !important; text-align: center !important;
+        white-space: normal !important; word-break: keep-all !important;
+        overflow: visible !important; width: 100% !important;
+        height: auto !important; min-height: unset !important;
+      }
+      #cert-capture-area .result-table { table-layout: fixed !important; width: 100% !important; }
+      #cert-capture-area .result-table th:nth-child(1),
+      #cert-capture-area .result-table td:nth-child(1) { width: 50px !important; }
+      #cert-capture-area .result-table th:nth-child(2),
+      #cert-capture-area .result-table td:nth-child(2) { width: 18% !important; }
+      #cert-capture-area .result-table th:nth-child(3),
+      #cert-capture-area .result-table td:nth-child(3) { width: 20% !important; }
+      #cert-capture-area .result-table th:nth-child(4),
+      #cert-capture-area .result-table td:nth-child(4) { width: 10% !important; }
+      #cert-capture-area .result-table th:nth-child(5),
+      #cert-capture-area .result-table td:nth-child(5) { width: 22% !important; }
+      #cert-capture-area .result-table th:nth-child(6),
+      #cert-capture-area .result-table td:nth-child(6) { width: 20% !important; }
+      #cert-capture-area .result-table th:nth-child(7),
+      #cert-capture-area .result-table td:nth-child(7) { display: none !important; }
+      #cert-capture-area .mc-tags-input { background: #fff !important; }
       #cert-capture-area .mc-tag { background: #1a73e8 !important; color: #fff !important; font-size: 19px !important; }
       #cert-capture-area .divider { background: #ccc !important; }
       #cert-capture-area .btn { display: none !important; }
       #cert-capture-area .img-del-btn { display: none !important; }
-      #cert-capture-area [id="cf-date-wrap"] { display: none !important; }
-      #cert-capture-area .cert-date-row { display: none !important; }
+      #cert-capture-area #cf-date-wrap { display: none !important; }
     `;
     document.head.appendChild(styleEl);
 
