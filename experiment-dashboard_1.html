@@ -1496,18 +1496,15 @@ function renderCertList(filter='') {
     // 판정(결과): 모든 행의 결과 줄바꿈으로 표시
     const resultText = rows.map(r => r.result||'').filter(Boolean).join('<br>') || '—';
 
-    // 시험사진: 이미지 있는 첫 번째 행 썸네일
-    const firstImg = rows.find(r => r.img);
-    const imgCell = firstImg
-      ? `<img src="${firstImg.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);">`
-      : '—';
+    // 시험사진: 이미지 있는 모든 행 썸네일
+    const imgRows = rows.filter(r => r.img);
 
     // 비고: 모든 행의 비고 줄바꿈으로 표시
     const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
 
     const titleDisplay = c.title || c.no || '—';
-    const imgCellDbl = firstImg
-      ? `<img src="${firstImg.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;" ondblclick="event.stopPropagation();openImgModal('${firstImg.img}')">`
+    const imgCellDbl = imgRows.length
+      ? imgRows.map(r => `<img src="${r.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal('${r.img}')">`).join('')
       : '—';
     return `<tr>
       <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
