@@ -567,16 +567,17 @@
   .modal-full { grid-column: 1 / -1; }
 
   .field-label {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.5px;
     color: var(--text2);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
   }
   .field-input, .field-select, .field-textarea {
     width: 100%;
     background: var(--surface2);
     border: 1px solid var(--border);
+    font-size: 15px;
     border-radius: 6px;
     color: var(--text);
     font-family: 'Noto Sans KR', sans-serif;
@@ -1080,7 +1081,7 @@
   <div class="cert-panel-body" id="cert-print-area">
 
     <!-- 기본 정보 -->
-    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
+    <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
     <input type="hidden" id="cf-no" value="">
     <div style="margin-bottom:12px;">
       <div class="field-label">제목</div>
@@ -1161,7 +1162,7 @@
 
     <!-- 시험 결과 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
+      <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
       <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
     </div>
     <div class="result-table-wrap">
@@ -1706,7 +1707,7 @@ async function copyCertImage(btn) {
     const fullHeight = panel.scrollHeight;
     const canvas = await html2canvas(panel, {
       backgroundColor: '#161b22',
-      scale: 3,
+      scale: 5,
       useCORS: true,
       logging: false,
       width: panel.offsetWidth,
