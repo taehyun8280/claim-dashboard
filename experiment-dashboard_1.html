@@ -812,6 +812,13 @@
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
+      <button class="hero-btn" style="background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.15);" onclick="copyDashboardImage(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        대시보드 이미지 복사
+      </button>
       <button class="hero-btn" style="background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.15);" onclick="triggerExcelImport()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1013,6 +1020,7 @@
         <select class="field-select" id="m-client">
           <option value="">선택</option>
           <option>일룸개발팀</option>
+          <option>일룸 품질관리팀</option>
           <option>포트폴리오구축디자인팀</option>
           <option>포트폴리오구축개발팀</option>
           <option>LDK디자인팀</option>
@@ -1095,6 +1103,7 @@
         <select class="field-select" id="cf-client">
           <option value="">선택</option>
           <option>일룸개발팀</option>
+          <option>일룸 품질관리팀</option>
           <option>포트폴리오구축디자인팀</option>
           <option>포트폴리오구축개발팀</option>
           <option>LDK디자인팀</option>
@@ -1214,6 +1223,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1675,6 +1685,38 @@ function printCert() { window.print(); }
 
 function save() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
+}
+
+/* ─── DASHBOARD IMAGE COPY ─── */
+async function copyDashboardImage(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '캡처 중...';
+  btn.disabled = true;
+  try {
+    const target = document.querySelector('.wrap') || document.body;
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#0d1117',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    canvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('대시보드 이미지가 클립보드에 복사되었습니다. Ctrl+V로 붙여넣기 하세요.');
+      } catch(e) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'dashboard.png';
+        a.click();
+        showToast('클립보드 복사 불가 — 이미지로 저장했습니다.');
+      }
+      btn.innerHTML = orig; btn.disabled = false;
+    }, 'image/png');
+  } catch(e) {
+    showToast('이미지 캡처 실패: ' + e.message);
+    btn.innerHTML = orig; btn.disabled = false;
+  }
 }
 
 /* ─── IMAGE MODAL ─── */
