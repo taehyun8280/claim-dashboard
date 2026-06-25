@@ -1700,74 +1700,89 @@ async function copyCertImage(btn) {
   try {
     const target = document.getElementById('cert-capture-area');
 
-    // 임시로 흰 배경 + 검은 글씨 스타일 적용
+    // ── 1. textarea/input을 전체 내용이 보이는 <div>로 교체 ──
+    const replaced = [];
+    target.querySelectorAll('#result-tbody td textarea, #result-tbody td input[type="text"], #result-tbody td input:not([type])').forEach(el => {
+      const div = document.createElement('div');
+      div.className = '__cap-text';
+      div.textContent = el.value || '';
+      el.parentNode.insertBefore(div, el);
+      el.style.display = 'none';
+      replaced.push({ el, div });
+    });
+
+    // ── 2. 캡처용 스타일 삽입 ──
     const styleEl = document.createElement('style');
     styleEl.id = 'cert-capture-style';
     styleEl.textContent = `
       #cert-capture-area, #cert-capture-area * {
-        color: #111 !important;
-        background: #fff !important;
-        border-color: #ccc !important;
+        color: #111 !important; background: #fff !important; border-color: #ddd !important;
       }
-      #cert-capture-area .field-label { color: #444 !important; font-size: 20px !important; font-weight: 700 !important; }
+      #cert-capture-area .field-label {
+        color: #333 !important; font-size: 20px !important; font-weight: 700 !important; margin-bottom: 6px !important;
+      }
       #cert-capture-area .field-input,
-      #cert-capture-area .field-select { font-size: 20px !important; padding: 10px 12px !important; }
+      #cert-capture-area .field-select,
+      #cert-capture-area .mc-tags-input {
+        font-size: 20px !important; padding: 10px 14px !important; background: #f9f9f9 !important;
+      }
+      #cert-capture-area .mc-tag { background: #1a73e8 !important; color: #fff !important; font-size: 18px !important; }
+      #cert-capture-area [style*="font-size:13px"][style*="letter-spacing:2px"],
+      #cert-capture-area [style*="font-size: 13px"][style*="letter-spacing"] {
+        font-size: 25px !important; color: #1a73e8 !important;
+      }
+      #cert-capture-area .result-table {
+        table-layout: fixed !important; width: 100% !important; border-collapse: collapse !important;
+      }
       #cert-capture-area .result-table th {
-        background: #e8f0fe !important; color: #333 !important;
-        font-size: 25px !important; text-align: center !important;
+        background: #dce8ff !important; color: #222 !important;
+        font-size: 20px !important; text-align: center !important;
+        padding: 12px 8px !important; border: 1px solid #aac !important;
+        word-break: keep-all !important;
       }
       #cert-capture-area .result-table td {
-        font-size: 20px !important; padding: 12px 8px !important;
-        text-align: center !important; vertical-align: middle !important;
-        word-break: keep-all !important; white-space: normal !important;
-        overflow: visible !important;
-      }
-      #cert-capture-area .result-table td textarea,
-      #cert-capture-area .result-table td input {
         font-size: 20px !important; text-align: center !important;
-        white-space: normal !important; word-break: keep-all !important;
-        overflow: visible !important; width: 100% !important;
-        height: auto !important; min-height: unset !important;
+        vertical-align: middle !important; padding: 12px 8px !important;
+        border: 1px solid #ccc !important; word-break: keep-all !important;
+        white-space: normal !important; overflow: visible !important;
       }
-      #cert-capture-area .result-table { table-layout: fixed !important; width: 100% !important; }
-      #cert-capture-area .result-table th:nth-child(1),
-      #cert-capture-area .result-table td:nth-child(1) { width: 50px !important; }
-      #cert-capture-area .result-table th:nth-child(2),
-      #cert-capture-area .result-table td:nth-child(2) { width: 18% !important; }
-      #cert-capture-area .result-table th:nth-child(3),
-      #cert-capture-area .result-table td:nth-child(3) { width: 20% !important; }
-      #cert-capture-area .result-table th:nth-child(4),
-      #cert-capture-area .result-table td:nth-child(4) { width: 10% !important; }
-      #cert-capture-area .result-table th:nth-child(5),
-      #cert-capture-area .result-table td:nth-child(5) { width: 22% !important; }
-      #cert-capture-area .result-table th:nth-child(6),
-      #cert-capture-area .result-table td:nth-child(6) { width: 20% !important; }
-      #cert-capture-area .result-table th:nth-child(7),
-      #cert-capture-area .result-table td:nth-child(7) { display: none !important; }
-      #cert-capture-area .mc-tags-input { background: #fff !important; }
-      #cert-capture-area .mc-tag { background: #1a73e8 !important; color: #fff !important; font-size: 19px !important; }
-      #cert-capture-area .divider { background: #ccc !important; }
-      #cert-capture-area .btn { display: none !important; }
+      #cert-capture-area .result-table th:nth-child(1), #cert-capture-area .result-table td:nth-child(1) { width: 48px !important; }
+      #cert-capture-area .result-table th:nth-child(2), #cert-capture-area .result-table td:nth-child(2) { width: 17% !important; }
+      #cert-capture-area .result-table th:nth-child(3), #cert-capture-area .result-table td:nth-child(3) { width: 20% !important; }
+      #cert-capture-area .result-table th:nth-child(4), #cert-capture-area .result-table td:nth-child(4) { width: 10% !important; }
+      #cert-capture-area .result-table th:nth-child(5), #cert-capture-area .result-table td:nth-child(5) { width: 23% !important; }
+      #cert-capture-area .result-table th:nth-child(6), #cert-capture-area .result-table td:nth-child(6) { width: 20% !important; }
+      #cert-capture-area .result-table th:nth-child(7), #cert-capture-area .result-table td:nth-child(7) { display: none !important; }
+      #cert-capture-area .__cap-text {
+        font-size: 20px !important; color: #111 !important; background: transparent !important;
+        text-align: center !important; white-space: pre-wrap !important;
+        word-break: keep-all !important; line-height: 1.5 !important;
+      }
+      #cert-capture-area .img-drop { border: none !important; background: transparent !important; }
       #cert-capture-area .img-del-btn { display: none !important; }
+      #cert-capture-area .btn, #cert-capture-area .mc-arrow { display: none !important; }
       #cert-capture-area #cf-date-wrap { display: none !important; }
+      #cert-capture-area .divider { background: #ccc !important; height: 1px !important; }
     `;
     document.head.appendChild(styleEl);
 
-    const fullHeight = target.scrollHeight;
+    // ── 3. 캡처 ──
+    const fullH = target.scrollHeight;
     const canvas = await html2canvas(target, {
       backgroundColor: '#ffffff',
       scale: 4,
       useCORS: true,
       logging: false,
       width: target.offsetWidth,
-      height: fullHeight,
-      windowHeight: fullHeight,
+      height: fullH,
+      windowHeight: fullH,
       scrollX: 0,
       scrollY: 0
     });
 
-    // 스타일 제거
+    // ── 4. 복원 ──
     styleEl.remove();
+    replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
 
     canvas.toBlob(async blob => {
       try {
