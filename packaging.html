@@ -53,6 +53,18 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #334155;
         }
+        .date-filter-input {
+            font-size: 12px;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            padding-left: 6px;
+            padding-right: 2px;
+        }
+        .date-filter-input::-webkit-calendar-picker-indicator {
+            width: 12px;
+            height: 12px;
+            padding: 0;
+            margin-left: 1px;
+        }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col">
@@ -94,16 +106,16 @@
                         <label class="block text-xs font-bold text-accentBlue uppercase tracking-wider mb-2 flex items-center gap-1">
                             <i class="fa-regular fa-calendar-check"></i> 1. 조회 날짜 설정
                         </label>
-                        <div class="grid grid-cols-1 gap-3">
+                        <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <span class="block text-[10px] text-slate-500 mb-0.5">조회 시작일</span>
                                 <input type="date" id="startDateFilter" onchange="applyFilters()"
-                                       class="w-full min-w-0 bg-panelBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-sm text-center">
+                                       class="date-filter-input w-full min-w-0 bg-panelBg text-slate-200 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-center">
                             </div>
                             <div>
                                 <span class="block text-[10px] text-slate-500 mb-0.5">조회 종료일</span>
                                 <input type="date" id="endDateFilter" onchange="applyFilters()"
-                                       class="w-full min-w-0 bg-panelBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-sm text-center">
+                                       class="date-filter-input w-full min-w-0 bg-panelBg text-slate-200 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-center">
                             </div>
                         </div>
                     </div>
