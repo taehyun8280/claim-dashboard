@@ -875,11 +875,15 @@
                 icon.classList.add('animate-spin');
             }
 
-            const savedType = localStorage.getItem('sheet_conn_type') || 'bypass';
+            let savedType = localStorage.getItem('sheet_conn_type') || 'standard';
             const bypassUrl = localStorage.getItem('sheet_bypass_url') || '';
             const pubUrl = localStorage.getItem('sheet_pub_url') || '';
             const sheetId = localStorage.getItem('sheet_id') || '1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54';
             const gid = localStorage.getItem('sheet_gid') || '1357513790';
+
+            if ((savedType === 'bypass' && !bypassUrl) || (savedType === 'published' && !pubUrl)) {
+                savedType = 'standard';
+            }
 
             let csvUrl = '';
             let isJsonMode = false;
@@ -915,7 +919,7 @@
             let success = false;
 
             // 실시간 갱신 반응속도 조절용 AbortController 선언
-            const fetchTimeout = isInitial ? 1500 : 3000;
+            const fetchTimeout = isInitial ? 8000 : 10000;
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), fetchTimeout);
 
@@ -2053,7 +2057,7 @@
             document.getElementById('inputPubUrl').value = safeLocalStorage.getItem('sheet_pub_url') || '';
             document.getElementById('inputBypassUrl').value = safeLocalStorage.getItem('sheet_bypass_url') || '';
             
-            const savedType = safeLocalStorage.getItem('sheet_conn_type') || 'bypass';
+            const savedType = safeLocalStorage.getItem('sheet_conn_type') || 'standard';
             toggleInputType(savedType);
 
             document.getElementById('settingsModal').classList.remove('hidden');
