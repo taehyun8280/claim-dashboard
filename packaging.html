@@ -54,16 +54,17 @@
             background: #334155;
         }
         .date-filter-input {
-            font-size: 12px;
+            font-size: 11px;
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            padding-left: 6px;
-            padding-right: 2px;
+            padding-left: 4px;
+            padding-right: 4px;
         }
         .date-filter-input::-webkit-calendar-picker-indicator {
-            width: 12px;
-            height: 12px;
-            padding: 0;
-            margin-left: 1px;
+            width: 16px;
+            height: 16px;
+            padding: 2px;
+            margin-left: 0;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -106,7 +107,7 @@
                         <label class="block text-xs font-bold text-accentBlue uppercase tracking-wider mb-2 flex items-center gap-1">
                             <i class="fa-regular fa-calendar-check"></i> 1. 조회 날짜 설정
                         </label>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-2 gap-1.5">
                             <div>
                                 <span class="block text-[10px] text-slate-500 mb-0.5">조회 시작일</span>
                                 <input type="date" id="startDateFilter" onchange="applyFilters()"
