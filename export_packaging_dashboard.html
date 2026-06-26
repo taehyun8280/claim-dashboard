@@ -1,0 +1,2258 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수출 표준품 포장강화 대시보드 v4.0 (실시간 구글 시트 라이브 연동)</title>
+    <!-- 프리미엄 폰트 및 스타일 라이브러리 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 차트 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0B0F19',
+                        panelBg: '#111827',
+                        accentGreen: '#00E676',
+                        accentBlue: '#00B0FF',
+                        accentOrange: '#FF9100',
+                        accentRed: '#FF1744',
+                        borderSlate: '#1E293B'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #F1F5F9;
+        }
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- 탑 헤더 바 (수출 표준품 강화포장 현황 구글시트 연동 버튼 헤더 이관 완료) -->
+    <header class="bg-panelBg border-b border-borderSlate px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-accentBlue to-accentGreen p-2.5 rounded-lg text-darkBg font-bold text-xl shadow-lg shadow-accentBlue/10">
+                <i class="fa-solid fa-ship"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                    수출 표준품 포장강화 대시보드 <span class="text-xs bg-accentBlue/10 text-accentBlue px-2 py-0.5 rounded-full border border-accentBlue/20">SYSTEM</span>
+                </h1>
+            </div>
+        </div>
+        
+        <!-- 실시간 시트 연결 링크 -->
+        <a href="https://docs.google.com/spreadsheets/d/1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54/edit?gid=1357513790#gid=1357513790" 
+           target="_blank" 
+           class="bg-[#0F9D58] hover:bg-[#0B8043] text-white text-xs px-4 py-2.5 rounded-lg border border-[#13b36e]/20 font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-[#0F9D58]/10">
+            <i class="fa-solid fa-file-excel text-sm"></i> 수출 표준품 강화포장 현황
+        </a>
+    </header>
+
+    <!-- 메인 대시보드 바디 (와이드 스크린 밀착을 위해 max-w-[1600px] 확장 및 5열 격자 전면 적용) -->
+    <main class="flex-grow p-6 max-w-[1600px] w-full mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6">
+        
+        <!-- [1] 왼쪽 사이드 필터 컨트롤 패널 (실시간 반응형 이벤트 바인딩) -->
+        <section class="lg:col-span-1 flex flex-col gap-5">
+            <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-xl">
+                <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-accentBlue"></i> 수출/제품 상세검색
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- 조회 날짜 범위 설정 -->
+                    <div class="p-3 bg-darkBg/40 rounded-lg border border-borderSlate/60">
+                        <label class="block text-xs font-bold text-accentBlue uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fa-regular fa-calendar-check"></i> 1. 조회 날짜 설정
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="block text-[10px] text-slate-500 mb-0.5">조회 시작일</span>
+                                <input type="date" id="startDateFilter" onchange="applyFilters()"
+                                       class="w-full bg-panelBg text-slate-200 px-2 py-1.5 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs text-center">
+                            </div>
+                            <div>
+                                <span class="block text-[10px] text-slate-500 mb-0.5">조회 종료일</span>
+                                <input type="date" id="endDateFilter" onchange="applyFilters()"
+                                       class="w-full bg-panelBg text-slate-200 px-2 py-1.5 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs text-center">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- [STEP 2] 상세 코드 및 국가 검색 -->
+                    <div class="space-y-3 pt-1">
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">2. 설정 기간 내 세부 검색</span>
+                        
+                        <!-- 수출 건명(차수) 검색 -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">수출건 차수 검색</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                    <i class="fa-solid fa-folder-tree text-xs"></i>
+                                </span>
+                                <input type="text" id="roundFilter" oninput="applyFilters()" placeholder="예: FAM-110, FAM-131" 
+                                       class="w-full bg-darkBg text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-sm transition-colors">
+                            </div>
+                        </div>
+
+                        <!-- 제품 코드 검색 -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">제품 코드 검색</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                    <i class="fa-solid fa-barcode text-xs"></i>
+                                </span>
+                                <input type="text" id="productCodeFilter" oninput="applyFilters()" placeholder="예: CAC2083SN, FAD0016NO" 
+                                       class="w-full bg-darkBg text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-sm transition-colors">
+                            </div>
+                        </div>
+
+                        <!-- 국가별 검색 -->
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">국가별 검색</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                    <i class="fa-solid fa-globe text-xs"></i>
+                                </span>
+                                <input type="text" id="countryFilter" oninput="applyFilters()" placeholder="예: FAM, NY, TOF, INICS" 
+                                       class="w-full bg-darkBg text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-sm transition-colors">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 검색 및 초기화 버튼 그룹 -->
+                <div class="grid grid-cols-2 gap-2 mt-5">
+                    <button onclick="applyFilters()" class="bg-accentBlue hover:bg-sky-400 text-darkBg font-bold text-xs py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-accentBlue/10">
+                        <i class="fa-solid fa-magnifying-glass"></i> 검색하기
+                    </button>
+                    <button onclick="resetFilters()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-1.5 border border-borderSlate">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> 초기화
+                    </button>
+                </div>
+
+                <!-- 가장 임박한 납기/상차 차수 카드 -->
+                <div class="mt-6 pt-5 border-t border-borderSlate/60">
+                    <div class="bg-darkBg/60 border border-accentOrange/30 rounded-xl p-4 relative overflow-hidden group">
+                        <div class="absolute right-3 top-3 text-accentOrange opacity-10 group-hover:opacity-20 transition-all">
+                            <i class="fa-solid fa-bell text-lg animate-bounce"></i>
+                        </div>
+                        <div class="text-[10px] font-bold text-accentOrange uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-pulse"></span>
+                            가장 임박한 수출 일정
+                        </div>
+                        <div class="mt-2 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span id="nearestRoundName" class="text-sm font-bold text-white">-</span>
+                                <span id="nearestDDay" class="text-[10px] bg-accentOrange/10 text-accentOrange border border-accentOrange/20 px-2 py-0.5 rounded-full font-bold">D-0</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 space-y-1 font-mono">
+                                <div class="flex items-center justify-between">
+                                    <span>상차일:</span>
+                                    <span id="nearestLoadDate" class="text-slate-300 font-bold">-</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>전산 납기일:</span>
+                                    <span id="nearestDueDate" class="text-slate-300 font-bold">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- [2] 가운데 메인 관제 대크 패널 -->
+        <section class="lg:col-span-3 flex flex-col gap-6 relative" id="rightMainPanel">
+            
+            <!-- [VIEW 1] 종합 관제 대시보드 영역 (기본 표시) -->
+            <div id="generalDashboardView" class="flex flex-col gap-6">
+                <!-- 1. 수출 포장 지표 요약 카드 그룹 -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- 카드 1: 총 수출 수량 -->
+                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+                        <div class="absolute right-3 top-3 text-accentBlue opacity-10 group-hover:opacity-20 transition-all text-4xl">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400 tracking-wider">총 수출 수량</span>
+                        <div class="mt-2.5 flex flex-col gap-1">
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiTargetQty" class="text-3xl font-bold text-white tracking-tight">0</span>
+                                <span class="text-xs text-slate-400 font-medium">ea</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiTargetCodes" class="text-base font-bold text-accentBlue tracking-tight">0</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">CODE</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-accentBlue mt-2 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info"></i> 계획 수립 기준 품목 총수
+                        </div>
+                    </div>
+
+                    <!-- 카드 2: 수출품 포장강화 완료율 -->
+                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+                        <div class="absolute right-3 top-3 text-accentGreen opacity-10 group-hover:opacity-20 transition-all text-4xl">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400 tracking-wider">포장강화 완료율</span>
+                        <div class="mt-2.5 flex flex-col gap-1">
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiStrengthenedRate" class="text-3xl font-bold text-accentGreen tracking-tight">0.0%</span>
+                            </div>
+                            <div class="flex items-baseline gap-1.5 text-xs text-slate-400 font-medium">
+                                <span id="generalKpiStrengthenedQty">0 ea</span>
+                                <span class="text-slate-600">/</span>
+                                <span id="generalKpiStrengthenedCodes" class="text-accentGreen">0 CODE</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                            보강 공정 완료 실적률
+                        </div>
+                    </div>
+
+                    <!-- 카드 3: 총 선적/출고 완료 -->
+                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+                        <div class="absolute right-3 top-3 text-accentOrange opacity-10 group-hover:opacity-20 transition-all text-4xl">
+                            <i class="fa-solid fa-truck-container"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400 tracking-wider">총 선적/출고 완료</span>
+                        <div class="mt-2.5 flex flex-col gap-1">
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiShippedQty" class="text-3xl font-bold text-accentOrange tracking-tight">0</span>
+                                <span class="text-xs text-slate-400 font-medium">ea</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiShippedCodes" class="text-base font-bold text-accentOrange tracking-tight">0</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">CODE</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                            출고수송 정상 인도 품목
+                        </div>
+                    </div>
+
+                    <!-- 카드 4: 포장강화 대기 수량 -->
+                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+                        <div class="absolute right-3 top-3 text-accentRed opacity-10 group-hover:opacity-20 transition-all text-4xl">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400 tracking-wider">포장강화 대기 수량</span>
+                        <div class="mt-2.5 flex flex-col gap-1">
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiRemainingQty" class="text-3xl font-bold text-accentRed tracking-tight">0</span>
+                                <span class="text-xs text-slate-400 font-medium">ea</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="generalKpiRemainingCodes" class="text-base font-bold text-accentRed tracking-tight">0</span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">CODE</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-accentRed mt-2 flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-circle-exclamation"></i> 대기 상태 of 잔여 과제
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 모니터링 수출 최적화 트렌드 차트 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 차트 A: 수출 국가별 완료 실적 비교 -->
+                    <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-lg flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-column text-accentBlue"></i> 수출 국가별 완료 실적 비교
+                            </h3>
+                            <span class="text-[11px] text-slate-400">국가별 실적 대조 (바 클릭시 상세차수)</span>
+                        </div>
+                        <div class="relative h-60 w-full flex items-center justify-center">
+                            <canvas id="exportRoundChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 차트 B: 일자별 누적 수출 선적 추이 -->
+                    <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-lg flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-line text-accentGreen"></i> 포장 및 출고 일자별 흐름
+                            </h3>
+                            <span class="text-[11px] text-slate-400">실시간 누적 그래프</span>
+                        </div>
+                        <div class="relative h-60 w-full">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 실시간 수출 대시보드 로 데이터 테이블 (칼럼 오름차순/내림차순 헤더 제어 컴포넌트 탑재) -->
+                <div class="bg-panelBg border border-borderSlate rounded-xl shadow-lg flex flex-col overflow-hidden">
+                    <div class="px-6 py-4 border-b border-borderSlate flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-panelBg">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-table-list text-accentBlue"></i> 수출 표준품 포장 관리 원장
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">스프레드시트에서 동기화된 데이터 목록입니다. 각 헤더를 클릭하여 실시간으로 정렬이 가능합니다.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportToCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded border border-borderSlate flex items-center gap-1.5 transition-colors">
+                                <i class="fa-solid fa-file-csv"></i> 현재 필터 데이터 CSV 출력
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 데이터 리스트 테이블 박스 (도착지->상차일, 담당->도착지 컬럼명 변경 완료) -->
+                    <div class="overflow-x-auto w-full max-h-[500px]">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-darkBg/60 text-slate-400 text-xs font-semibold uppercase tracking-wider sticky top-0 border-b border-borderSlate select-none">
+                                    <!-- 12개 컬럼 전체 정렬 트리거 버튼 탑재 완료 (3단계 정렬 완전 지원) -->
+                                    <th onclick="handleSort('regDate')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        등록일자 (포장일) <span id="sort-icon-regDate" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('round')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        건명 <span id="sort-icon-round" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('code')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        제품코드 <span id="sort-icon-code" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('qty')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        수량 <span id="sort-icon-qty" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('dueDate')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        납기일 <span id="sort-icon-dueDate" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('date')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-accentBlue">
+                                        상차일 <span id="sort-icon-date" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('targetQty')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        대상(EA) <span id="sort-icon-targetQty" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('strengthenedQty')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        강화(EA) <span id="sort-icon-strengthenedQty" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('shippedQty')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        출고(EA) <span id="sort-icon-shippedQty" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('cost')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-right">
+                                        강화비용 <span id="sort-icon-cost" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('status')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        상태 <span id="sort-icon-status" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleSort('country')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        도착지 <span id="sort-icon-country" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="text-sm divide-y divide-borderSlate/40">
+                                <!-- JS를 통해 동적 데이터 자동 렌더링 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 매치되는 항목 수 하단 바 -->
+                    <div class="bg-darkBg/30 px-6 py-3 border-t border-borderSlate/60 text-xs text-slate-400 flex justify-between items-center">
+                        <div>총 <span id="matchCount" class="text-accentBlue font-bold">0</span>건 중 <span id="totalDisplayCount" class="text-white">0</span>건 표시 중</div>
+                        <div class="flex items-center gap-1">
+                            <span class="h-1.5 w-1.5 rounded-full bg-accentGreen animate-pulse"></span> 누적 가동 수율: <span id="packagingRateAvg" class="text-accentGreen font-bold">100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [VIEW 2] 제품 코드 전용 타겟 상세 스펙 뷰 (메인 대시보드 위에 겹쳐서 투과되도록 absolute 및 반투명 유리 효과 전면 개편) -->
+            <div id="productDetailView" class="hidden absolute inset-0 z-40 bg-darkBg/65 backdrop-blur-md rounded-xl p-6 flex flex-col gap-6 overflow-y-auto border border-borderSlate/60 shadow-2xl">
+                <!-- 1. Dedicated Top Navigation Bar -->
+                <div class="bg-panelBg/80 backdrop-blur-md border border-borderSlate/60 px-6 py-4 rounded-xl shadow-lg flex items-center justify-between">
+                    <button onclick="exitProductDetailView()" class="bg-slate-900/80 backdrop-blur-md hover:bg-slate-800/90 text-slate-300 hover:text-white text-xs px-4 py-2.5 rounded-lg border border-white/10 hover:border-white/20 font-semibold flex items-center gap-1.5 transition-all duration-300 active:scale-95">
+                        <i class="fa-solid fa-arrow-left"></i> 종합 대시보드로 돌아가기
+                    </button>
+                    <span class="text-xs bg-indigo-500/10 text-accentBlue px-3 py-1.5 rounded-full border border-indigo-500/20 font-bold uppercase tracking-wider">제품 정보 관제 시스템</span>
+                </div>
+
+                <!-- 2. 스펙 헤더 카드 (순수 가로, 세로, 높이, 중량 수치 실시간 연동 표시 영역) -->
+                <div class="bg-panelBg/70 backdrop-blur-md border border-borderSlate/60 p-6 rounded-xl shadow-xl relative overflow-hidden">
+                    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                        <!-- Left: 아이콘 & 제품코드 -->
+                        <div class="flex items-center gap-4">
+                            <div class="bg-accentBlue/10 p-3.5 rounded-xl border border-accentBlue/20 text-accentBlue text-2xl">
+                                <i class="fa-solid fa-cube"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-3xl font-bold tracking-tight text-white" id="detailProductCode">PRODUCT_CODE</h2>
+                                <p class="text-xs text-slate-400 mt-1">포장강화 타겟 고유 스펙 및 출고 상태 관제 보드</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: W, D, H, G 스펙 레이아웃 (우측 정갈한 배치) -->
+                        <div class="flex flex-wrap items-center gap-4 bg-darkBg/50 px-5 py-3 rounded-xl border border-borderSlate/60 font-mono text-sm">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-500 font-semibold">W:</span>
+                                <span class="text-accentBlue font-bold" id="specW">0mm</span>
+                            </div>
+                            <span class="text-slate-700">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-accentBlue font-bold" id="specD">0mm</span>
+                            </div>
+                            <span class="text-slate-700">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-accentBlue font-bold" id="specH">0mm</span>
+                            </div>
+                            <span class="text-slate-700">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-slate-500 font-semibold">G:</span>
+                                <span class="text-accentGreen font-bold" id="specG">0kg</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 세부 원장 테이블 (납기일/상차일 오름차순/내림차순/정렬해제 3단계 정렬 완비) -->
+                <div class="bg-panelBg/70 backdrop-blur-md border border-borderSlate/60 rounded-xl shadow-xl overflow-hidden flex flex-col">
+                    <div class="px-6 py-4 border-b border-borderSlate/60 flex items-center justify-between bg-darkBg/10 select-none">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2.5 w-2.5 rounded-full bg-accentBlue"></span>
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">수출 제품 세부 진행 이력</h3>
+                        </div>
+                        <span class="text-xs text-slate-400">품목별 수주 수량 및 배차 배인딩 정보</span>
+                    </div>
+
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-darkBg/60 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-borderSlate/60 select-none">
+                                    <th class="py-4 px-6 text-center w-12">*</th>
+                                    <th onclick="handleDetailSort('round')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        차수 <span id="detail-sort-icon-round" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleDetailSort('code')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        제품코드 <span id="detail-sort-icon-code" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleDetailSort('color')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        컬러 <span id="detail-sort-icon-color" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleDetailSort('qty')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        수량 <span id="detail-sort-icon-qty" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleDetailSort('status')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        진행상태 <span id="detail-sort-icon-status" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleDetailSort('dueDate')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        납기일 <span id="detail-sort-icon-dueDate" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                    <th onclick="handleDetailSort('date')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors text-accentBlue">
+                                        상차일 <span id="detail-sort-icon-date" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="productDetailTableBody" class="text-sm divide-y divide-borderSlate/40">
+                                <!-- 제품 전용 데이터 렌더링 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- [3] 오른쪽 데이터 동기화 & 시스템 제어 패널 (lg:col-span-1) -->
+        <section class="lg:col-span-1 flex flex-col gap-5">
+            <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-xl flex flex-col gap-4">
+                <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-server text-accentGreen"></i> 데이터 연동 제어
+                </h2>
+                
+                <!-- 연동 상태 배지 표시 -->
+                <div class="space-y-1">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">시스템 연결 상태</span>
+                    <div id="connIndicator" class="inline-flex w-full items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500/10 text-accentOrange border border-amber-500/20">
+                        <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-ping"></span>
+                        연동 대기 중
+                    </div>
+                </div>
+
+                <!-- 마지막 데이터 동기화 시각 -->
+                <div class="bg-darkBg/50 p-3 rounded-lg border border-borderSlate/60 font-mono text-xs text-slate-400 flex flex-col gap-1">
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">동기화 시각</span>
+                    <span class="text-accentGreen font-bold" id="syncTimestamp">초기 로드 대기</span>
+                </div>
+
+                <!-- 데이터 연동 컨트롤 버튼 그룹 -->
+                <div class="flex flex-col gap-2.5 pt-2">
+                    <!-- 실시간 갱신 단추 -->
+                    <button onclick="syncWithGoogleSheets()" id="syncBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-3 rounded-lg border border-borderSlate flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold">
+                        <i class="fa-solid fa-arrows-rotate" id="syncIcon"></i> 실시간 시트 갱신
+                    </button>
+                    
+                    <!-- 수동 CSV 업로드 단추 -->
+                    <label class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-3 rounded-lg border border-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer font-bold shadow-lg shadow-blue-500/10 text-center">
+                        <i class="fa-solid fa-file-import"></i> CSV 파일 업로드
+                        <input type="file" id="csvFileInput" accept=".csv" multiple class="hidden" onchange="handleCsvUpload(event)">
+                    </label>
+
+                    <!-- 수동 설정(톱니바퀴) 단추 -->
+                    <button onclick="openSettingsModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-3 rounded-lg border border-borderSlate flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold" title="구글 시트 연동 설정">
+                        <i class="fa-solid fa-cog"></i> 연동 세부 설정
+                    </button>
+                </div>
+
+                <!-- 현재 동적으로 누적 병합 연동된 활성 CSV 시트 리스트 명칭 표시판 -->
+                <div id="loadedFilesContainer" class="hidden bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>현재 사용중인 데이터 탭</span>
+                        <button onclick="clearUploadedData()" class="text-accentRed hover:text-red-400 transition-colors" title="업로드 데이터 초기화 및 데모 복원">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                    <div class="text-slate-300 font-mono text-[11px] break-all leading-normal" id="loadedFilesList">대기 중</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 수출 국가별 차수 상세정보 모달창 -->
+    <div id="chartDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden transition-all duration-300">
+        <div class="bg-panelBg border border-borderSlate p-6 rounded-2xl max-w-md w-full mx-4 shadow-2xl relative">
+            <button onclick="closeChartDetailModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-accentBlue/10 text-accentBlue p-2.5 rounded-xl border border-accentBlue/20">
+                    <i class="fa-solid fa-chart-bar text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white" id="chartModalTitle">상세 차수 내역</h3>
+                    <p class="text-xs text-slate-400">국가 및 공정 상태별 상세 차수 리스트</p>
+                </div>
+            </div>
+            
+            <div class="max-h-64 overflow-y-auto border border-borderSlate/60 rounded-xl">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-darkBg/60 text-slate-400 text-[11px] font-semibold border-b border-borderSlate">
+                            <th class="py-2.5 px-4">수출건 차수</th>
+                            <th class="py-2.5 px-4 text-right">실적 수량</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chartModalTableBody" class="text-xs divide-y divide-borderSlate/40">
+                        <!-- Dynamic rows -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="flex justify-end mt-4">
+                <button onclick="closeChartDetailModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2.5 rounded-xl font-semibold border border-borderSlate transition-colors">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 구글 시트 연동 설정 모달 -->
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden transition-all duration-300">
+        <div class="bg-panelBg border border-borderSlate p-6 rounded-2xl max-w-lg w-full mx-4 shadow-2xl relative">
+            <button onclick="closeSettingsModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-accentBlue/10 text-accentBlue p-2.5 rounded-xl border border-accentBlue/20">
+                    <i class="fa-solid fa-cog"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">구글 시트 연동 설정</h3>
+                    <p class="text-xs text-slate-400">실시간 연동할 스프레드시트의 주소를 관리합니다.</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4 my-5 text-sm">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">연동 방식 선택</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button onclick="toggleInputType('bypass')" id="btnTypeByp" class="py-2 px-1 rounded-lg text-[10px] font-bold text-center border transition-all bg-accentGreen/10 text-accentGreen border-accentGreen/30">
+                            사내 보안 우회 방식 (강추 🚀)
+                        </button>
+                        <button onclick="toggleInputType('published')" id="btnTypePub" class="py-2 px-1 rounded-lg text-[10px] font-semibold text-center border transition-all bg-slate-800 text-slate-400 border-borderSlate hover:bg-slate-700">
+                            웹에 게시 방식
+                        </button>
+                        <button onclick="toggleInputType('standard')" id="btnTypeStd" class="py-2 px-1 rounded-lg text-[10px] font-semibold text-center border transition-all bg-slate-800 text-slate-400 border-borderSlate hover:bg-slate-700">
+                            일반 스프레드 방식
+                        </button>
+                    </div>
+                </div>
+
+                <!-- [방식 1]: 가이드 및 주소창 -->
+                <div id="formTypeByp" class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">사내 보안 우회 웹 앱 (Apps Script) URL</label>
+                    <input type="text" id="inputBypassUrl" placeholder="https://script.google.com/macros/s/.../exec" 
+                           class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentGreen text-xs font-mono">
+                    
+                    <div class="bg-darkBg/60 p-3 rounded-lg text-[11px] text-slate-400 leading-relaxed max-h-48 overflow-y-auto space-y-2">
+                        <p class="font-bold text-accentGreen">💡 구글 스프레드시트 탭 복수 추가 방법:</p>
+                        <p>1. 구글 스프레드시트의 <strong>도구 > Apps Script</strong>를 엽니다.</p>
+                        <p>2. 새로운 파일(gs)을 만들어 가동 코드를 넣고 <strong>배포(웹앱)</strong>를 누릅니다.</p>
+                        <p>3. 부여되는 최종 웹앱 URL 주소를 복사하여 위의 입력 창에 주입하세요.</p>
+                    </div>
+                </div>
+
+                <!-- [방식 2]: 웹에 게시 입력용 폼 -->
+                <div id="formTypePub" class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">구글 시트 웹에 게시 CSV 주소</label>
+                    <input type="text" id="inputPubUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" 
+                           class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs">
+                </div>
+
+                <!-- [방식 3]: 표준 ID 입력용 폼 -->
+                <div id="formTypeStd" class="space-y-3 hidden">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">스프레드시트 ID</label>
+                            <input type="text" id="inputSheetId" placeholder="Spreadsheet ID" 
+                                   class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">시트 GID</label>
+                            <input type="text" id="inputGid" placeholder="1357513790" 
+                                   class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs font-mono">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2.5 border-t border-borderSlate/40 pt-4 mt-2">
+                <button onclick="closeSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2.5 rounded-xl font-semibold border border-borderSlate transition-colors">
+                    취소
+                </button>
+                <button onclick="saveConnectionSettings()" class="bg-accentGreen hover:bg-emerald-400 text-darkBg font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-lg shadow-accentGreen/10">
+                    <i class="fa-solid fa-save"></i> 설정 저장 및 갱신
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 구글 시트 연동 도움말 모달 -->
+    <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden transition-all duration-300">
+        <div class="bg-panelBg border border-borderSlate p-6 rounded-2xl max-w-lg w-full mx-4 shadow-2xl relative">
+            <button onclick="closeHelpModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="bg-red-500/10 text-accentRed p-2.5 rounded-xl border border-red-500/20">
+                    <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">구글 시트 연동 오류 안내</h3>
+                    <p class="text-xs text-slate-400">구글 워크스페이스 보안 및 로컬 CORS 제한 해결 방법</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4 my-4 text-sm leading-relaxed text-slate-300">
+                <p class="text-xs text-accentOrange bg-accentOrange/10 border border-accentOrange/20 p-3 rounded-lg font-semibold">
+                    💡 다운로드한 로컬 파일('file://')은 브라우저 보안 규정상 일반 스프레드시트 공유 링크를 직접 조회하는 것이 차단됩니다. 아래의 <strong>[웹에 게시]</strong> 기능을 적용하시면 로컬 PC 환경에서도 실시간 연동이 정상 개시됩니다!
+                </p>
+
+                <p class="text-xs text-accentGreen bg-accentGreen/10 border border-accentGreen/20 p-3 rounded-lg leading-normal">
+                    <strong>가장 확실하고 간편한 우회 해결책:</strong><br>
+                    컴퓨터에 구글 시트를 CSV 파일로 다운로드하신 뒤, 우측 상단 <strong>[CSV 업로드]</strong> 단추를 클릭해 연동하시면 보안 차단 없이 1초 만에 백프로 정상 연동됩니다!
+                </p>
+            </div>
+
+            <div class="flex justify-end gap-2.5">
+                <button onclick="closeHelpModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2.5 rounded-xl font-semibold border border-borderSlate transition-colors">
+                    닫기
+                </button>
+                <button onclick="openSettingsModal(); closeHelpModal();" class="bg-accentBlue hover:bg-sky-400 text-darkBg font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-cog"></i> 설정 열기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림창 UI -->
+    <div id="toastAlert" class="fixed bottom-6 right-6 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-panelBg border border-borderSlate p-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-sm">
+            <div id="toastIcon" class="p-2 rounded-lg text-white"></div>
+            <div>
+                <h4 id="toastTitle" class="text-xs font-bold text-white">알림</h4>
+                <p id="toastMessage" class="text-[11px] text-slate-400 mt-0.5 leading-normal"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자바스크립트 비즈니스 로직 및 인터랙션 구현 -->
+    <script>
+        // 시트 공유설정이 풀리지 않았을 때를 대비한 견고한 로컬 폴백 데이터셋
+        const initialData = [
+            // 제품 코드 CAC2083SN 에 해당하는 전수 4개 실 데이터 바인딩
+            { date: '2026-04-19', regDate: '2026-04-15', round: 'FAM-110', qty: 50, dueDate: '2026-04-19', code: 'CAC2083SN', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 50, strengthenedQty: 50, shippedQty: 50, cost: 350000, status: '출고완료', operator: '박사원', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
+            { date: '2026-06-24', regDate: '2026-06-20', round: 'FAM-131', qty: 8, dueDate: '2026-06-24', code: 'CAC2083SN', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 8, strengthenedQty: 8, shippedQty: 0, cost: 56000, status: '포장완료', operator: '김대리', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
+            { date: '2026-07-11', regDate: '2026-07-05', round: 'NY-45', qty: 1, dueDate: '2026-07-11', code: 'CAC2083SN', color: 'UM', product: 'OLED 디스플레이 패널 A급', country: 'NY', targetQty: 1, strengthenedQty: 0, shippedQty: 0, cost: 7000, status: '포장대기', operator: '장여사', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
+            { date: '2026-07-11', regDate: '2026-07-06', round: 'INICS-01', qty: 11, dueDate: '2026-07-11', code: 'CAC2083SN', color: 'RCN', product: 'OLED 디스플레이 패널 A급', country: 'INICS', targetQty: 11, strengthenedQty: 0, shippedQty: 0, cost: 0, status: '미입고', operator: '-', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
+            
+            // FAD0018NO 전용 데이터 바인딩 추가
+            { date: '2026-06-25', regDate: '2026-06-24', round: 'FAM-TOF-02/26', qty: 1, dueDate: '2026-06-25', code: 'FAD0018NO', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 1, strengthenedQty: 1, shippedQty: 1, cost: 1200, status: '출고완료', operator: '-', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
+            { date: '2026-06-25', regDate: '2026-06-24', round: 'FAM-TOF-05/26', qty: 50, dueDate: '2026-06-25', code: 'FAD0018NO', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 50, strengthenedQty: 50, shippedQty: 0, cost: 60000, status: '포장완료', operator: '-', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
+            
+            // CAB0083N 전용 스펙 데이터 바인딩 추가 (로컬 시뮬레이션용 데이터셋 완전 보강 🌟)
+            { date: '2026-04-21', regDate: '2026-04-16', round: 'FAM-74/26', qty: 2, dueDate: '2026-05-08', code: 'CAB0083N', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 2, strengthenedQty: 2, shippedQty: 2, cost: 2400, status: '출고완료', operator: '-', specW: '855mm', specD: '565mm', specH: '40mm', specG: '11.60kg' },
+            { date: '2026-06-24', regDate: '2026-06-16', round: 'FAM-NY-03/26', qty: 20, dueDate: '2026-06-24', code: 'CAB0083N', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 20, strengthenedQty: 20, shippedQty: 0, cost: 24000, status: '포장완료', operator: '-', specW: '855mm', specD: '565mm', specH: '40mm', specG: '11.60kg' },
+
+            { date: '2026-06-24', regDate: '2026-06-20', round: 'FAM-00', qty: 230, dueDate: '2026-07-15', code: 'FAD0016NO', color: 'WW', product: '정밀 OLED 패널', country: 'FAM', targetQty: 150, strengthenedQty: 150, shippedQty: 150, cost: 180000, status: '출고완료', operator: '김동현', specW: '1200mm', specD: '600mm', specH: '30mm', specG: '8.40kg' },
+            { date: '2026-06-24', regDate: '2026-06-20', round: 'FAM-00', qty: 140, dueDate: '2026-07-18', code: 'CCA9001MN', color: 'UM', product: '차량용 센서 카메라', country: 'FAM', targetQty: 80, strengthenedQty: 80, shippedQty: 60, cost: 272000, status: '포장완료', operator: '이지은', specW: '350mm', specD: '350mm', specH: '120mm', specG: '2.15kg' },
+            { date: '2026-06-23', regDate: '2026-06-16', round: 'NY-00', qty: 100, dueDate: '2026-07-10', code: 'FAD0022XP', color: 'RCN', product: '반도체 인쇄회로기판', country: 'NY', targetQty: 100, strengthenedQty: 40, shippedQty: 0, cost: 40000, status: '포장대기', operator: '최민서', specW: '500mm', specD: '500mm', specH: '10mm', specG: '0.95kg' },
+            { date: '2026-06-22', regDate: '2026-06-16', round: 'INICS-00', qty: 120, dueDate: '2026-07-20', code: 'CCA8005TY', color: 'WW', product: '고속 광케이블 코어', country: 'INICS', targetQty: 120, strengthenedQty: 120, shippedQty: 120, cost: 252000, status: '출고완료', operator: '박태준', specW: '800mm', specD: '800mm', specH: '400mm', specG: '12.50kg' },
+            { date: '2026-06-21', regDate: '2026-06-16', round: 'FAM-01', qty: 380, dueDate: '2026-07-12', code: 'FAD0016NO', color: 'WW', product: '광학 유리 렌즈군', country: 'Domestic', targetQty: 200, strengthenedQty: 200, shippedQty: 180, cost: 300000, status: '포장완료', operator: '김동현', specW: '1200mm', specD: '600mm', specH: '30mm', specG: '8.40kg' },
+            { date: '2026-06-20', regDate: '2026-06-16', round: 'FAM-01', qty: 85, dueDate: '2026-07-22', code: 'CCA9001MN', color: 'UM', product: '리튬배터리 팩', country: 'FAM', targetQty: 50, strengthenedQty: 30, shippedQty: 0, cost: 275000, status: '포장대기', operator: '이지은', specW: '350mm', specD: '350mm', specH: '120mm', specG: '2.15kg' }
+        ];
+
+        // 파일 세션별 동적 누적 Map 시스템 도입 (데이터 꼬임 및 누락 완벽 해결)
+        let datasetMap = {};
+
+        let state = {
+            data: [],
+            filteredData: []
+        };
+
+        let exportRoundChartInstance = null;
+        let trendChartInstance = null;
+        let activeSettingType = 'bypass';
+
+        // 정렬 상태 저장 변수 정의 (기본값 설정)
+        let sortConfig = {
+            key: 'date',
+            direction: 'asc'
+        };
+
+        // 상세 뷰 정렬 상태 저장 변수 정의
+        let detailSortConfig = {
+            key: null,
+            direction: 'none'
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedSettings();
+            
+            // 1. 페이지 로딩 즉시 데모 데이터 세팅
+            datasetMap['default'] = [...initialData];
+            combineDatasets();
+            
+            // 2. 실시간 스프레드시트 갱신 시도 (초기에는 반응속도 극대화를 위해 1.5초 이내 타임아웃 가동)
+            syncWithGoogleSheets(true);
+        });
+
+        // 다중 파일 로드 시 중복 행 증발 방지 및 결합 파이프라인
+        function combineDatasets() {
+            let combined = [];
+            const keys = Object.keys(datasetMap);
+            
+            const hasRealUploads = keys.some(k => k !== 'default');
+            
+            keys.forEach(k => {
+                if (hasRealUploads && k === 'default') return;
+                combined = combined.concat(datasetMap[k]);
+            });
+            
+            // 전체 결합 데이터에 제품 스펙 전파 백필(Backfill) 작동
+            state.data = backfillSpecs(combined);
+            
+            // 3단계 정렬 정위치 복원을 위한 원래 데이터 인덱스 기억
+            state.data.forEach((item, idx) => {
+                item.originalIndex = idx;
+            });
+        }
+
+        // 복수 시트의 스펙 정보를 1:1 교차 대조 후 원장에 완벽 이식하는 빌더
+        function backfillSpecs(list) {
+            let specCache = {};
+            
+            list.forEach(item => {
+                let codeLower = (item.code || '').toLowerCase().trim();
+                let w = (item.specW && item.specW !== '-') ? item.specW : '';
+                let d = (item.specD && item.specD !== '-') ? item.specD : '';
+                let h = (item.specH && item.specH !== '-') ? item.specH : '';
+                let g = (item.specG && item.specG !== '-') ? item.specG : '';
+                
+                if (w || d || h || g) {
+                    if (!specCache[codeLower]) {
+                        specCache[codeLower] = { w, d, h, g };
+                    } else {
+                        if (w) specCache[codeLower].w = w;
+                        if (d) specCache[codeLower].d = d;
+                        if (h) specCache[codeLower].h = h;
+                        if (g) specCache[codeLower].g = g;
+                    }
+                }
+            });
+
+            list.forEach(item => {
+                let codeLower = (item.code || '').toLowerCase().trim();
+                let cache = specCache[codeLower];
+                if (cache) {
+                    if (!item.specW || item.specW === '-') item.specW = cache.w || '-';
+                    if (!item.specD || item.specD === '-') item.specD = cache.d || '-';
+                    if (!item.specH || item.specH === '-') item.specH = cache.h || '-';
+                    if (!item.specG || item.specG === '-') item.specG = cache.g || '-';
+                }
+            });
+
+            return list;
+        }
+
+        // 연동된 시트들의 이름을 화면에 표시해주는 UI 바인더
+        function updateFileBadges() {
+            const container = document.getElementById('loadedFilesContainer');
+            const listSpan = document.getElementById('loadedFilesList');
+            
+            const keys = Object.keys(datasetMap).filter(k => k !== 'default');
+            if (keys.length > 0) {
+                container.classList.remove('hidden');
+                const cleanNames = keys.map(k => k.replace(/^sheet_/, ''));
+                listSpan.innerText = cleanNames.join(', ');
+                
+                const indicator = document.getElementById('connIndicator');
+                const hasLiveSheet = keys.some(k => k.startsWith('sheet_'));
+                if (hasLiveSheet) {
+                    indicator.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/10 text-accentGreen border border-green-500/20';
+                    indicator.innerHTML = `
+                        <span class="h-1.5 w-1.5 rounded-full bg-accentGreen animate-pulse"></span>
+                        사내 보안망 실시간 연결됨 (LIVE)
+                    `;
+                } else {
+                    indicator.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-500/10 text-accentBlue border border-blue-500/20';
+                    indicator.innerHTML = `
+                        <span class="h-1.5 w-1.5 rounded-full bg-accentBlue animate-pulse"></span>
+                        다중 CSV 병합 완료
+                    `;
+                }
+            } else {
+                container.classList.add('hidden');
+                listSpan.innerText = '대기 중';
+                
+                const indicator = document.getElementById('connIndicator');
+                indicator.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-accentOrange border border-amber-500/20';
+                indicator.innerHTML = `
+                    <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-ping"></span>
+                    연동 대기 중
+                `;
+            }
+        }
+
+        // 1. [구글 스프레드시트 실시간 동기화 비즈니스 엔진 (느린 지연 완벽 우회 및 Abort 타임아웃 적용)]
+        async function syncWithGoogleSheets(isInitial = false) {
+            const btn = document.getElementById('syncBtn');
+            const icon = document.getElementById('syncIcon');
+            
+            if (btn && icon) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                icon.classList.add('animate-spin');
+            }
+
+            const savedType = localStorage.getItem('sheet_conn_type') || 'bypass';
+            const bypassUrl = localStorage.getItem('sheet_bypass_url') || '';
+            const pubUrl = localStorage.getItem('sheet_pub_url') || '';
+            const sheetId = localStorage.getItem('sheet_id') || '1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54';
+            const gid = localStorage.getItem('sheet_gid') || '1357513790';
+
+            let csvUrl = '';
+            let isJsonMode = false;
+
+            if (savedType === 'bypass') {
+                if (!bypassUrl) {
+                    handleSyncFailure(isInitial);
+                    if (btn && icon) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        icon.classList.remove('animate-spin');
+                    }
+                    return;
+                }
+                csvUrl = bypassUrl;
+                isJsonMode = true; 
+            } else if (savedType === 'published') {
+                if (!pubUrl) {
+                    handleSyncFailure(isInitial);
+                    if (btn && icon) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        icon.classList.remove('animate-spin');
+                    }
+                    return;
+                }
+                csvUrl = pubUrl;
+            } else {
+                csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+            }
+
+            let text = '';
+            let success = false;
+
+            // 실시간 갱신 반응속도 조절용 AbortController 선언
+            const fetchTimeout = isInitial ? 1500 : 3000;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), fetchTimeout);
+
+            try {
+                const response = await fetch(csvUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    text = await response.text();
+                    if (text.trim().startsWith('<html') || text.trim().startsWith('<!DOCTYPE')) {
+                        throw new Error('사내 보안망 연동 거부됨');
+                    }
+                    success = true;
+                } else {
+                    throw new Error('CORS 차단 또는 리다이렉트 실패');
+                }
+            } catch (e) {
+                console.warn('실시간 페치 타임아웃 또는 차단됨:', e);
+            } finally {
+                clearTimeout(timeoutId);
+            }
+
+            if (success && text !== '') {
+                if (isJsonMode) {
+                    try {
+                        const jsonObj = JSON.parse(text);
+                        if (jsonObj && typeof jsonObj === 'object' && !Array.isArray(jsonObj)) {
+                            Object.keys(datasetMap).forEach(k => {
+                                if (k.startsWith('sheet_')) delete datasetMap[k];
+                            });
+
+                            for (let sheetName in jsonObj) {
+                                if (jsonObj.hasOwnProperty(sheetName)) {
+                                    const sheetRows = jsonObj[sheetName];
+                                    const parsedSheetData = mapCSVData(sheetRows);
+                                    datasetMap['sheet_' + sheetName] = parsedSheetData;
+                                }
+                            }
+                        } else if (Array.isArray(jsonObj)) {
+                            Object.keys(datasetMap).forEach(k => {
+                                if (k.startsWith('sheet_')) delete datasetMap[k];
+                            });
+                            datasetMap['sheet_실시간시트'] = mapCSVData(jsonObj);
+                        }
+                    } catch(err) {
+                        console.error('JSON 파싱 에러', err);
+                    }
+                } else {
+                    const csvRows = parseCSV(text);
+                    Object.keys(datasetMap).forEach(k => {
+                        if (k.startsWith('sheet_')) delete datasetMap[k];
+                    });
+                    datasetMap['sheet_실시간시트'] = mapCSVData(csvRows);
+                }
+
+                combineDatasets();
+                updateFileBadges();
+
+                if (state.data.length > 0) {
+                    const now = new Date();
+                    const timeStr = now.getFullYear() + '-' + 
+                                    String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                                    String(now.getDate()).padStart(2, '0') + ' ' + 
+                                    String(now.getHours()).padStart(2, '0') + ':' + 
+                                    String(now.getMinutes()).padStart(2, '0') + ':' + 
+                                    String(now.getSeconds()).padStart(2, '0');
+                    document.getElementById('syncTimestamp').innerText = timeStr;
+                    
+                    updateConnectionStatus(true, savedType);
+                    autoAdjustDateFilters();
+                    applyFilters();
+                    if (!isInitial) {
+                        showNotification('실시간 동기화 완료', '모든 활성 탭 데이터가 완벽 결합되었습니다!', 'success');
+                    }
+                } else {
+                    handleSyncFailure(isInitial);
+                }
+            } else {
+                handleSyncFailure(isInitial);
+            }
+
+            if (btn && icon) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                icon.classList.remove('animate-spin');
+            }
+        }
+
+        // [초강력 날짜 정규화 엔진]
+        function normalizeDate(rawDate) {
+            if (!rawDate) return '-';
+            
+            if (rawDate instanceof Date) {
+                let y = rawDate.getFullYear();
+                let m = String(rawDate.getMonth() + 1).padStart(2, '0');
+                let d = String(rawDate.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            let str = rawDate.toString().trim();
+            if (str === '' || str === '미구성' || str === '-') return '-';
+
+            if (str.includes('T')) {
+                str = str.split('T')[0];
+            }
+
+            let parsed = new Date(str);
+            if (!isNaN(parsed.getTime()) && str.length > 8 && (str.includes('GMT') || str.includes('Korea') || str.includes('Standard'))) {
+                let y = parsed.getFullYear();
+                let m = String(parsed.getMonth() + 1).padStart(2, '0');
+                let d = String(parsed.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            let clean = str.replace(/[\./]/g, '-').replace(/\s+/g, '');
+            if (clean.endsWith('-')) {
+                clean = clean.slice(0, -1);
+            }
+            const parts = clean.split('-');
+            if (parts.length === 3) {
+                let y = parts[0];
+                if (y.length === 2) {
+                    y = '20' + y;
+                }
+                const m = parts[1].padStart(2, '0');
+                const d = parts[2].padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            if (clean.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return clean;
+            }
+            return '-';
+        }
+
+        // [동적 지능형 시트 데이터 매퍼 (Semantic Auto-Mapper)]
+        function mapCSVData(csvRows) {
+            if (csvRows.length < 2) return [];
+            let headers = csvRows[0].map(h => h ? h.toString().trim().replace(/\s+/g, '') : '');
+            
+            // 시트 컬럼 유연 대응 사전 정의
+            let fieldMap = {
+                date: ['상차일', '도착지', 'date'], // 상차일을 메인 date로 매핑
+                regDate: ['포장일', '등록일자', '일자', '등록', 'regDate'], // 포장일을 등록일자(regDate)로 1:1 분리 🌟
+                round: ['수주건명', '건명', '차수', '수출차수', 'round'],
+                qty: ['수량', '수량(EA)', 'qty', '개수'],
+                dueDate: ['전산상 납기', '납기일', '납기', 'dueDate'],
+                country: ['도착지', '도착', '국가', 'country'],
+                targetQty: ['대상(EA)', '대상(ea)', '대상', 'targetQty'],
+                strengthenedQty: ['강화(EA)', '강화(ea)', '강화', 'strengthenedQty'],
+                shippedQty: ['출고(EA)', '출고(ea)', '출고', 'shippedQty'],
+                cost: ['강화비용', '비용', 'cost'],
+                status: ['진행', '상태', '진행상태', 'status'],
+                operator: ['작업자', '담당', '담당자', 'operator'],
+                code: ['품목코드', '제품코드', '코드', 'code'],
+                color: ['색상', '컬러', 'color'],
+                specW: ['가로', 'W', 'w', 'width', 'specW'],
+                specD: ['세로', 'D', 'd', 'depth', 'length', 'specD'],
+                specH: ['높이', 'H', 'h', 'height', 'specH'],
+                specG: ['중량', '무게', 'G', 'g', 'weight', 'specG']
+            };
+
+            let indices = {};
+            for (let field in fieldMap) {
+                indices[field] = -1;
+                for (let alias of fieldMap[field]) {
+                    let idx = headers.findIndex(h => h.toLowerCase().replace(/\s+/g, '') === alias.toLowerCase());
+                    if (idx === -1) {
+                        idx = headers.findIndex(h => h.toLowerCase().includes(alias.toLowerCase()));
+                    }
+                    if (idx !== -1) {
+                        indices[field] = idx;
+                        break;
+                    }
+                }
+            }
+
+            let wIdx = headers.findIndex(h => h.includes('가로'));
+            if (wIdx !== -1) {
+                indices.specW = wIdx;
+                indices.specD = wIdx + 1;
+                indices.specH = wIdx + 2;
+                indices.specG = wIdx + 3;
+            }
+
+            let mappedList = [];
+            for (let i = 1; i < csvRows.length; i++) {
+                let row = csvRows[i];
+                if (row.length === 0 || row.every(cell => !cell || cell.toString().trim() === "")) continue;
+
+                let dateVal = indices.date !== -1 && indices.date < row.length && row[indices.date] ? normalizeDate(row[indices.date]) : '-';
+                let regDateVal = indices.regDate !== -1 && indices.regDate < row.length && row[indices.regDate] ? normalizeDate(row[indices.regDate]) : dateVal; // 등록일자(포장일) 🌟
+                let roundVal = indices.round !== -1 && indices.round < row.length && row[indices.round] ? row[indices.round].toString().trim() : 'FAM-00';
+                
+                let rawQtyStr = indices.qty !== -1 && indices.qty < row.length && row[indices.qty] ? row[indices.qty].toString().trim() : '';
+                let qtyVal = parseInt(rawQtyStr.replace(/[^0-9]/g, '')) || 0;
+                
+                let dueDateVal = indices.dueDate !== -1 && indices.dueDate < row.length && row[indices.dueDate] ? normalizeDate(row[indices.dueDate]) : '2026-06-24';
+                let statusRaw = indices.status !== -1 && indices.status < row.length && row[indices.status] ? row[indices.status].toString().trim() : '출고완료';
+                let operatorVal = indices.operator !== -1 && indices.operator < row.length && row[indices.operator] ? row[indices.operator].toString().trim() : '-';
+                let codeVal = indices.code !== -1 && indices.code < row.length && row[indices.code] ? row[indices.code].toString().trim() : 'CAC2083SN';
+                let colorVal = indices.color !== -1 && indices.color < row.length && row[indices.color] ? row[indices.color].toString().trim() : 'WW';
+
+                let specWVal = indices.specW !== -1 && indices.specW < row.length && row[indices.specW] ? row[indices.specW].toString().trim() : '';
+                let specDVal = indices.specD !== -1 && indices.specD < row.length && row[indices.specD] ? row[indices.specD].toString().trim() : '';
+                let specHVal = indices.specH !== -1 && indices.specH < row.length && row[indices.specH] ? row[indices.specH].toString().trim() : '';
+                let specGVal = indices.specG !== -1 && indices.specG < row.length && row[indices.specG] ? row[indices.specG].toString().trim() : '';
+
+                if (specWVal && !specWVal.toLowerCase().includes('mm') && !isNaN(specWVal.replace(/[^0-9]/g, ''))) specWVal += 'mm';
+                if (specDVal && !specDVal.toLowerCase().includes('mm') && !isNaN(specDVal.replace(/[^0-9]/g, ''))) specDVal += 'mm';
+                if (specHVal && !specHVal.toLowerCase().includes('mm') && !isNaN(specHVal.replace(/[^0-9]/g, ''))) specHVal += 'mm';
+                if (specGVal && !specGVal.toLowerCase().includes('kg') && !isNaN(specGVal.replace(/[^0-9\.]/g, ''))) specGVal += 'kg';
+
+                let statusVal = '출고완료';
+                if (statusRaw === '출고' || statusRaw === '출고완료' || statusRaw === '피킹') {
+                    statusVal = '출고완료';
+                } else if (statusRaw === '포장' || statusRaw === '포장완료') {
+                    statusVal = '포장완료';
+                } else if (statusRaw === '대기' || statusRaw === '포장대기') {
+                    statusVal = '포장대기';
+                } else if (statusRaw === '미입고' || statusRaw === '미입고상태' || statusRaw === '입고') {
+                    statusVal = '미입고';
+                } else {
+                    statusVal = statusRaw;
+                }
+
+                let targetQtyVal = 0;
+                let strengthenedQtyVal = 0;
+                let shippedQtyVal = 0;
+
+                let hasExplicitTarget = indices.targetQty !== -1 && indices.targetQty < row.length && row[indices.targetQty] && parseInt(row[indices.targetQty].toString().replace(/[^0-9]/g, '')) > 0;
+                let hasExplicitStrengthened = indices.strengthenedQty !== -1 && indices.strengthenedQty < row.length && row[indices.strengthenedQty] && parseInt(row[indices.strengthenedQty].toString().replace(/[^0-9]/g, '')) > 0;
+                let hasExplicitShipped = indices.shippedQty !== -1 && indices.shippedQty < row.length && row[indices.shippedQty] && parseInt(row[indices.shippedQty].toString().replace(/[^0-9]/g, '')) > 0;
+
+                if (hasExplicitTarget || hasExplicitStrengthened || hasExplicitShipped) {
+                    targetQtyVal = indices.targetQty !== -1 && indices.targetQty < row.length && row[indices.targetQty] ? parseInt(row[indices.targetQty].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                    strengthenedQtyVal = indices.strengthenedQty !== -1 && indices.strengthenedQty < row.length && row[indices.strengthenedQty] ? parseInt(row[indices.strengthenedQty].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                    shippedQtyVal = indices.shippedQty !== -1 && indices.shippedQty < row.length && row[indices.shippedQty] ? parseInt(row[indices.shippedQty].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                } else {
+                    targetQtyVal = qtyVal;
+                    if (statusVal === '출고완료') {
+                        strengthenedQtyVal = qtyVal;
+                        shippedQtyVal = qtyVal;
+                    } else if (statusVal === '포장완료') {
+                        strengthenedQtyVal = qtyVal;
+                        shippedQtyVal = 0;
+                    } else { 
+                        strengthenedQtyVal = 0;
+                        shippedQtyVal = 0;
+                    }
+                }
+
+                let countryVal = 'FAM';
+                if (indices.country !== -1 && indices.country < row.length && row[indices.country] && row[indices.country].toString().trim() !== '') {
+                    countryVal = row[indices.country].toString().trim();
+                } else {
+                    let rUpper = roundVal.toUpperCase().trim();
+                    if (rUpper.startsWith('FAM')) {
+                        countryVal = 'FAM';
+                    } else if (rUpper.startsWith('NY')) {
+                        countryVal = 'NY';
+                    } else if (rUpper.startsWith('INICS')) {
+                        countryVal = 'INICS';
+                    } else if (rUpper.startsWith('TOF')) {
+                        countryVal = 'TOF';
+                    } else if (rUpper.startsWith('DOMESTIC')) {
+                        countryVal = 'Domestic';
+                    } else {
+                        let match = rUpper.match(/^([A-Z]+)/);
+                        countryVal = match ? match[1] : 'FAM';
+                    }
+                }
+
+                let costVal = indices.cost !== -1 && indices.cost < row.length && row[indices.cost] ? parseInt(row[indices.cost].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                if (costVal === 0 && strengthenedQtyVal > 0) {
+                    costVal = strengthenedQtyVal * 1200;
+                }
+
+                mappedList.push({
+                    date: dateVal, regDate: regDateVal, round: roundVal, qty: qtyVal, dueDate: dueDateVal, country: countryVal,
+                    targetQty: targetQtyVal, strengthenedQty: strengthenedQtyVal, shippedQty: shippedQtyVal,
+                    cost: costVal, status: statusVal, operator: operatorVal, code: codeVal, color: colorVal,
+                    specW: specWVal, specD: specDVal, specH: specHVal, specG: specGVal
+                });
+            }
+
+            let specCache = {};
+            mappedList.forEach(item => {
+                let codeLower = (item.code || '').toLowerCase().trim();
+                let w = (item.specW && item.specW !== '-') ? item.specW : '';
+                let d = (item.specD && item.specD !== '-') ? item.specD : '';
+                let h = (item.specH && item.specH !== '-') ? item.specH : '';
+                let g = (item.specG && item.specG !== '-') ? item.specG : '';
+                
+                if (w || d || h || g) {
+                    if (!specCache[codeLower]) {
+                        specCache[codeLower] = { w, d, h, g };
+                    } else {
+                        if (w) specCache[codeLower].w = w;
+                        if (d) specCache[codeLower].d = d;
+                        if (h) specCache[codeLower].h = h;
+                        if (g) specCache[codeLower].g = g;
+                    }
+                }
+            });
+
+            mappedList.forEach(item => {
+                let codeLower = (item.code || '').toLowerCase().trim();
+                let cache = specCache[codeLower];
+                if (cache) {
+                    if (!item.specW || item.specW === '-') item.specW = cache.w || '-';
+                    if (!item.specD || item.specD === '-') item.specD = cache.d || '-';
+                    if (!item.specH || item.specH === '-') item.specH = cache.h || '-';
+                    if (!item.specG || item.specG === '-') item.specG = cache.g || '-';
+                }
+            });
+
+            return mappedList;
+        }
+
+        // 날짜 필터 제어
+        function autoAdjustDateFilters() {
+            try {
+                if (!state.data || state.data.length === 0) return;
+                const dates = state.data.map(item => item.date).filter(d => d && typeof d === 'string' && d !== '-' && d.match(/^\d{4}-\d{2}-\d{2}$/));
+                if (dates.length === 0) {
+                    const dueDates = state.data.map(item => item.dueDate).filter(d => d && typeof d === 'string' && d !== '-' && d.match(/^\d{4}-\d{2}-\d{2}$/));
+                    if (dueDates.length === 0) return;
+                    dueDates.sort();
+                    document.getElementById('startDateFilter').value = dueDates[0];
+                    document.getElementById('endDateFilter').value = dueDates[dueDates.length - 1];
+                    return;
+                }
+                
+                dates.sort();
+                const minDate = dates[0];
+                const maxDate = dates[dates.length - 1];
+
+                document.getElementById('startDateFilter').value = minDate;
+                document.getElementById('endDateFilter').value = maxDate;
+            } catch (err) {
+                console.error("autoAdjustDateFilters error:", err);
+            }
+        }
+
+        // 다중 파일 추가 로더
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e.target.error);
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+
+        // 🌟 [중복 방지 결합 알고리즘 리팩토링]: 이종의 여러 파일 로드 시 중복 유실 증발 완벽 해결 🌟
+        function mergeDatasets(existingData, newData) {
+            const map = new Map();
+            existingData.forEach(item => {
+                const key = `${item.date}|${item.regDate}|${item.round}|${item.code}|${item.color}|${item.qty}`;
+                map.set(key, item);
+            });
+            newData.forEach(item => {
+                const key = `${item.date}|${item.regDate}|${item.round}|${item.code}|${item.color}|${item.qty}`;
+                if (map.has(key)) {
+                    const existing = map.get(key);
+                    const statusPriority = { '출고완료': 4, '포장완료': 3, '포장대기': 2, '미입고': 1 };
+                    const pExisting = statusPriority[existing.status] || 0;
+                    const pNew = statusPriority[item.status] || 0;
+                    
+                    if (pNew >= pExisting) {
+                        const mergedItem = { ...existing, ...item };
+                        if (!item.specW || item.specW === '-') mergedItem.specW = existing.specW;
+                        if (!item.specD || item.specD === '-') mergedItem.specD = existing.specD;
+                        if (!item.specH || item.specH === '-') mergedItem.specH = existing.specH;
+                        if (!item.specG || item.specG === '-') mergedItem.specG = existing.specG;
+                        map.set(key, mergedItem);
+                    } else {
+                        if (!existing.specW || existing.specW === '-') existing.specW = item.specW;
+                        if (!existing.specD || existing.specD === '-') existing.specD = item.specD;
+                        if (!existing.specH || existing.specH === '-') existing.specH = item.specH;
+                        if (!existing.specG || existing.specG === '-') existing.specG = item.specG;
+                        map.set(key, existing);
+                    }
+                } else {
+                    map.set(key, item);
+                }
+            });
+            return Array.from(map.values());
+        }
+
+        // 다중 파일 CSV 업로드
+        async function handleCsvUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            let fileNames = [];
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    fileNames.push(file.name);
+                    const text = await readFileAsText(file);
+                    const csvRows = parseCSV(text);
+                    const parsedData = mapCSVData(csvRows);
+                    
+                    // 파일명 기준 개별 수용 🌟
+                    datasetMap[file.name] = parsedData;
+                }
+
+                combineDatasets();
+                updateFileBadges();
+
+                const now = new Date();
+                document.getElementById('syncTimestamp').innerText = now.getFullYear() + '-' + 
+                                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                                String(now.getDate()).padStart(2, '0') + ' ' + 
+                                String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0');
+
+                autoAdjustDateFilters();
+                applyFilters();
+                showNotification('CSV 업로드 성공', `${fileNames.length}개 시트의 데이터와 제품 스펙이 실시간 크로스 결합되었습니다.`, 'success');
+            } catch (err) {
+                console.error(err);
+                showNotification('파일 병합 오류', '업로드하신 파일의 수식을 정상 분석할 수 없습니다.', 'error');
+            }
+        }
+
+        // 업로드 데이터 리셋
+        function clearUploadedData() {
+            datasetMap = {
+                'default': [...initialData]
+            };
+            combineDatasets();
+            updateFileBadges();
+            
+            document.getElementById('syncTimestamp').innerText = '초기 로드 대기';
+
+            sortConfig.key = null;
+            sortConfig.direction = 'none';
+            updateSortHeaders();
+
+            autoAdjustDateFilters();
+            applyFilters();
+            showNotification('대시보드 초기화 완료', '모든 로컬 업로드 파일이 소멸되었으며 데모 데이터셋으로 안전 복원되었습니다.', 'success');
+        }
+
+        // 연동 상태 컨트롤러
+        function updateConnectionStatus(isOnline, type = '') {
+            const indicator = document.getElementById('connIndicator');
+            if (isOnline) {
+                if (type === 'bypass') {
+                    indicator.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/10 text-accentGreen border border-green-500/20';
+                    indicator.innerHTML = `
+                        <span class="h-1.5 w-1.5 rounded-full bg-accentGreen animate-pulse"></span>
+                        사내 보안망 실시간 연결됨 (LIVE)
+                    `;
+                } else {
+                    indicator.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/10 text-accentGreen border border-green-500/20';
+                    indicator.innerHTML = `
+                        <span class="h-1.5 w-1.5 rounded-full bg-accentGreen animate-pulse"></span>
+                        구글 시트 라이브 연결됨
+                    `;
+                }
+            } else {
+                const listSpanText = document.getElementById('loadedFilesList').innerText;
+                if (listSpanText && listSpanText !== '대기 중') return;
+
+                indicator.className = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500/10 text-accentOrange border border-amber-500/20';
+                indicator.innerHTML = `
+                    <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-ping"></span>
+                    로컬 오프라인 모드
+                `;
+            }
+        }
+
+        // 🌟 [원장 테이블 컬럼 동적 정렬 제어 엔진] 🌟
+        function handleSort(key) {
+            if (sortConfig.key === key) {
+                if (sortConfig.direction === 'asc') {
+                    sortConfig.direction = 'desc';
+                } else if (sortConfig.direction === 'desc') {
+                    sortConfig.direction = 'none';
+                    sortConfig.key = null;
+                } else {
+                    sortConfig.direction = 'asc';
+                }
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'asc';
+            }
+            
+            sortData();
+            renderTable();
+            updateSortHeaders();
+        }
+
+        // 🌟 [정밀 정렬 핵심 로직] 🌟
+        function sortData() {
+            const key = sortConfig.key;
+            const dir = sortConfig.direction;
+            
+            if (dir === 'none' || !key) {
+                state.filteredData.sort((a, b) => (a.originalIndex || 0) - (b.originalIndex || 0));
+                return;
+            }
+
+            const multiDir = dir === 'asc' ? 1 : -1;
+            
+            state.filteredData.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+                
+                if (valA === undefined || valA === null) valA = '-';
+                if (valB === undefined || valB === null) valB = '-';
+                
+                if ((valA === '-' || valA === '') && (valB === '-' || valB === '')) return 0;
+                if (valA === '-' || valA === '') return 1; 
+                if (valB === '-' || valB === '') return -1;
+                
+                if (key === 'qty' || key === 'targetQty' || key === 'strengthenedQty' || key === 'shippedQty' || key === 'cost') {
+                    const numA = Number(valA.toString().replace(/[^0-9]/g, '')) || 0;
+                    const numB = Number(valB.toString().replace(/[^0-9]/g, '')) || 0;
+                    return (numA - numB) * multiDir;
+                }
+                
+                const strA = valA.toString();
+                const strB = valB.toString();
+                return strA.localeCompare(strB) * multiDir;
+            });
+        }
+
+        // 정렬 아이콘 헤더 인터랙션 동적 가공 함수
+        function updateSortHeaders() {
+            const keys = ['regDate', 'round', 'code', 'qty', 'dueDate', 'date', 'targetQty', 'strengthenedQty', 'shippedQty', 'cost', 'status', 'country'];
+            keys.forEach(k => {
+                const iconId = `sort-icon-${k}`;
+                const el = document.getElementById(iconId);
+                if (el) {
+                    if (sortConfig.key === k && sortConfig.direction !== 'none') {
+                        el.innerHTML = sortConfig.direction === 'asc' ? '<i class="fa-solid fa-sort-up text-accentBlue"></i>' : '<i class="fa-solid fa-sort-down text-accentBlue"></i>';
+                    } else {
+                        el.innerHTML = '<i class="fa-solid fa-sort text-slate-500"></i>';
+                    }
+                }
+            });
+        }
+
+        // 🌟 [수출 제품 세부 진행 이력 전용 3단계 동적 정렬 엔진] 🌟
+        function handleDetailSort(key) {
+            if (detailSortConfig.key === key) {
+                if (detailSortConfig.direction === 'asc') {
+                    detailSortConfig.direction = 'desc';
+                } else if (detailSortConfig.direction === 'desc') {
+                    detailSortConfig.direction = 'none';
+                    detailSortConfig.key = null;
+                } else {
+                    detailSortConfig.direction = 'asc';
+                }
+            } else {
+                detailSortConfig.key = key;
+                detailSortConfig.direction = 'asc';
+            }
+            
+            const currentCode = document.getElementById('detailProductCode').innerText;
+            renderProductDetailTable(currentCode);
+            updateDetailSortHeaders();
+        }
+
+        // 상세 뷰 정렬 아이콘 헤더 인터랙션 동적 가공 함수
+        function updateDetailSortHeaders() {
+            const keys = ['round', 'code', 'color', 'qty', 'status', 'dueDate', 'date'];
+            keys.forEach(k => {
+                const el = document.getElementById(`detail-sort-icon-${k}`);
+                if (el) {
+                    if (detailSortConfig.key === k && detailSortConfig.direction !== 'none') {
+                        el.innerHTML = detailSortConfig.direction === 'asc' ? '<i class="fa-solid fa-sort-up text-accentBlue"></i>' : '<i class="fa-solid fa-sort-down text-accentBlue"></i>';
+                    } else {
+                        el.innerHTML = '<i class="fa-solid fa-sort text-slate-500"></i>';
+                    }
+                }
+            });
+        }
+
+        // 필터링 적용 (하이브리드 결합 방식)
+        function applyFilters() {
+            try {
+                const roundQuery = document.getElementById('roundFilter').value.toLowerCase().trim();
+                const productCodeQuery = document.getElementById('productCodeFilter').value.toLowerCase().trim();
+                const countryQuery = document.getElementById('countryFilter').value.toLowerCase().trim();
+                const startDate = document.getElementById('startDateFilter').value;
+                const endDate = document.getElementById('endDateFilter').value;
+
+                state.filteredData = state.data.filter(item => {
+                    let itemDate = item.date && item.date !== '-' ? item.date : item.dueDate;
+                    let matchesDate = true;
+                    if (startDate) {
+                        matchesDate = matchesDate && (itemDate >= startDate);
+                    }
+                    if (endDate) {
+                        matchesDate = matchesDate && (itemDate <= endDate);
+                    }
+
+                    const matchesRound = item.round ? item.round.toLowerCase().includes(roundQuery) : true;
+                    const matchesCode = item.code ? item.code.toLowerCase().includes(productCodeQuery) : true;
+                    const matchesCountry = item.country ? item.country.toLowerCase().includes(countryQuery) : true;
+
+                    return matchesDate && matchesRound && matchesCode && matchesCountry;
+                });
+
+                sortData();
+
+                const exactProductCode = document.getElementById('productCodeFilter').value.trim();
+                
+                if (exactProductCode !== "") {
+                    switchToProductDetailView(exactProductCode);
+                } else {
+                    switchToGeneralDashboardView();
+                    updateKPIs();
+                    renderTable();
+                    renderCharts();
+                    updateSortHeaders(); 
+                }
+                updateNearestSchedule(); 
+            } catch (err) {
+                console.error("applyFilters error:", err);
+            }
+        }
+
+        // 6-1. [제품 전용 상세 뷰 렌더러]
+        function switchToProductDetailView(productCode) {
+            document.getElementById('generalDashboardView').classList.add('hidden');
+            document.getElementById('productDetailView').classList.remove('hidden');
+
+            document.getElementById('detailProductCode').innerText = productCode.toUpperCase();
+
+            const matchItem = state.filteredData.find(item => item.code.toLowerCase() === productCode.toLowerCase() && (item.specW && item.specW !== '-' || item.specD && item.specD !== '-' || item.specH && item.specH !== '-' || item.specG && item.specG !== '-')) 
+                             || state.data.find(item => item.code.toLowerCase() === productCode.toLowerCase() && (item.specW && item.specW !== '-' || item.specD && item.specD !== '-' || item.specH && item.specH !== '-' || item.specG && item.specG !== '-'))
+                             || state.filteredData.find(item => item.code.toLowerCase() === productCode.toLowerCase()) 
+                             || state.data.find(item => item.code.toLowerCase() === productCode.toLowerCase());
+
+            if (matchItem) {
+                document.getElementById('specW').innerText = (matchItem.specW && matchItem.specW.trim() !== '') ? matchItem.specW : '-';
+                document.getElementById('specD').innerText = (matchItem.specD && matchItem.specD.trim() !== '') ? matchItem.specD : '-';
+                document.getElementById('specH').innerText = (matchItem.specH && matchItem.specH.trim() !== '') ? matchItem.specH : '-';
+                document.getElementById('specG').innerText = (matchItem.specG && matchItem.specG.trim() !== '') ? matchItem.specG : '-';
+            } else {
+                document.getElementById('specW').innerText = '-';
+                document.getElementById('specD').innerText = '-';
+                document.getElementById('specH').innerText = '-';
+                document.getElementById('specG').innerText = '-';
+            }
+
+            detailSortConfig.key = null;
+            detailSortConfig.direction = 'none';
+            updateDetailSortHeaders();
+
+            renderProductDetailTable(productCode);
+        }
+
+        // 6-2. [제품상세 테이블 그리드 그리기 (상세 3단계 정렬 구조 결합 완비)]
+        function renderProductDetailTable(productCode) {
+            const tbody = document.getElementById('productDetailTableBody');
+            tbody.innerHTML = '';
+
+            let matchedList = state.data.filter(item => item.code.toLowerCase() === productCode.toLowerCase());
+
+            if (matchedList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-500">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i>
+                            시트에 '${productCode}' 제품에 매칭되는 상세 차수 공정 기록이 존재하지 않습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // 상세 뷰 3단계 정렬 수행
+            if (detailSortConfig.key && detailSortConfig.direction !== 'none') {
+                const k = detailSortConfig.key;
+                const d = detailSortConfig.direction === 'asc' ? 1 : -1;
+                
+                matchedList.sort((a, b) => {
+                    let valA = a[k];
+                    let valB = b[k];
+                    
+                    if (valA === undefined || valA === null) valA = '-';
+                    if (valB === undefined || valB === null) valB = '-';
+                    
+                    if ((valA === '-' || valA === '') && (valB === '-' || valB === '')) return 0;
+                    if (valA === '-' || valA === '') return 1;
+                    if (valB === '-' || valB === '') return -1;
+                    
+                    if (k === 'qty') {
+                        const numA = Number(valA.toString().replace(/[^0-9]/g, '')) || 0;
+                        const numB = Number(valB.toString().replace(/[^0-9]/g, '')) || 0;
+                        return (numA - numB) * d;
+                    }
+                    
+                    const strA = valA.toString();
+                    const strB = valB.toString();
+                    return strA.localeCompare(strB) * d;
+                });
+            } else {
+                matchedList.sort((a, b) => (a.originalIndex || 0) - (b.originalIndex || 0));
+            }
+
+            matchedList.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors duration-150 border-b border-borderSlate/30';
+
+                let statusBadge = 'bg-slate-800 text-slate-300 border-slate-700';
+                if (item.status === '출고완료') {
+                    statusBadge = 'bg-accentGreen/10 text-accentGreen border-accentGreen/20 font-bold';
+                } else if (item.status === '포장완료') {
+                    statusBadge = 'bg-accentBlue/10 text-accentBlue border-accentBlue/20 font-bold';
+                } else if (item.status === '포장대기') {
+                    statusBadge = 'bg-accentOrange/10 text-accentOrange border-accentOrange/20 font-bold';
+                } else if (item.status === '미입고' || item.status === '미입고상태') {
+                    statusBadge = 'bg-accentRed/10 text-accentRed border-accentRed/20 font-bold';
+                }
+
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-center text-slate-500 font-bold text-xs">*</td>
+                    <td class="py-4 px-6 font-semibold text-white">${item.round}</td>
+                    <td class="py-4 px-6 font-mono text-accentBlue font-medium">${item.code}</td>
+                    <td class="py-4 px-6 font-semibold text-slate-400 font-mono">${item.color || 'WW'}</td>
+                    <td class="py-4 px-6 text-center font-bold text-slate-300 font-mono">${item.qty}EA</td>
+                    <td class="py-4 px-6 text-center"><span class="px-3 py-1 rounded-full border text-xs ${statusBadge}">${item.status}</span></td>
+                    <td class="py-4 px-6 text-slate-400 font-mono text-xs">${normalizeDate(item.dueDate)}</td>
+                    <td class="py-4 px-6 text-accentBlue font-bold text-sm font-mono">${normalizeDate(item.date)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 미래 일정만 임박 수출 일정에 표출되도록 상차일/납기일 계산 알고리즘 정비
+        function updateNearestSchedule() {
+            const list = state.filteredData.length > 0 ? state.filteredData : state.data;
+            if (!list || list.length === 0) {
+                clearNearestScheduleUI();
+                return;
+            }
+
+            // 오늘 날짜인 2026-06-25일 시점으로 고정 설정
+            const today = new Date('2026-06-25'); 
+            const todayReset = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            let nearestItem = null;
+            let minDiff = Infinity;
+
+            list.forEach(item => {
+                let loadDateVal = item.date && item.date !== '-' ? new Date(item.date) : null;
+                
+                let cleanDue = (item.dueDate || '').toString().replace(/\s+/g, '').replace(/\./g, '-');
+                if (cleanDue.split('-')[0].length === 2) {
+                    cleanDue = '20' + cleanDue;
+                }
+                const dueDateVal = new Date(cleanDue);
+
+                // 오늘 포함 미래 일자만 판별 가이드 작동
+                [loadDateVal, dueDateVal].forEach(d => {
+                    if (!d || isNaN(d.getTime())) return;
+                    
+                    const compareTarget = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                    const diff = compareTarget.getTime() - todayReset.getTime();
+                    
+                    // 과거 일자(6월 24일 이전)는 무조건 배제 (0일 이상만 통과)
+                    if (diff < 0) return;
+
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        nearestItem = item;
+                    }
+                });
+            });
+
+            if (nearestItem) {
+                document.getElementById('nearestRoundName').innerText = nearestItem.round;
+                
+                const loadDate = nearestItem.date && nearestItem.date !== '-' ? new Date(nearestItem.date) : null;
+                let cleanDue = (nearestItem.dueDate || '').toString().replace(/\s+/g, '').replace(/\./g, '-');
+                if (cleanDue.split('-')[0].length === 2) {
+                    cleanDue = '20' + cleanDue;
+                }
+                const dueDate = new Date(cleanDue);
+
+                let targetDate = loadDate && !isNaN(loadDate.getTime()) ? loadDate : dueDate;
+                if (loadDate && !isNaN(loadDate.getTime()) && !isNaN(dueDate.getTime())) {
+                    const diffLoad = loadDate.getTime() - todayReset.getTime();
+                    const diffDue = dueDate.getTime() - todayReset.getTime();
+                    if (diffLoad >= 0 && diffDue >= 0) {
+                        targetDate = diffLoad < diffDue ? loadDate : dueDate;
+                    } else if (diffLoad >= 0) {
+                        targetDate = loadDate;
+                    } else {
+                        targetDate = dueDate;
+                    }
+                }
+
+                const diffTime = targetDate.getTime() - todayReset.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                const ddayEl = document.getElementById('nearestDDay');
+                if (diffDays === 0) {
+                    ddayEl.innerText = 'D-Day';
+                    ddayEl.className = 'text-[10px] bg-red-500/10 text-accentRed border border-red-500/20 px-2 py-0.5 rounded-full font-bold';
+                } else {
+                    ddayEl.innerText = `D-${diffDays}`;
+                    ddayEl.className = 'text-[10px] bg-accentOrange/10 text-accentOrange border border-accentOrange/20 px-2 py-0.5 rounded-full font-bold';
+                }
+
+                document.getElementById('nearestLoadDate').innerText = nearestItem.date && nearestItem.date !== '-' ? normalizeDate(nearestItem.date) : '미구성';
+                document.getElementById('nearestDueDate').innerText = normalizeDate(nearestItem.dueDate);
+            } else {
+                clearNearestScheduleUI();
+            }
+        }
+
+        function clearNearestScheduleUI() {
+            document.getElementById('nearestRoundName').innerText = '진행 예정 없음';
+            const ddayEl = document.getElementById('nearestDDay');
+            ddayEl.innerText = '-';
+            ddayEl.className = 'text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20 px-2 py-0.5 rounded-full font-bold';
+            document.getElementById('nearestLoadDate').innerText = '-';
+            document.getElementById('nearestDueDate').innerText = '-';
+        }
+
+        function exitProductDetailView() {
+            document.getElementById('productCodeFilter').value = '';
+            switchToGeneralDashboardView();
+            applyFilters();
+        }
+
+        function switchToGeneralDashboardView() {
+            document.getElementById('productDetailView').classList.add('hidden');
+            document.getElementById('generalDashboardView').classList.remove('hidden');
+        }
+
+        // 지표 계산기
+        function updateKPIs() {
+            const filtered = state.filteredData;
+            
+            let totalTarget = 0;
+            let totalStrengthened = 0;
+            let totalShipped = 0;
+            let totalCost = 0;
+
+            const targetCodesSet = new Set();
+            const strengthenedCodesSet = new Set();
+            const shippedCodesSet = new Set();
+            const remainingCodesSet = new Set();
+
+            filtered.forEach(item => {
+                totalTarget += item.targetQty;
+                totalStrengthened += item.strengthenedQty;
+                totalShipped += item.shippedQty;
+                totalCost += item.cost;
+
+                targetCodesSet.add(item.code);
+                
+                if (item.strengthenedQty > 0) {
+                    strengthenedCodesSet.add(item.code);
+                }
+                if (item.shippedQty > 0) {
+                    shippedCodesSet.add(item.code);
+                }
+                if (item.targetQty - item.strengthenedQty > 0) {
+                    remainingCodesSet.add(item.code);
+                }
+            });
+
+            const totalRemaining = totalTarget - totalStrengthened;
+            const strengthenedRate = totalTarget > 0 ? ((totalStrengthened / totalTarget) * 100).toFixed(1) : '0.0';
+
+            // 종합 지표 맵핑 (CODE 수치 완벽 환원)
+            document.getElementById('generalKpiTargetQty').innerText = totalTarget.toLocaleString();
+            document.getElementById('generalKpiTargetCodes').innerText = targetCodesSet.size.toLocaleString() + ' CODE';
+
+            document.getElementById('generalKpiStrengthenedRate').innerText = `${strengthenedRate}%`;
+            document.getElementById('generalKpiStrengthenedQty').innerText = `${totalStrengthened.toLocaleString()} ea`;
+            document.getElementById('generalKpiStrengthenedCodes').innerText = `${strengthenedCodesSet.size.toLocaleString()} CODE`;
+
+            document.getElementById('generalKpiShippedQty').innerText = totalShipped.toLocaleString();
+            document.getElementById('generalKpiShippedCodes').innerText = `${shippedCodesSet.size.toLocaleString()} CODE`;
+
+            document.getElementById('generalKpiRemainingQty').innerText = Math.max(0, totalRemaining).toLocaleString();
+            document.getElementById('generalKpiRemainingCodes').innerText = `${remainingCodesSet.size.toLocaleString()} CODE`;
+            
+            document.getElementById('matchCount').innerText = filtered.length;
+            document.getElementById('totalDisplayCount').innerText = filtered.length;
+            document.getElementById('packagingRateAvg').innerText = `${strengthenedRate}%`;
+        }
+
+        // 포장 관리 원장 테이블 마운터
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (state.filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="py-12 text-center text-slate-500">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i>
+                            조건에 부합하는 수출 시트 데이터가 감지되지 않았습니다.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            state.filteredData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors duration-150';
+
+                let badgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+                if (item.status === '출고완료') {
+                    badgeClass = 'bg-accentGreen/10 text-accentGreen border-accentGreen/20 font-bold';
+                } else if (item.status === '포장완료') {
+                    badgeClass = 'bg-accentBlue/10 text-accentBlue border-accentBlue/20 font-bold';
+                } else if (item.status === '포장대기') {
+                    badgeClass = 'bg-accentOrange/10 text-accentOrange border-accentOrange/20 font-bold';
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-mono text-xs text-slate-400">${normalizeDate(item.regDate)}</td> <!-- 등록일자 (포장일 연계) -->
+                    <td class="py-3.5 px-4 font-semibold text-white text-xs">${item.round}</td> <!-- 건명 -->
+                    <td class="py-3.5 px-4 font-mono text-xs text-accentBlue">${item.code}</td> <!-- 제품코드 -->
+                    <td class="py-3.5 px-4 font-bold text-slate-300">${item.qty.toLocaleString()}</td> <!-- 수량 -->
+                    <td class="py-3.5 px-4 text-slate-400 font-mono text-xs">${normalizeDate(item.dueDate)}</td> <!-- 납기일 -->
+                    <td class="py-3.5 px-4 text-accentBlue font-bold text-sm font-mono">${normalizeDate(item.date)}</td> <!-- 상차일 -->
+                    <td class="py-3.5 px-4 text-center font-semibold text-slate-300">${item.targetQty.toLocaleString()}</td> <!-- 대상 -->
+                    <td class="py-3.5 px-4 text-center font-semibold text-accentGreen">${item.strengthenedQty.toLocaleString()}</td> <!-- 강화 -->
+                    <td class="py-3.5 px-4 text-center font-semibold text-accentOrange">${item.shippedQty.toLocaleString()}</td> <!-- 출고 -->
+                    <td class="py-3.5 px-4 text-right font-medium text-slate-300">${item.cost.toLocaleString()}원</td> <!-- 강화비용 -->
+                    <td class="py-3.5 px-4 text-center"><span class="px-2.5 py-0.5 rounded border text-xs ${badgeClass}">${item.status}</span></td> <!-- 상태 -->
+                    <td class="py-3.5 px-4 text-xs text-center"><span class="bg-slate-800 text-slate-300 px-2 py-1 rounded font-mono">${item.country}</span></td> <!-- 도착지 -->
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 차트 가공 렌더러
+        function renderCharts() {
+            if (typeof Chart === 'undefined') return; // 🌟 Chart.js 라이브러리 미로드 시 비정상 크래시 원천 방지 가드 장착 🌟
+
+            const filtered = state.filteredData;
+
+            const countryMap = {};
+            filtered.forEach(item => {
+                if (item.country.toLowerCase() === 'domestic') {
+                    return;
+                }
+                
+                if (!countryMap[item.country]) {
+                    countryMap[item.country] = { strengthened: 0, shipped: 0, rounds: {} };
+                }
+                countryMap[item.country].strengthened += item.strengthenedQty;
+                countryMap[item.country].shipped += item.shippedQty;
+
+                if (!countryMap[item.country].rounds[item.round]) {
+                    countryMap[item.country].rounds[item.round] = { strengthened: 0, shipped: 0 };
+                }
+                countryMap[item.country].rounds[item.round].strengthened += item.strengthenedQty;
+                countryMap[item.country].rounds[item.round].shipped += item.shippedQty;
+            });
+
+            const countryLabels = Object.keys(countryMap).sort();
+            const strengthenedData = countryLabels.map(c => countryMap[c].strengthened);
+            const shippedData = countryLabels.map(c => countryMap[c].shipped);
+
+            if (exportRoundChartInstance) {
+                exportRoundChartInstance.destroy();
+            }
+
+            const ctxA = document.getElementById('exportRoundChart').getContext('2d');
+            exportRoundChartInstance = new Chart(ctxA, {
+                type: 'bar',
+                data: {
+                    labels: countryLabels,
+                    datasets: [
+                        {
+                            label: '강화완료',
+                            data: strengthenedData,
+                            backgroundColor: 'rgba(0, 230, 118, 0.65)',
+                            borderColor: '#00E676',
+                            borderWidth: 1.5,
+                            borderRadius: 4
+                        },
+                        {
+                            label: '출고완료',
+                            data: shippedData,
+                            backgroundColor: 'rgba(255, 145, 0, 0.65)',
+                            borderColor: '#FF9100',
+                            borderWidth: 1.5,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (event, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const activeElement = activeElements[0];
+                            const index = activeElement.index;
+                            const datasetIndex = activeElement.datasetIndex;
+                            
+                            const country = exportRoundChartInstance.data.labels[index];
+                            const statusType = exportRoundChartInstance.data.datasets[datasetIndex].label;
+                            
+                            openChartDetailModal(country, statusType);
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#94A3B8', font: { size: 10 } } },
+                        tooltip: {
+                            mode: 'nearest',       
+                            intersect: true,      
+                            backgroundColor: '#111827',
+                            titleColor: '#00B0FF',
+                            titleFont: { weight: 'bold', size: 14 },
+                            bodyColor: '#F1F5F9',
+                            bodyFont: { size: 13, weight: 'bold', family: 'Inter, Noto Sans KR, sans-serif' },
+                            footerColor: '#00B0FF', 
+                            footerFont: { size: 11, weight: 'bold', family: 'Inter, Noto Sans KR, sans-serif' },
+                            footerMarginTop: 8,
+                            borderColor: '#1E293B',
+                            borderWidth: 1.5,
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false, 
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const country = context[0].chart.data.labels[index];
+                                    const datasetLabel = context[0].dataset.label;
+                                    return country + " - [" + datasetLabel + "]";
+                                },
+                                label: function(context) {
+                                    const totalValue = context.raw;
+                                    return "총 실적 합산: " + totalValue.toLocaleString() + " ea";
+                                },
+                                footer: function() {
+                                    return "💡 마우스 클릭 시 세부 차수 정보 표출";
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#64748B' },
+                            grid: { color: '#1E293B' }
+                        },
+                        x: {
+                            ticks: { color: '#94A3B8' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // 일별 가동 흐름 연산
+            const dateMap = {};
+            filtered.forEach(item => {
+                if (!dateMap[item.date]) {
+                    dateMap[item.date] = { strengthened: 0, shipped: 0 };
+                }
+                dateMap[item.date].strengthened += item.strengthenedQty;
+                dateMap[item.date].shipped += item.shippedQty;
+            });
+
+            const sortedDates = Object.keys(dateMap).sort();
+            const flowStrengthened = sortedDates.map(d => dateMap[d].strengthened);
+            const flowShipped = sortedDates.map(d => dateMap[d].shipped);
+
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
+            }
+
+            const ctxB = document.getElementById('trendChart').getContext('2d');
+            trendChartInstance = new Chart(ctxB, {
+                type: 'line',
+                data: {
+                    labels: sortedDates.map(d => d.slice(5)), 
+                    datasets: [
+                        {
+                            label: '누적 강화량',
+                            data: flowStrengthened,
+                            borderColor: '#00E676',
+                            backgroundColor: 'rgba(0, 230, 118, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.25
+                        },
+                        {
+                            label: '누적 출고량',
+                            data: flowShipped,
+                            borderColor: '#FF9100',
+                            backgroundColor: 'rgba(255, 145, 0, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.25
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#F1F5F9', font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#64748B' },
+                            grid: { color: '#1E293B' }
+                        },
+                        x: {
+                            ticks: { color: '#94A3B8' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 설정 패널 제어
+        function openSettingsModal() {
+            document.getElementById('inputSheetId').value = safeLocalStorage.getItem('sheet_id') || '1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54';
+            document.getElementById('inputGid').value = safeLocalStorage.getItem('sheet_gid') || '1357513790';
+            document.getElementById('inputPubUrl').value = safeLocalStorage.getItem('sheet_pub_url') || '';
+            document.getElementById('inputBypassUrl').value = safeLocalStorage.getItem('sheet_bypass_url') || '';
+            
+            const savedType = safeLocalStorage.getItem('sheet_conn_type') || 'bypass';
+            toggleInputType(savedType);
+
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function toggleInputType(type) {
+            activeSettingType = type;
+            const btnByp = document.getElementById('btnTypeByp');
+            const btnPub = document.getElementById('btnTypePub');
+            const btnStd = document.getElementById('btnTypeStd');
+            const formByp = document.getElementById('formTypeByp');
+            const formPub = document.getElementById('formTypePub');
+            const formStd = document.getElementById('formTypeStd');
+
+            if (type === 'bypass') {
+                btnByp.className = 'bg-accentGreen text-darkBg font-bold text-xs py-2 px-1 rounded-lg border border-accentGreen/30 transition-all';
+                btnPub.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
+                btnStd.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
+                formByp.classList.remove('hidden');
+                formPub.classList.add('hidden');
+                formStd.classList.add('hidden');
+            } else if (type === 'published') {
+                btnPub.className = 'bg-accentBlue text-darkBg font-bold text-xs py-2 px-1 rounded-lg border border-accentBlue/30 transition-all';
+                btnByp.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
+                btnStd.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
+                formPub.classList.remove('hidden');
+                formByp.classList.add('hidden');
+                formStd.classList.add('hidden');
+            } else {
+                btnStd.className = 'bg-accentBlue text-darkBg font-bold text-xs py-2 px-1 rounded-lg border border-accentBlue/30 transition-all';
+                btnByp.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
+                btnPub.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
+                formStd.classList.remove('hidden');
+                formByp.classList.add('hidden');
+                formPub.classList.add('hidden');
+            }
+        }
+
+        function saveConnectionSettings() {
+            const sheetId = document.getElementById('inputSheetId').value.trim();
+            const gid = document.getElementById('inputGid').value.trim();
+            const pubUrl = document.getElementById('inputPubUrl').value.trim();
+            const bypassUrl = document.getElementById('inputBypassUrl').value.trim();
+
+            safeLocalStorage.setItem('sheet_conn_type', activeSettingType);
+            safeLocalStorage.setItem('sheet_id', sheetId);
+            safeLocalStorage.setItem('sheet_gid', gid);
+            safeLocalStorage.setItem('sheet_pub_url', pubUrl);
+            safeLocalStorage.setItem('sheet_bypass_url', bypassUrl);
+
+            closeSettingsModal();
+            showNotification('설정 저장 완료', '수정된 구글 시트 연결 정보를 저장하고 즉시 갱신합니다.', 'success');
+            
+            syncWithGoogleSheets();
+        }
+
+        // 🌟 [안전 가드 장착]: G-Suite Iframe의 로컬 스토리지 차단 정책 우회용 보안 모듈 장착 🌟
+        const safeLocalStorage = {
+            getItem: function(key) {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn('Iframe Storage Security Blocked. Falling back to RAM Storage.');
+                    return this.memoryStore[key] || null;
+                }
+            },
+            setItem: function(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn('Iframe Storage Security Blocked. Falling back to RAM Storage.');
+                    this.memoryStore[key] = value;
+                }
+            },
+            memoryStore: {}
+        };
+
+        function loadSavedSettings() {
+            // Settings loaded when modal opens
+        }
+
+        function handleSyncFailure(isInitial) {
+            if (!isInitial) {
+                showNotification('연동 실패', '구글 시트에 연결할 수 없습니다. CSV 업로드를 이용하거나 연동 설정을 확인해주세요.', 'error');
+            }
+            updateConnectionStatus(false);
+            autoAdjustDateFilters();
+            applyFilters();
+        }
+
+        function resetFilters() {
+            document.getElementById('roundFilter').value = '';
+            document.getElementById('productCodeFilter').value = '';
+            document.getElementById('countryFilter').value = '';
+            document.getElementById('startDateFilter').value = '';
+            document.getElementById('endDateFilter').value = '';
+            sortConfig.key = null;
+            sortConfig.direction = 'none';
+            updateSortHeaders();
+            autoAdjustDateFilters();
+            applyFilters();
+        }
+
+        function exportToCSV() {
+            const headers = ['등록일자','건명','제품코드','수량','납기일','상차일','대상(EA)','강화(EA)','출고(EA)','강화비용','상태','도착지'];
+            const rows = state.filteredData.map(item => [
+                normalizeDate(item.regDate), item.round, item.code, item.qty,
+                normalizeDate(item.dueDate), normalizeDate(item.date),
+                item.targetQty, item.strengthenedQty, item.shippedQty,
+                item.cost, item.status, item.country
+            ]);
+            const csvContent = [headers, ...rows].map(r => r.map(v => '"' + v + '"').join(',')).join('\n');
+            const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '수출포장강화_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function parseCSV(text) {
+            const lines = [];
+            let current = '';
+            let inQuotes = false;
+            let row = [];
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') {
+                    if (inQuotes && text[i+1] === '"') { current += '"'; i++; }
+                    else { inQuotes = !inQuotes; }
+                } else if (char === ',' && !inQuotes) {
+                    row.push(current.trim()); current = '';
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && text[i+1] === '\n') i++;
+                    row.push(current.trim()); current = '';
+                    if (row.some(c => c !== '')) lines.push(row);
+                    row = [];
+                } else { current += char; }
+            }
+            if (current || row.length) { row.push(current.trim()); if (row.some(c => c !== '')) lines.push(row); }
+            return lines;
+        }
+
+        function openChartDetailModal(country, statusType) {
+            const filtered = state.filteredData.filter(item => item.country === country);
+            const roundMap = {};
+            filtered.forEach(item => {
+                if (!roundMap[item.round]) roundMap[item.round] = { strengthened: 0, shipped: 0 };
+                roundMap[item.round].strengthened += item.strengthenedQty;
+                roundMap[item.round].shipped += item.shippedQty;
+            });
+            document.getElementById('chartModalTitle').innerText = country + ' - ' + statusType + ' 차수 상세';
+            const tbody = document.getElementById('chartModalTableBody');
+            tbody.innerHTML = '';
+            Object.keys(roundMap).sort().forEach(round => {
+                const val = statusType === '강화완료' ? roundMap[round].strengthened : roundMap[round].shipped;
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+                tr.innerHTML = '<td class="py-2.5 px-4 font-semibold text-white">' + round + '</td><td class="py-2.5 px-4 text-right text-accentBlue font-bold">' + val.toLocaleString() + ' ea</td>';
+                tbody.appendChild(tr);
+            });
+            document.getElementById('chartDetailModal').classList.remove('hidden');
+        }
+
+        function closeChartDetailModal() {
+            document.getElementById('chartDetailModal').classList.add('hidden');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.add('hidden');
+        }
+
+        function showNotification(title, message, type) {
+            const toast = document.getElementById('toastAlert');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            const icon = document.getElementById('toastIcon');
+            if (type === 'success') {
+                icon.className = 'p-2 rounded-lg bg-accentGreen/20 text-accentGreen';
+                icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            } else if (type === 'error') {
+                icon.className = 'p-2 rounded-lg bg-accentRed/20 text-accentRed';
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+            } else {
+                icon.className = 'p-2 rounded-lg bg-accentBlue/20 text-accentBlue';
+                icon.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+            }
+            toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
