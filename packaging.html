@@ -771,6 +771,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedSettings();
+            enableDatePickerOpen();
             
             // 1. 페이지 로딩 즉시 데모 데이터 세팅
             datasetMap['default'] = [...initialData];
@@ -779,6 +780,18 @@
             // 2. 실시간 스프레드시트 갱신 시도 (초기에는 반응속도 극대화를 위해 1.5초 이내 타임아웃 가동)
             syncWithGoogleSheets(true);
         });
+
+        function enableDatePickerOpen() {
+            ['startDateFilter', 'endDateFilter'].forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+                input.addEventListener('click', () => {
+                    if (typeof input.showPicker === 'function') {
+                        input.showPicker();
+                    }
+                });
+            });
+        }
 
         // 다중 파일 로드 시 중복 행 증발 방지 및 결합 파이프라인
         function combineDatasets() {
