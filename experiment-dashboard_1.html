@@ -2047,12 +2047,17 @@ async function copyCertImage(btn) {
   try {
     const target = document.getElementById('result-table').closest('.result-table-wrap');
 
-    // ── 1. textarea/input을 전체 내용이 보이는 <div>로 교체 ──
+    // ── 1. textarea/input을 전체 내용이 보이는 <div>로 교체 (th input 포함) ──
     const replaced = [];
-    target.querySelectorAll('td textarea, td input[type="text"], td input:not([type])').forEach(el => {
+    target.querySelectorAll('td textarea, td input, th input').forEach(el => {
       const div = document.createElement('div');
       div.className = '__cap-text';
       div.textContent = el.value || '';
+      // 분할 결과 셀 첫 번째 input: 우측 경계선 유지
+      if (el.dataset.field === 'result' && el.closest('td[data-result-cell]') &&
+          el.closest('td[data-result-cell]').querySelector('[data-field="result2"]')) {
+        div.classList.add('__cap-result1');
+      }
       el.parentNode.insertBefore(div, el);
       el.style.display = 'none';
       replaced.push({ el, div });
@@ -2091,6 +2096,15 @@ async function copyCertImage(btn) {
         font-size: 20px !important; color: #111 !important; background: transparent !important;
         text-align: center !important; white-space: pre-wrap !important;
         word-break: keep-all !important; line-height: 1.5 !important;
+      }
+      .result-table-wrap td[data-result-cell] > div {
+        display: flex !important; width: 100% !important;
+      }
+      .result-table-wrap td[data-result-cell] > div > .__cap-text {
+        flex: 1 !important; padding: 4px !important;
+      }
+      .result-table-wrap .__cap-result1 {
+        border-right: 1px solid #ccc !important;
       }
       .result-table-wrap .img-drop { border: none !important; background: transparent !important; }
       .result-table-wrap .img-del-btn { display: none !important; }
