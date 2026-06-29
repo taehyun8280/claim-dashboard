@@ -1175,7 +1175,7 @@
             <th style="width:40px;">No</th>
             <th>시험</th>
             <th>기준</th>
-            <th>결과</th>
+            <th id="result-th" colspan="1">결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;" title="결과 열 분할">분할</button></th>
             <th style="width:180px;">시험사진</th>
             <th>비고</th>
             <th style="width:30px;"></th>
@@ -1238,6 +1238,7 @@ let rowCount = 0;
 let complexMode = false;
 let complexTableData = [];
 let complexColIdx = {};
+let splitResultMode = false;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1376,7 +1377,10 @@ function addResultRow() {
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;">${rc}</td>
     <td><textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea></td>
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
-    <td style="text-align:center;"><input data-field="result" placeholder="결과" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;"></td>
+    <td data-result-cell style="text-align:center;" colspan="${splitResultMode ? 2 : 1}">${splitResultMode
+      ? `<div style="display:flex;"><input data-field="result" placeholder="결과1" style="background:none;border:none;border-right:1px solid var(--border);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;"><input data-field="result2" placeholder="결과2" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;"></div>`
+      : `<input data-field="result" placeholder="결과" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;">`
+    }</td>
     <td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" tabindex="0"
         style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
@@ -1478,6 +1482,7 @@ function saveCert() {
         item: tr.querySelector('[data-field="item"]')?.value || '',
         spec: tr.querySelector('[data-field="spec"]')?.value || '',
         result: tr.querySelector('[data-field="result"]')?.value || '',
+        result2: tr.querySelector('[data-field="result2"]')?.value || '',
         img: imgEl ? imgEl.dataset.src : '',
         note: tr.querySelector('[data-field="note"]')?.value || ''
       });
@@ -1502,6 +1507,7 @@ function saveCert() {
     signer: document.getElementById('cf-signer').value,
     note: document.getElementById('cf-note').value,
     pf: pfState,
+    splitResultMode,
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
     savedAt: new Date().toISOString()
@@ -1593,12 +1599,15 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
+    if (c.splitResultMode) toggleSplitResult();
     (c.rows||[]).forEach(r => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
       tr.querySelector('[data-field="item"]').value = r.item||'';
       tr.querySelector('[data-field="spec"]').value = r.spec||'';
       tr.querySelector('[data-field="result"]').value = r.result||'';
+      if (r.result2 && tr.querySelector('[data-field="result2"]'))
+        tr.querySelector('[data-field="result2"]').value = r.result2;
       tr.querySelector('[data-field="note"]').value = r.note||'';
       if (r.img) {
         const drop = tr.querySelector('.img-drop');
@@ -1937,16 +1946,46 @@ function resetToSimpleTable() {
   complexMode = false;
   complexTableData = [];
   complexColIdx = {};
+  splitResultMode = false;
   document.getElementById('result-thead').innerHTML = `
     <tr>
       <th style="width:40px;">No</th>
       <th>시험</th>
       <th>기준</th>
-      <th>결과</th>
+      <th id="result-th" colspan="1">결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;" title="결과 열 분할">분할</button></th>
       <th style="width:180px;">시험사진</th>
       <th>비고</th>
       <th style="width:30px;"></th>
     </tr>`;
+}
+
+function toggleSplitResult() {
+  if (complexMode) return;
+  splitResultMode = !splitResultMode;
+  const th = document.getElementById('result-th');
+  const btn = document.getElementById('split-btn');
+  if (splitResultMode) {
+    th.colSpan = 2;
+    th.innerHTML = '결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;" title="결과 열 합치기">합치기</button>';
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const td = tr.querySelector('td[data-result-cell]');
+      if (!td) return;
+      const v = td.querySelector('[data-field="result"]')?.value || '';
+      td.colSpan = 2;
+      td.innerHTML = `<div style="display:flex;gap:0;"><input data-field="result" placeholder="결과1" style="background:none;border:none;border-right:1px solid var(--border);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;" value="${v}"><input data-field="result2" placeholder="결과2" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;"></div>`;
+    });
+  } else {
+    th.colSpan = 1;
+    th.innerHTML = '결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;" title="결과 열 분할">분할</button>';
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const td = tr.querySelector('td[data-result-cell]');
+      if (!td) return;
+      const v = td.querySelector('[data-field="result"]')?.value || '';
+      td.colSpan = 1;
+      td.innerHTML = `<input data-field="result" placeholder="결과" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;">`;
+      td.querySelector('[data-field="result"]').value = v;
+    });
+  }
 }
 
 function filterList(v) { renderCertList(v); }
