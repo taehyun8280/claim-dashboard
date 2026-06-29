@@ -1379,9 +1379,9 @@ function addResultRow() {
     <td><textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea></td>
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
     <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
-    <td data-result-cell style="text-align:center;" colspan="${splitResultMode ? 2 : 1}">${splitResultMode
-      ? `<div style="display:flex;"><input data-field="result" placeholder="결과1" style="background:none;border:none;border-right:1px solid var(--border);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;"><input data-field="result2" placeholder="결과2" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;"></div>`
-      : `<input data-field="result" placeholder="결과" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;">`
+    <td data-result-cell style="text-align:center;vertical-align:middle;" colspan="${splitResultMode ? 2 : 1}">${splitResultMode
+      ? `<div style="display:flex;height:100%;"><textarea data-field="result" placeholder="결과1" style="${taStyle}border-right:1px solid var(--border);width:50%;text-align:center;"></textarea><textarea data-field="result2" placeholder="결과2" style="${taStyle}width:50%;text-align:center;"></textarea></div>`
+      : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
     }</td>
     <td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" tabindex="0"
@@ -2004,7 +2004,7 @@ function toggleSplitResult() {
       const v = td.querySelector('[data-field="result"]')?.value || '';
       td.colSpan = 2;
       td.style.padding = '0';
-      td.innerHTML = `<div style="display:flex;"><input data-field="result" placeholder="결과1" style="${inStyle}border-right:1px solid var(--border);width:50%;" value="${v}"><input data-field="result2" placeholder="결과2" style="${inStyle}width:50%;"></div>`;
+      td.innerHTML = `<div style="display:flex;height:100%;"><textarea data-field="result" placeholder="결과1" style="${inStyle}border-right:1px solid var(--border);width:50%;text-align:center;">${v}</textarea><textarea data-field="result2" placeholder="결과2" style="${inStyle}width:50%;text-align:center;"></textarea></div>`;
     });
   } else {
     thead.innerHTML = `
@@ -2024,8 +2024,7 @@ function toggleSplitResult() {
       const v = td.querySelector('[data-field="result"]')?.value || '';
       td.colSpan = 1;
       td.style.padding = '';
-      td.innerHTML = `<input data-field="result" placeholder="결과" style="${inStyle}">`;
-      td.querySelector('[data-field="result"]').value = v;
+      td.innerHTML = `<textarea data-field="result" placeholder="결과" style="${inStyle}text-align:center;">${v}</textarea>`;
     });
   }
 }
