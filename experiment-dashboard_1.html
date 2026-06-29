@@ -1561,12 +1561,12 @@ function renderCertList(filter='') {
       ? imgRows.map(r => `<img src="${r.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal('${r.img}')">`).join('')
       : '—';
     return `<tr>
-      <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
+      <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;white-space:nowrap;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
       <td style="max-width:160px;line-height:1.6;">${itemText}</td>
-      <td>${c.client||'—'}</td>
+      <td style="white-space:nowrap;">${c.client||'—'}</td>
       <td>${c.sample||'—'}</td>
       <td style="white-space:nowrap;">${c.start||'—'} ~ ${c.end||'—'}</td>
-      <td>${c.person||'—'}</td>
+      <td style="white-space:nowrap;">${c.person||'—'}</td>
       <td style="max-width:100px;line-height:1.6;">${resultText}</td>
       <td style="text-align:center;">${imgCellDbl}</td>
       <td style="max-width:160px;line-height:1.6;">${noteText}</td>
