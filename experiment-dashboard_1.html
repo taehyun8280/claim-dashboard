@@ -1179,7 +1179,7 @@
             <th id="result-th" colspan="1">결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;" title="결과 열 분할">분할</button></th>
             <th style="width:180px;">시험사진</th>
             <th>비고</th>
-            <th style="width:30px;"></th>
+            <th data-no-cap style="width:30px;"></th>
           </tr>
         </thead>
         <tbody id="result-tbody"></tbody>
@@ -1391,7 +1391,7 @@ function addResultRow() {
       </div>
     </td>
     <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
-    <td style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
+    <td data-no-cap style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
   tbody.appendChild(tr);
 
@@ -1994,7 +1994,7 @@ function toggleSplitResult() {
         <th colspan="2" id="result-th">결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;">합치기</button></th>
         <th rowspan="2" style="width:180px;">시험사진</th>
         <th rowspan="2">비고</th>
-        <th rowspan="2" style="width:30px;"></th>
+        <th data-no-cap rowspan="2" style="width:30px;"></th>
       </tr>
       <tr>
         <th><input id="result-label1" placeholder="구분1" style="${inStyle}font-weight:bold;"></th>
@@ -2085,13 +2085,8 @@ async function copyCertImage(btn) {
         border: 1px solid #ccc !important; word-break: keep-all !important;
         white-space: normal !important; overflow: visible !important;
       }
-      .result-table-wrap .result-table th:nth-child(1), .result-table-wrap .result-table td:nth-child(1) { width: 48px !important; }
-      .result-table-wrap .result-table th:nth-child(2), .result-table-wrap .result-table td:nth-child(2) { width: 17% !important; }
-      .result-table-wrap .result-table th:nth-child(3), .result-table-wrap .result-table td:nth-child(3) { width: 20% !important; }
-      .result-table-wrap .result-table th:nth-child(4), .result-table-wrap .result-table td:nth-child(4) { width: 10% !important; }
-      .result-table-wrap .result-table th:nth-child(5), .result-table-wrap .result-table td:nth-child(5) { width: 23% !important; }
-      .result-table-wrap .result-table th:nth-child(6), .result-table-wrap .result-table td:nth-child(6) { width: 20% !important; }
-      .result-table-wrap .result-table th:nth-child(7), .result-table-wrap .result-table td:nth-child(7) { display: none !important; }
+      .result-table-wrap .result-table [data-no-cap] { display: none !important; }
+      .result-table-wrap #split-btn { display: none !important; }
       .result-table-wrap .__cap-text {
         font-size: 20px !important; color: #111 !important; background: transparent !important;
         text-align: center !important; white-space: pre-wrap !important;
