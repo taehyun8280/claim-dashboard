@@ -1448,6 +1448,9 @@ function setPF(v) {
 }
 
 function saveCert() {
+  // 저장 직전 localStorage에서 최신 목록 재동기화 (탭 간 / 페이지 재로드 후 stale 방지)
+  certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
+
   // auto-generate no if empty
   let no = document.getElementById('cf-no').value.trim();
   if (!no) {
