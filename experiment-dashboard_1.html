@@ -1257,9 +1257,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ─── RENDER KANBAN ───
 function render() {
-  const wait = experiments.filter(e=>e.status==='접수');
-  const prog = experiments.filter(e=>e.status==='진행');
-  const done = experiments.filter(e=>e.status==='완료');
+  const asc = (a,b) => (a.date||'').localeCompare(b.date||'');
+  const wait = experiments.filter(e=>e.status==='접수').sort(asc);
+  const prog = experiments.filter(e=>e.status==='진행').sort(asc);
+  const done = experiments.filter(e=>e.status==='완료').sort(asc);
 
   document.getElementById('cnt-total').textContent = experiments.length;
   document.getElementById('cnt-wait').textContent = wait.length;
