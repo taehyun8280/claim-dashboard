@@ -2094,11 +2094,19 @@ async function copyCertImage(btn) {
         text-align: center !important; white-space: pre-wrap !important;
         word-break: keep-all !important; line-height: 1.6 !important;
       }
+      .result-table-wrap td[data-result-cell] {
+        padding: 0 !important; position: relative !important;
+      }
       .result-table-wrap td[data-result-cell] > div {
-        display: flex !important; width: 100% !important; align-items: center !important;
+        position: absolute !important; inset: 0 !important;
+        display: flex !important; align-items: stretch !important;
       }
       .result-table-wrap td[data-result-cell] > div > .__cap-text {
-        flex: 1 !important; padding: 6px 4px !important;
+        flex: 1 !important; padding: 10px 6px !important;
+        display: flex !important; align-items: center !important;
+        justify-content: center !important; white-space: pre-wrap !important;
+        word-break: keep-all !important; line-height: 1.6 !important;
+        font-size: 17px !important;
       }
       .result-table-wrap .__cap-result1 {
         border-right: 1.5px solid #ccc !important;
