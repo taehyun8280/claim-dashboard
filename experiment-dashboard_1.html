@@ -1545,8 +1545,10 @@ function renderCertList(filter='') {
     // 시험: 모든 행의 시험 항목 줄바꿈으로 표시
     const itemText = rows.map(r => r.item||'').filter(Boolean).join('<br>') || '—';
 
-    // 판정(결과): 모든 행의 결과 줄바꿈으로 표시
-    const resultText = rows.map(r => r.result||'').filter(Boolean).join('<br>') || '—';
+    // 판정(결과): PASS면 "적합" 하나만, 아니면 각 행 결과 나열
+    const resultText = c.pf === 'pass' ? '적합'
+      : c.pf === 'fail' ? '부적합'
+      : (rows.map(r => r.result||'').filter(Boolean).join('<br>') || '—');
 
     // 시험사진: 이미지 있는 모든 행 썸네일
     const imgRows = rows.filter(r => r.img);
