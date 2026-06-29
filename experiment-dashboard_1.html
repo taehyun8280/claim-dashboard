@@ -1508,6 +1508,10 @@ function saveCert() {
     note: document.getElementById('cf-note').value,
     pf: pfState,
     splitResultMode,
+    splitLabels: splitResultMode ? [
+      document.getElementById('result-label1')?.value || '',
+      document.getElementById('result-label2')?.value || ''
+    ] : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
     savedAt: new Date().toISOString()
@@ -1599,7 +1603,15 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
-    if (c.splitResultMode) toggleSplitResult();
+    if (c.splitResultMode) {
+      toggleSplitResult();
+      if (c.splitLabels) {
+        const l1 = document.getElementById('result-label1');
+        const l2 = document.getElementById('result-label2');
+        if (l1) l1.value = c.splitLabels[0] || '';
+        if (l2) l2.value = c.splitLabels[1] || '';
+      }
+    }
     (c.rows||[]).forEach(r => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
@@ -1962,27 +1974,50 @@ function resetToSimpleTable() {
 function toggleSplitResult() {
   if (complexMode) return;
   splitResultMode = !splitResultMode;
-  const th = document.getElementById('result-th');
-  const btn = document.getElementById('split-btn');
+  const thead = document.getElementById('result-thead');
+  const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
   if (splitResultMode) {
-    th.colSpan = 2;
-    th.innerHTML = '결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;" title="결과 열 합치기">합치기</button>';
+    // 2행 헤더: 다른 컬럼은 rowspan=2, 결과는 colspan=2 후 2행에 서브헤더 입력란
+    thead.innerHTML = `
+      <tr>
+        <th rowspan="2" style="width:40px;">No</th>
+        <th rowspan="2">시험</th>
+        <th rowspan="2">기준</th>
+        <th colspan="2" id="result-th">결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--accent);color:#fff;cursor:pointer;">합치기</button></th>
+        <th rowspan="2" style="width:180px;">시험사진</th>
+        <th rowspan="2">비고</th>
+        <th rowspan="2" style="width:30px;"></th>
+      </tr>
+      <tr>
+        <th><input id="result-label1" placeholder="구분1" style="${inStyle}font-weight:bold;"></th>
+        <th><input id="result-label2" placeholder="구분2" style="${inStyle}font-weight:bold;"></th>
+      </tr>`;
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const td = tr.querySelector('td[data-result-cell]');
       if (!td) return;
       const v = td.querySelector('[data-field="result"]')?.value || '';
       td.colSpan = 2;
-      td.innerHTML = `<div style="display:flex;gap:0;"><input data-field="result" placeholder="결과1" style="background:none;border:none;border-right:1px solid var(--border);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;" value="${v}"><input data-field="result2" placeholder="결과2" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:50%;outline:none;padding:2px;"></div>`;
+      td.style.padding = '0';
+      td.innerHTML = `<div style="display:flex;"><input data-field="result" placeholder="결과1" style="${inStyle}border-right:1px solid var(--border);width:50%;" value="${v}"><input data-field="result2" placeholder="결과2" style="${inStyle}width:50%;"></div>`;
     });
   } else {
-    th.colSpan = 1;
-    th.innerHTML = '결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;" title="결과 열 분할">분할</button>';
+    thead.innerHTML = `
+      <tr>
+        <th style="width:40px;">No</th>
+        <th>시험</th>
+        <th>기준</th>
+        <th id="result-th" colspan="1">결과 <button onclick="toggleSplitResult()" id="split-btn" style="font-size:10px;padding:1px 5px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;">분할</button></th>
+        <th style="width:180px;">시험사진</th>
+        <th>비고</th>
+        <th style="width:30px;"></th>
+      </tr>`;
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const td = tr.querySelector('td[data-result-cell]');
       if (!td) return;
       const v = td.querySelector('[data-field="result"]')?.value || '';
       td.colSpan = 1;
-      td.innerHTML = `<input data-field="result" placeholder="결과" style="background:none;border:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;">`;
+      td.style.padding = '';
+      td.innerHTML = `<input data-field="result" placeholder="결과" style="${inStyle}">`;
       td.querySelector('[data-field="result"]').value = v;
     });
   }
