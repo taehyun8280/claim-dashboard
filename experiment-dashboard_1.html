@@ -2067,42 +2067,47 @@ async function copyCertImage(btn) {
     const styleEl = document.createElement('style');
     styleEl.id = 'cert-capture-style';
     styleEl.textContent = `
-      .result-table-wrap, .result-table-wrap * {
-        color: #111 !important; background: #fff !important; border-color: #ddd !important;
-      }
+      .result-table-wrap { background: #fff !important; }
       .result-table-wrap .result-table {
-        table-layout: fixed !important; width: 100% !important; border-collapse: collapse !important;
+        table-layout: auto !important; width: 100% !important;
+        border-collapse: collapse !important; background: #fff !important;
       }
       .result-table-wrap .result-table th {
         background: #dce8ff !important; color: #222 !important;
-        font-size: 20px !important; text-align: center !important;
-        padding: 12px 8px !important; border: 1px solid #aac !important;
-        word-break: keep-all !important;
+        font-size: 17px !important; font-weight: bold !important;
+        text-align: center !important; padding: 10px 6px !important;
+        border: 1.5px solid #99b !important;
+        word-break: keep-all !important; white-space: normal !important;
+        overflow: visible !important; vertical-align: middle !important;
       }
       .result-table-wrap .result-table td {
-        font-size: 20px !important; text-align: center !important;
-        vertical-align: middle !important; padding: 12px 8px !important;
-        border: 1px solid #ccc !important; word-break: keep-all !important;
-        white-space: normal !important; overflow: visible !important;
+        font-size: 17px !important; color: #111 !important; background: #fff !important;
+        text-align: center !important; vertical-align: middle !important;
+        padding: 10px 6px !important; border: 1.5px solid #ccc !important;
+        word-break: keep-all !important; white-space: normal !important; overflow: visible !important;
       }
-      .result-table-wrap .result-table [data-no-cap] { display: none !important; }
+      .result-table-wrap [data-no-cap] { display: none !important; }
       .result-table-wrap #split-btn { display: none !important; }
       .result-table-wrap .__cap-text {
-        font-size: 20px !important; color: #111 !important; background: transparent !important;
+        font-size: 17px !important; color: #111 !important; background: transparent !important;
         text-align: center !important; white-space: pre-wrap !important;
-        word-break: keep-all !important; line-height: 1.5 !important;
+        word-break: keep-all !important; line-height: 1.6 !important;
       }
       .result-table-wrap td[data-result-cell] > div {
-        display: flex !important; width: 100% !important;
+        display: flex !important; width: 100% !important; align-items: center !important;
       }
       .result-table-wrap td[data-result-cell] > div > .__cap-text {
-        flex: 1 !important; padding: 4px !important;
+        flex: 1 !important; padding: 6px 4px !important;
       }
       .result-table-wrap .__cap-result1 {
-        border-right: 1px solid #ccc !important;
+        border-right: 1.5px solid #ccc !important;
       }
-      .result-table-wrap .img-drop { border: none !important; background: transparent !important; }
+      .result-table-wrap .img-drop {
+        border: none !important; background: transparent !important; overflow: visible !important;
+      }
+      .result-table-wrap .img-drop img { max-width: 100% !important; height: auto !important; display: block !important; }
       .result-table-wrap .img-del-btn { display: none !important; }
+      .result-table-wrap .img-placeholder { display: none !important; }
     `;
     document.head.appendChild(styleEl);
 
