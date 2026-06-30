@@ -1402,29 +1402,31 @@ function addResultRow() {
     const border = i < resultSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
     return `<textarea data-field="result" data-result-index="${i}" placeholder="결과${resultSplitCount > 1 ? i + 1 : ''}" style="${taStyle}${border}width:${100 / resultSplitCount}%;text-align:center;"></textarea>`;
   }).join('');
+  const photoDrops = Array.from({length: resultSplitCount}, (_, i) => {
+    const border = i < resultSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
+    return `<div class="img-drop" data-row="${rc}" data-photo-index="${i}" tabindex="0"
+        style="${border}width:${100 / resultSplitCount}%;height:110px;min-width:0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);border-left:${i === 0 ? '1px dashed var(--border)' : '0'};border-radius:${resultSplitCount === 1 ? '6px' : '0'};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
+        <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
+      </div>`;
+  }).join('');
   tr.innerHTML = `
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;">${rc}</td>
     <td><textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea></td>
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
     <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
     <td data-result-cell style="text-align:center;vertical-align:middle;padding:0;" colspan="${resultSplitCount}"><div style="display:flex;height:100%;">${resultInputs}</div></td>
-    <td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
-      <div class="img-drop" data-row="${rc}" tabindex="0"
-        style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
-        <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
-      </div>
-    </td>
+    <td class="img-cell" data-photo-cell style="width:180px;min-width:160px;padding:0;" colspan="${resultSplitCount}"><div style="display:flex;height:100%;">${photoDrops}</div></td>
     <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
     <td data-no-cap style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
   tbody.appendChild(tr);
 
-  // paste event on the img-drop div
-  const drop = tr.querySelector('.img-drop');
-  drop.addEventListener('paste', e => handleImgPaste(e, drop));
-  drop.addEventListener('click', () => drop.focus());
-  drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
+  tr.querySelectorAll('.img-drop').forEach(drop => {
+    drop.addEventListener('paste', e => handleImgPaste(e, drop));
+    drop.addEventListener('click', () => drop.focus());
+    drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
+  });
 
   renumberRows();
 }
@@ -1434,6 +1436,9 @@ function renderResultHeader() {
   const resultSubHeaders = Array.from({length: resultSplitCount}, (_, i) =>
     `<th><input id="result-label${i + 1}" placeholder="구분${i + 1}" style="${subHeaderStyle}"></th>`
   ).join('');
+  const photoSubHeaders = Array.from({length: resultSplitCount}, (_, i) =>
+    `<th>사진${i + 1}</th>`
+  ).join('');
   const hasSplit = resultSplitCount > 1;
   document.getElementById('result-thead').innerHTML = hasSplit ? `
     <tr>
@@ -1442,11 +1447,11 @@ function renderResultHeader() {
       <th rowspan="2">기준</th>
       <th rowspan="2">조건</th>
       <th colspan="${resultSplitCount}" id="result-th">결과</th>
-      <th rowspan="2" style="width:180px;">시험사진</th>
+      <th colspan="${resultSplitCount}" style="width:180px;">시험사진</th>
       <th rowspan="2">비고</th>
       <th data-no-cap rowspan="2" style="width:30px;"></th>
     </tr>
-    <tr>${resultSubHeaders}</tr>` : `
+    <tr>${resultSubHeaders}${photoSubHeaders}</tr>` : `
     <tr>
       <th style="width:40px;">No</th>
       <th>시험</th>
@@ -1463,13 +1468,12 @@ function setResultSplitCount(value, labels) {
   const next = Math.max(1, Math.min(6, parseInt(value, 10) || 1));
   if (complexMode) resetToSimpleTable();
   const rows = [...document.querySelectorAll('#result-tbody tr')].map(tr => {
-    const imgEl = tr.querySelector('.img-drop img');
     return {
       item: tr.querySelector('[data-field="item"]')?.value || '',
       spec: tr.querySelector('[data-field="spec"]')?.value || '',
       cond: tr.querySelector('[data-field="cond"]')?.value || '',
       resultParts: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || ''),
-      img: imgEl ? imgEl.dataset.src : '',
+      imgParts: [...tr.querySelectorAll('.img-drop')].map(drop => drop.querySelector('img')?.dataset.src || ''),
       note: tr.querySelector('[data-field="note"]')?.value || ''
     };
   });
@@ -1495,11 +1499,13 @@ function setResultSplitCount(value, labels) {
       el.value = row.resultParts[i] || '';
     });
     tr.querySelector('[data-field="note"]').value = row.note;
-    if (row.img) {
-      const drop = tr.querySelector('.img-drop');
-      drop.innerHTML = `<img src="${row.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${row.img}">
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-    }
+    tr.querySelectorAll('.img-drop').forEach((drop, i) => {
+      const src = row.imgParts[i] || '';
+      if (src) {
+        drop.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:contain;" data-src="${src}">
+          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+      }
+    });
   });
 }
 
@@ -1578,14 +1584,15 @@ function saveCert() {
     });
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
-      const imgEl = tr.querySelector('.img-drop img');
+      const imgParts = [...tr.querySelectorAll('.img-drop')].map(drop => drop.querySelector('img')?.dataset.src || '');
       rows.push({
         item: tr.querySelector('[data-field="item"]')?.value || '',
         spec: tr.querySelector('[data-field="spec"]')?.value || '',
         cond: tr.querySelector('[data-field="cond"]')?.value || '',
         resultParts: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || ''),
         result: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || '').filter(Boolean).join(' / '),
-        img: imgEl ? imgEl.dataset.src : '',
+        imgParts,
+        img: imgParts.find(Boolean) || '',
         note: tr.querySelector('[data-field="note"]')?.value || ''
       });
     });
@@ -1645,7 +1652,7 @@ function renderCertList(filter='') {
       : (rows.map(r => Array.isArray(r.resultParts) ? r.resultParts.filter(Boolean).join(' / ') : (r.result || '')).filter(Boolean).join('<br>') || '—');
 
     // 시험사진: 이미지 있는 모든 행 썸네일
-    const imgRows = rows.filter(r => r.img);
+    const imgRows = rows.flatMap(r => Array.isArray(r.imgParts) ? r.imgParts.filter(Boolean).map(img => ({img})) : (r.img ? [{img:r.img}] : []));
 
     // 비고: 모든 행의 비고 줄바꿈으로 표시
     const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
@@ -1703,7 +1710,10 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
-    const savedSplitCount = c.resultSplitCount || (c.splitResultMode ? 2 : Math.max(1, ...(c.rows||[]).map(r => Array.isArray(r.resultParts) ? r.resultParts.length : (r.result2 ? 2 : 1))));
+    const savedSplitCount = c.resultSplitCount || (c.splitResultMode ? 2 : Math.max(1, ...(c.rows||[]).map(r => Math.max(
+      Array.isArray(r.resultParts) ? r.resultParts.length : (r.result2 ? 2 : 1),
+      Array.isArray(r.imgParts) ? r.imgParts.length : (r.img ? 1 : 1)
+    ))));
     setResultSplitCount(savedSplitCount, c.splitLabels || []);
     (c.rows||[]).forEach(r => {
       addResultRow();
@@ -1716,11 +1726,14 @@ function loadCert(no) {
         el.value = parts[i] || '';
       });
       tr.querySelector('[data-field="note"]').value = r.note||'';
-      if (r.img) {
-        const drop = tr.querySelector('.img-drop');
-        drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
-          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-      }
+      const imgParts = Array.isArray(r.imgParts) ? r.imgParts : [r.img || ''];
+      tr.querySelectorAll('.img-drop').forEach((drop, i) => {
+        const src = imgParts[i] || '';
+        if (src) {
+          drop.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:contain;" data-src="${src}">
+            <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+        }
+      });
     });
   }
 
