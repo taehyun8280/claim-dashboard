@@ -1310,7 +1310,7 @@ function renderCol(id, items, status, showAdd) {
   items.forEach(e => {
     const pClass = e.priority==='상'?'p-high':e.priority==='중'?'p-mid':'p-low';
     html += `
-      <div class="exp-card" ondblclick="openDetailModal('${e.id}')">
+      <div class="exp-card" onclick="openDetailModal('${e.id}')">
         <div class="exp-card-top">
           <span class="priority-badge ${pClass}">${e.priority}</span>
         </div>
