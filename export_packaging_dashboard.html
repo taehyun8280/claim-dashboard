@@ -1,16 +1,14 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>수출 표준품 포장강화 대시보드 v4.0 (실시간 구글 시트 라이브 연동)</title>
-    <!-- 프리미엄 폰트 및 스타일 라이브러리 로드 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- 차트 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
@@ -53,28 +51,14 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #334155;
         }
-        .date-filter-input {
-            font-size: 11px;
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            padding-left: 4px;
-            padding-right: 4px;
-        }
-        .date-filter-input::-webkit-calendar-picker-indicator {
-            width: 16px;
-            height: 16px;
-            padding: 2px;
-            margin-left: 0;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- 탑 헤더 바 (수출 표준품 강화포장 현황 구글시트 연동 버튼 헤더 이관 완료) -->
     <header class="bg-panelBg border-b border-borderSlate px-8 py-4 flex items-center justify-between sticky top-0 z-50">
         <div class="flex items-center gap-3">
             <div class="bg-gradient-to-tr from-accentBlue to-accentGreen p-2.5 rounded-lg text-darkBg font-bold text-xl shadow-lg shadow-accentBlue/10">
-                <i class="fa-solid fa-ship"></i>
+                <i class="fa-solid fa-box"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -83,49 +67,37 @@
             </div>
         </div>
         
-        <!-- 실시간 시트 연결 링크 -->
-        <a href="https://docs.google.com/spreadsheets/d/1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54/edit?gid=1357513790#gid=1357513790" 
-           target="_blank" 
-           class="bg-[#0F9D58] hover:bg-[#0B8043] text-white text-xs px-4 py-2.5 rounded-lg border border-[#13b36e]/20 font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-[#0F9D58]/10">
-            <i class="fa-solid fa-file-excel text-sm"></i> 수출 표준품 강화포장 현황
-        </a>
     </header>
 
-    <!-- 메인 대시보드 바디 (와이드 스크린 밀착을 위해 max-w-[1600px] 확장 및 5열 격자 전면 적용) -->
-    <main class="flex-grow p-6 max-w-[1600px] w-full mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6">
-        
-        <!-- [1] 왼쪽 사이드 필터 컨트롤 패널 (실시간 반응형 이벤트 바인딩) -->
-        <section class="lg:col-span-1 flex flex-col gap-5">
-            <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-xl">
+    <main class="flex-grow px-2 py-5 max-w-[1600px] w-full mx-auto grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-[auto_1fr] gap-4 relative items-start">
+
+        <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-xl lg:col-start-1 lg:row-start-1">
                 <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-accentBlue"></i> 수출/제품 상세검색
                 </h2>
                 
                 <div class="space-y-4">
-                    <!-- 조회 날짜 범위 설정 -->
                     <div class="p-3 bg-darkBg/40 rounded-lg border border-borderSlate/60">
                         <label class="block text-xs font-bold text-accentBlue uppercase tracking-wider mb-2 flex items-center gap-1">
                             <i class="fa-regular fa-calendar-check"></i> 1. 조회 날짜 설정
                         </label>
-                        <div class="grid grid-cols-2 gap-1.5">
+                        <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <span class="block text-[10px] text-slate-500 mb-0.5">조회 시작일</span>
-                                <input type="date" id="startDateFilter" onchange="applyFilters()"
-                                       class="date-filter-input w-full min-w-0 bg-panelBg text-slate-200 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-center">
+                                <input type="date" id="startDateFilter" onchange="applyFilters()" onclick="try{this.showPicker()}catch(e){}"
+                                       class="w-full bg-panelBg text-slate-200 px-2 py-1.5 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs text-center cursor-pointer select-none">
                             </div>
                             <div>
                                 <span class="block text-[10px] text-slate-500 mb-0.5">조회 종료일</span>
-                                <input type="date" id="endDateFilter" onchange="applyFilters()"
-                                       class="date-filter-input w-full min-w-0 bg-panelBg text-slate-200 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-center">
+                                <input type="date" id="endDateFilter" onchange="applyFilters()" onclick="try{this.showPicker()}catch(e){}"
+                                       class="w-full bg-panelBg text-slate-200 px-2 py-1.5 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs text-center cursor-pointer select-none">
                             </div>
                         </div>
                     </div>
 
-                    <!-- [STEP 2] 상세 코드 및 국가 검색 -->
                     <div class="space-y-3 pt-1">
                         <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">2. 설정 기간 내 세부 검색</span>
                         
-                        <!-- 수출 건명(차수) 검색 -->
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-400 mb-1">수출건 차수 검색</label>
                             <div class="relative">
@@ -137,7 +109,6 @@
                             </div>
                         </div>
 
-                        <!-- 제품 코드 검색 -->
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-400 mb-1">제품 코드 검색</label>
                             <div class="relative">
@@ -149,7 +120,6 @@
                             </div>
                         </div>
 
-                        <!-- 국가별 검색 -->
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-400 mb-1">국가별 검색</label>
                             <div class="relative">
@@ -163,7 +133,6 @@
                     </div>
                 </div>
 
-                <!-- 검색 및 초기화 버튼 그룹 -->
                 <div class="grid grid-cols-2 gap-2 mt-5">
                     <button onclick="applyFilters()" class="bg-accentBlue hover:bg-sky-400 text-darkBg font-bold text-xs py-2.5 rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-accentBlue/10">
                         <i class="fa-solid fa-magnifying-glass"></i> 검색하기
@@ -173,132 +142,235 @@
                     </button>
                 </div>
 
-                <!-- 가장 임박한 납기/상차 차수 카드 -->
-                <div class="mt-6 pt-5 border-t border-borderSlate/60">
-                    <div class="bg-darkBg/60 border border-accentOrange/30 rounded-xl p-4 relative overflow-hidden group">
-                        <div class="absolute right-3 top-3 text-accentOrange opacity-10 group-hover:opacity-20 transition-all">
-                            <i class="fa-solid fa-bell text-lg animate-bounce"></i>
-                        </div>
-                        <div class="text-[10px] font-bold text-accentOrange uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-pulse"></span>
-                            가장 임박한 수출 일정
-                        </div>
-                        <div class="mt-2 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span id="nearestRoundName" class="text-sm font-bold text-white">-</span>
-                                <span id="nearestDDay" class="text-[10px] bg-accentOrange/10 text-accentOrange border border-accentOrange/20 px-2 py-0.5 rounded-full font-bold">D-0</span>
+                <a href="https://docs.google.com/spreadsheets/d/1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54/edit?gid=1357513790#gid=1357513790"
+                   target="_blank"
+                   class="mt-4 w-full bg-[#0F9D58] hover:bg-[#0B8043] text-white text-xs px-4 py-2.5 rounded-lg border border-[#13b36e]/20 font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-[#0F9D58]/10">
+                    <i class="fa-solid fa-file-excel text-sm"></i> 수출 표준품 강화포장 현황
+                </a>
+
+                <div style="display:none">
+                    <span id="nearestRoundName"></span>
+                    <span id="nearestDDay"></span>
+                    <span id="nearestLoadDate"></span>
+                    <span id="nearestDueDate"></span>
+                </div>
+        </div>
+
+        <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-xl flex flex-col gap-4 lg:col-start-1 lg:row-start-2 lg:h-full">
+                <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-server text-accentGreen"></i> 데이터 연동 제어
+                </h2>
+
+                <div class="space-y-1">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">시스템 연결 상태</span>
+                    <div id="connIndicator" class="inline-flex w-full items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500/10 text-accentOrange border border-amber-500/20">
+                        <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-ping"></span>
+                        연동 대기 중
+                    </div>
+                </div>
+
+                <div class="bg-darkBg/50 p-3 rounded-lg border border-borderSlate/60 font-mono text-xs text-slate-400 flex flex-col gap-1">
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">동기화 시각</span>
+                    <span class="text-accentGreen font-bold" id="syncTimestamp">초기 로드 대기</span>
+                </div>
+
+                <div class="flex flex-col gap-2.5 pt-2">
+                    <button onclick="syncWithGoogleSheets()" id="syncBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-3 rounded-lg border border-borderSlate flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold">
+                        <i class="fa-solid fa-arrows-rotate" id="syncIcon"></i> 실시간 시트 갱신
+                    </button>
+
+                    <label class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-3 rounded-lg border border-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer font-bold shadow-lg shadow-blue-500/10 text-center">
+                        <i class="fa-solid fa-file-import"></i> CSV 파일 업로드
+                        <input type="file" id="csvFileInput" accept=".csv" multiple class="hidden" onchange="handleCsvUpload(event)">
+                    </label>
+
+                    <button onclick="openSettingsModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-3 rounded-lg border border-borderSlate flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold" title="구글 시트 연동 설정">
+                        <i class="fa-solid fa-cog"></i> 연동 설정
+                    </button>
+
+                    <button onclick="resetConnectionSettings()" class="w-full bg-red-900/20 hover:bg-red-900/40 text-red-400 text-xs px-4 py-3 rounded-lg border border-red-900/30 flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold" title="저장된 연동 설정 초기화">
+                        <i class="fa-solid fa-power-off"></i> 연동 초기화
+                    </button>
+                </div>
+
+                <div id="loadedFilesContainer" class="hidden bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>현재 사용중인 데이터 탭</span>
+                        <button onclick="clearUploadedData()" class="text-accentRed hover:text-red-400 transition-colors" title="업로드 데이터 초기화 및 데모 복원">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                    <div class="text-slate-300 font-mono text-[11px] break-all leading-normal" id="loadedFilesList">대기 중</div>
+                </div>
+        </div>
+
+        <div id="generalDashboardView" class="flex flex-col gap-4 lg:col-start-2 lg:col-span-3 lg:row-start-1">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div id="exportStatusCard" class="bg-panelBg border border-borderSlate rounded-3xl p-5 shadow-xl relative" onmouseenter="showHover('exportStatusDetail')" onmouseleave="hideHover('exportStatusDetail')">
+                        <p class="text-base font-semibold text-slate-400 uppercase tracking-wider mb-4">수출 표준품 현황</p>
+                        <div class="pt-2">
+                            <div class="pb-3">
+                                <div class="flex items-end justify-between">
+                                    <span class="text-sm text-slate-400 font-semibold">총</span>
+                                    <div class="flex items-end gap-1.5">
+                                        <span id="kpiReceivedQty" class="text-2xl font-bold text-slate-100"></span>
+                                        <span class="text-xs text-slate-400">EA</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="text-[11px] text-slate-400 space-y-1 font-mono">
+                            <div class="border-t border-slate-700/80"></div>
+                            <div class="pt-3">
+                                <div class="flex items-end justify-between">
+                                    <span class="text-sm text-slate-400 font-semibold">총</span>
+                                    <div class="flex items-end gap-1.5">
+                                        <span id="kpiReceivedCodes" class="text-2xl font-bold text-slate-100"></span>
+                                        <span class="text-[10px] text-slate-500 uppercase">CODE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-4">
+                                <p class="text-[11px] text-slate-500">마지막 업데이트 : <span id="kpiLastReceivedDate">-</span></p>
+                            </div>
+                        </div>
+                        <div id="exportStatusDetail" onmouseenter="showHover('exportStatusDetail')" onmouseleave="hideHover('exportStatusDetail')" class="absolute left-0 top-full z-50 mt-3 w-full rounded-2xl bg-slate-900/80 backdrop-blur-sm border border-slate-700 text-slate-300 p-4 shadow-2xl transition-opacity transition-transform duration-200 ease-out opacity-0 translate-y-2 pointer-events-none">
+                            <div class="text-sm font-semibold text-white mb-3">상세 현황</div>
+                            <div class="grid gap-2.5 text-xs text-slate-400">
+                                <div class="flex justify-between items-center">
+                                    <span>총 입고</span>
+                                    <span class="font-mono"><span id="hoverReceivedQty" class="text-slate-200 font-bold">-</span>EA / <span id="hoverReceivedCodes" class="text-slate-200 font-bold">-</span>CODE</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>총 미입고</span>
+                                    <span class="font-mono"><span id="hoverNotReceivedQty" class="text-accentRed font-bold">-</span>EA / <span id="hoverNotReceivedCodes" class="text-accentRed font-bold">-</span>CODE</span>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-700/60 mt-3 pt-3 text-xs text-slate-300">
+                                <div class="font-medium text-slate-100">최근 입고된 품목</div>
+                                <div class="mt-1 text-slate-300">
+                                    <span id="hoverRecentReceivedItem">-</span>
+                                    <span id="hoverRecentReceivedExtra" class="block text-slate-500 text-[10px] mt-0.5"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="remainingStatusCard" class="bg-panelBg border border-borderSlate rounded-3xl p-5 shadow-xl relative" onmouseenter="showHover('remainingStatusDetail')" onmouseleave="hideHover('remainingStatusDetail')">
+                        <p class="text-base font-semibold text-slate-400 uppercase tracking-wider mb-4">충주공장 재고</p>
+                        <div class="pt-2">
+                            <div class="pb-3">
+                                <div class="flex items-end justify-between">
+                                    <span class="text-sm text-slate-400 font-semibold">총</span>
+                                    <div class="flex items-end gap-1.5">
+                                        <span id="generalKpiRemainingQty" class="text-2xl font-bold text-accentRed"></span>
+                                        <span class="text-xs text-slate-400">EA</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-700/80"></div>
+                            <div class="pt-3">
+                                <div class="flex items-end justify-between">
+                                    <span class="text-sm text-slate-400 font-semibold">총</span>
+                                    <div class="flex items-end gap-1.5">
+                                        <span id="generalKpiRemainingCodes" class="text-2xl font-bold text-accentRed"></span>
+                                        <span class="text-[10px] text-slate-500 uppercase">CODE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-4">
+                                <p class="text-[11px] text-slate-500">최근 포장일 : <span id="kpiLastPackingDate">-</span></p>
+                            </div>
+                        </div>
+                        <div id="remainingStatusDetail" onmouseenter="showHover('remainingStatusDetail')" onmouseleave="hideHover('remainingStatusDetail')" class="absolute left-0 top-full z-50 mt-3 w-full rounded-2xl bg-slate-900/80 backdrop-blur-sm border border-slate-700 text-slate-300 p-4 shadow-2xl transition-opacity transition-transform duration-200 ease-out opacity-0 translate-y-2 pointer-events-none">
+                            <div class="text-sm font-semibold text-white mb-3">상세 현황</div>
+                            <div class="grid gap-2.5 text-xs text-slate-400">
+                                <div class="flex justify-between items-center">
+                                    <span>포장대기</span>
+                                    <span class="font-mono"><span id="hoverStockWaitingQty" class="text-white font-bold">-</span>EA / <span id="hoverStockWaitingCodes" class="text-white font-bold">-</span>CODE</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>포장완료</span>
+                                    <span class="font-mono"><span id="hoverStockDoneQty" class="text-accentGreen font-bold">-</span>EA / <span id="hoverStockDoneCodes" class="text-accentGreen font-bold">-</span>CODE</span>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-700/60 mt-3 pt-3 text-xs text-slate-300">
+                                <div class="font-medium text-slate-100">총 PALET</div>
+                                <div class="mt-1 text-slate-300">
+                                    <span id="hoverStockPallets">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="shippedStatusCard" class="bg-panelBg border border-borderSlate rounded-3xl p-5 shadow-xl relative" onmouseenter="showHover('shippedStatusDetail')" onmouseleave="hideHover('shippedStatusDetail')">
+                        <p class="text-base font-semibold text-slate-400 uppercase tracking-wider mb-4">출고 완료</p>
+                        <div class="pt-2">
+                            <div class="pb-3">
+                                <div class="flex items-end justify-between">
+                                    <span class="text-sm text-slate-400 font-semibold">총</span>
+                                    <div class="flex items-end gap-1.5">
+                                        <span id="generalKpiShippedQty" class="text-2xl font-bold text-accentOrange"></span>
+                                        <span class="text-xs text-slate-400">EA</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t border-slate-700/80"></div>
+                            <div class="pt-3">
+                                <div class="flex items-end justify-between">
+                                    <span class="text-sm text-slate-400 font-semibold">총</span>
+                                    <div class="flex items-end gap-1.5">
+                                        <span id="generalKpiShippedCodes" class="text-2xl font-bold text-accentOrange"></span>
+                                        <span class="text-[10px] text-slate-500 uppercase">CODE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-4">
+                                <p class="text-[11px] text-slate-500">최근 출고일 : <span id="recentShippedDate">0000-00-00</span></p>
+                            </div>
+                        </div>
+                        <div id="shippedStatusDetail" onmouseenter="showHover('shippedStatusDetail')" onmouseleave="hideHover('shippedStatusDetail')" class="absolute left-0 top-full z-50 mt-3 w-full rounded-2xl bg-slate-900/80 backdrop-blur-sm border border-slate-700 text-slate-300 p-4 shadow-2xl transition-opacity transition-transform duration-200 ease-out opacity-0 translate-y-2 pointer-events-none">
+                            <div class="text-sm font-semibold text-white mb-3">상세 현황</div>
+                            <div class="grid gap-2.5 text-xs text-slate-400">
+                                <div class="flex justify-between items-center">
+                                    <span>총 출고</span>
+                                    <span class="font-mono"><span id="hoverShippedTotalQty" class="text-yellow-400 font-bold">-</span>EA / <span id="hoverShippedTotalCodes" class="text-yellow-400 font-bold">-</span>CODE</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>피킹</span>
+                                    <span class="font-mono"><span id="hoverShippedPickingQty" class="text-accentBlue font-bold">-</span>EA / <span id="hoverShippedPickingCodes" class="text-accentBlue font-bold">-</span>CODE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="strengthenedStatusCard" onclick="onCard4Click()" class="bg-panelBg border border-accentOrange/20 rounded-3xl p-5 shadow-xl relative overflow-hidden cursor-pointer transition-all duration-200 ease-out hover:scale-[1.04] hover:shadow-lg hover:shadow-accentOrange/15 hover:border-accentOrange/50 active:scale-[1.01]">
+                        <div class="absolute right-4 top-4 text-accentOrange opacity-10">
+                            <i class="fa-solid fa-bell text-2xl animate-bounce"></i>
+                        </div>
+                        <p class="text-base font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-accentOrange animate-pulse"></span>
+                            수출 일정
+                        </p>
+                        <div class="pt-1 flex flex-col gap-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <span id="card4RoundName" class="text-lg font-bold text-white leading-snug">-</span>
+                                <span id="card4DDay" class="text-[10px] bg-accentOrange/10 text-accentOrange border border-accentOrange/20 px-2 py-0.5 rounded-full font-bold shrink-0">-</span>
+                            </div>
+                            <div class="border-t border-slate-700/80"></div>
+                            <div class="text-xs text-slate-400 space-y-2 font-mono">
                                 <div class="flex items-center justify-between">
-                                    <span>상차일:</span>
-                                    <span id="nearestLoadDate" class="text-slate-300 font-bold">-</span>
+                                    <span>상차일</span>
+                                    <span id="card4LoadDate" class="text-slate-300 font-bold">-</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span>전산 납기일:</span>
-                                    <span id="nearestDueDate" class="text-slate-300 font-bold">-</span>
+                                    <span>전산 납기일</span>
+                                    <span id="card4DueDate" class="text-slate-300 font-bold">-</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- [2] 가운데 메인 관제 대크 패널 -->
-        <section class="lg:col-span-3 flex flex-col gap-6 relative" id="rightMainPanel">
-            
-            <!-- [VIEW 1] 종합 관제 대시보드 영역 (기본 표시) -->
-            <div id="generalDashboardView" class="flex flex-col gap-6">
-                <!-- 1. 수출 포장 지표 요약 카드 그룹 -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <!-- 카드 1: 총 수출 수량 -->
-                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-                        <div class="absolute right-3 top-3 text-accentBlue opacity-10 group-hover:opacity-20 transition-all text-4xl">
-                            <i class="fa-solid fa-boxes-packing"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400 tracking-wider">총 수출 수량</span>
-                        <div class="mt-2.5 flex flex-col gap-1">
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiTargetQty" class="text-3xl font-bold text-white tracking-tight">0</span>
-                                <span class="text-xs text-slate-400 font-medium">ea</span>
-                            </div>
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiTargetCodes" class="text-base font-bold text-accentBlue tracking-tight">0</span>
-                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">CODE</span>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-accentBlue mt-2 flex items-center gap-1">
-                            <i class="fa-solid fa-circle-info"></i> 계획 수립 기준 품목 총수
-                        </div>
-                    </div>
-
-                    <!-- 카드 2: 수출품 포장강화 완료율 -->
-                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-                        <div class="absolute right-3 top-3 text-accentGreen opacity-10 group-hover:opacity-20 transition-all text-4xl">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400 tracking-wider">포장강화 완료율</span>
-                        <div class="mt-2.5 flex flex-col gap-1">
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiStrengthenedRate" class="text-3xl font-bold text-accentGreen tracking-tight">0.0%</span>
-                            </div>
-                            <div class="flex items-baseline gap-1.5 text-xs text-slate-400 font-medium">
-                                <span id="generalKpiStrengthenedQty">0 ea</span>
-                                <span class="text-slate-600">/</span>
-                                <span id="generalKpiStrengthenedCodes" class="text-accentGreen">0 CODE</span>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                            보강 공정 완료 실적률
-                        </div>
-                    </div>
-
-                    <!-- 카드 3: 총 선적/출고 완료 -->
-                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-                        <div class="absolute right-3 top-3 text-accentOrange opacity-10 group-hover:opacity-20 transition-all text-4xl">
-                            <i class="fa-solid fa-truck-container"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400 tracking-wider">총 선적/출고 완료</span>
-                        <div class="mt-2.5 flex flex-col gap-1">
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiShippedQty" class="text-3xl font-bold text-accentOrange tracking-tight">0</span>
-                                <span class="text-xs text-slate-400 font-medium">ea</span>
-                            </div>
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiShippedCodes" class="text-base font-bold text-accentOrange tracking-tight">0</span>
-                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">CODE</span>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                            출고수송 정상 인도 품목
-                        </div>
-                    </div>
-
-                    <!-- 카드 4: 포장강화 대기 수량 -->
-                    <div class="bg-panelBg border border-borderSlate rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-                        <div class="absolute right-3 top-3 text-accentRed opacity-10 group-hover:opacity-20 transition-all text-4xl">
-                            <i class="fa-solid fa-hourglass-half"></i>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-400 tracking-wider">포장강화 대기 수량</span>
-                        <div class="mt-2.5 flex flex-col gap-1">
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiRemainingQty" class="text-3xl font-bold text-accentRed tracking-tight">0</span>
-                                <span class="text-xs text-slate-400 font-medium">ea</span>
-                            </div>
-                            <div class="flex items-baseline gap-1">
-                                <span id="generalKpiRemainingCodes" class="text-base font-bold text-accentRed tracking-tight">0</span>
-                                <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">CODE</span>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-accentRed mt-2 flex items-center gap-1 font-semibold">
-                            <i class="fa-solid fa-circle-exclamation"></i> 대기 상태 of 잔여 과제
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. 모니터링 수출 최적화 트렌드 차트 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- 차트 A: 수출 국가별 완료 실적 비교 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-lg flex flex-col">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
@@ -311,26 +383,25 @@
                         </div>
                     </div>
 
-                    <!-- 차트 B: 일자별 누적 수출 선적 추이 -->
                     <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-lg flex flex-col">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
-                                <i class="fa-solid fa-chart-line text-accentGreen"></i> 포장 및 출고 일자별 흐름
+                                <i class="fa-solid fa-chart-column text-accentBlue"></i> 월별 포장 강화 현황
                             </h3>
-                            <span class="text-[11px] text-slate-400">실시간 누적 그래프</span>
+                            <span class="text-[11px] text-slate-400">월별 강화 수량 합계</span>
                         </div>
                         <div class="relative h-60 w-full">
                             <canvas id="trendChart"></canvas>
                         </div>
                     </div>
                 </div>
+        </div>
 
-                <!-- 3. 실시간 수출 대시보드 로 데이터 테이블 (칼럼 오름차순/내림차순 헤더 제어 컴포넌트 탑재) -->
-                <div class="bg-panelBg border border-borderSlate rounded-xl shadow-lg flex flex-col overflow-hidden">
+        <div class="bg-panelBg border border-borderSlate rounded-xl shadow-lg flex flex-col overflow-hidden lg:col-start-2 lg:col-span-3 lg:row-start-2">
                     <div class="px-6 py-4 border-b border-borderSlate flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-panelBg">
                         <div>
                             <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
-                                <i class="fa-solid fa-table-list text-accentBlue"></i> 수출 표준품 포장 관리 원장
+                                <i class="fa-solid fa-table-list text-accentBlue"></i> 수출 포장 관리 현황
                             </h3>
                             <p class="text-xs text-slate-400 mt-0.5">스프레드시트에서 동기화된 데이터 목록입니다. 각 헤더를 클릭하여 실시간으로 정렬이 가능합니다.</p>
                         </div>
@@ -341,12 +412,10 @@
                         </div>
                     </div>
 
-                    <!-- 데이터 리스트 테이블 박스 (도착지->상차일, 담당->도착지 컬럼명 변경 완료) -->
                     <div class="overflow-x-auto w-full max-h-[500px]">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-darkBg/60 text-slate-400 text-xs font-semibold uppercase tracking-wider sticky top-0 border-b border-borderSlate select-none">
-                                    <!-- 12개 컬럼 전체 정렬 트리거 버튼 탑재 완료 (3단계 정렬 완전 지원) -->
+                                <tr class="bg-darkBg text-slate-400 text-xs font-semibold uppercase tracking-wider sticky top-0 z-10 border-b border-borderSlate select-none">
                                     <th onclick="handleSort('regDate')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
                                         등록일자 (포장일) <span id="sort-icon-regDate" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
@@ -380,178 +449,130 @@
                                     <th onclick="handleSort('status')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
                                         상태 <span id="sort-icon-status" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleSort('country')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
-                                        도착지 <span id="sort-icon-country" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody" class="text-sm divide-y divide-borderSlate/40">
-                                <!-- JS를 통해 동적 데이터 자동 렌더링 -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
 
-                    <!-- 매치되는 항목 수 하단 바 -->
                     <div class="bg-darkBg/30 px-6 py-3 border-t border-borderSlate/60 text-xs text-slate-400 flex justify-between items-center">
                         <div>총 <span id="matchCount" class="text-accentBlue font-bold">0</span>건 중 <span id="totalDisplayCount" class="text-white">0</span>건 표시 중</div>
                         <div class="flex items-center gap-1">
                             <span class="h-1.5 w-1.5 rounded-full bg-accentGreen animate-pulse"></span> 누적 가동 수율: <span id="packagingRateAvg" class="text-accentGreen font-bold">100%</span>
                         </div>
                     </div>
-                </div>
-            </div>
+        </div>
 
-            <!-- [VIEW 2] 제품 코드 전용 타겟 상세 스펙 뷰 (메인 대시보드 위에 겹쳐서 투과되도록 absolute 및 반투명 유리 효과 전면 개편) -->
-            <div id="productDetailView" class="hidden absolute inset-0 z-40 bg-darkBg/65 backdrop-blur-md rounded-xl p-6 flex flex-col gap-6 overflow-y-auto border border-borderSlate/60 shadow-2xl">
-                <!-- 1. Dedicated Top Navigation Bar -->
-                <div class="bg-panelBg/80 backdrop-blur-md border border-borderSlate/60 px-6 py-4 rounded-xl shadow-lg flex items-center justify-between">
-                    <button onclick="exitProductDetailView()" class="bg-slate-900/80 backdrop-blur-md hover:bg-slate-800/90 text-slate-300 hover:text-white text-xs px-4 py-2.5 rounded-lg border border-white/10 hover:border-white/20 font-semibold flex items-center gap-1.5 transition-all duration-300 active:scale-95">
-                        <i class="fa-solid fa-arrow-left"></i> 종합 대시보드로 돌아가기
+        <div id="productDetailBackdrop" class="hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300" onclick="exitProductDetailView()"></div>
+        <div id="productDetailView" class="fixed top-0 right-0 h-full w-[760px] max-w-full z-50 bg-panelBg border-l border-borderSlate/70 shadow-2xl flex flex-col overflow-hidden transform translate-x-full transition-transform duration-300 ease-out">
+                <div class="bg-darkBg/50 border-b border-borderSlate/60 px-5 py-4 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-accentBlue/10 p-2 rounded-lg border border-accentBlue/20 text-accentBlue">
+                            <i class="fa-solid fa-cube text-sm"></i>
+                        </div>
+                        <span class="text-xs bg-indigo-500/10 text-accentBlue px-3 py-1.5 rounded-full border border-indigo-500/20 font-bold uppercase tracking-wider">제품 상세스펙 및 이력</span>
+                    </div>
+                    <button onclick="exitProductDetailView()" class="bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white w-8 h-8 rounded-lg border border-white/10 hover:border-white/20 flex items-center justify-center transition-all duration-200 active:scale-95">
+                        <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
-                    <span class="text-xs bg-indigo-500/10 text-accentBlue px-3 py-1.5 rounded-full border border-indigo-500/20 font-bold uppercase tracking-wider">제품 정보 관제 시스템</span>
                 </div>
 
-                <!-- 2. 스펙 헤더 카드 (순수 가로, 세로, 높이, 중량 수치 실시간 연동 표시 영역) -->
-                <div class="bg-panelBg/70 backdrop-blur-md border border-borderSlate/60 p-6 rounded-xl shadow-xl relative overflow-hidden">
-                    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-                        <!-- Left: 아이콘 & 제품코드 -->
-                        <div class="flex items-center gap-4">
-                            <div class="bg-accentBlue/10 p-3.5 rounded-xl border border-accentBlue/20 text-accentBlue text-2xl">
-                                <i class="fa-solid fa-cube"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-3xl font-bold tracking-tight text-white" id="detailProductCode">PRODUCT_CODE</h2>
-                                <p class="text-xs text-slate-400 mt-1">포장강화 타겟 고유 스펙 및 출고 상태 관제 보드</p>
-                            </div>
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                <div class="bg-darkBg/50 border border-borderSlate/60 p-4 rounded-xl">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="bg-accentBlue/10 p-2.5 rounded-xl border border-accentBlue/20 text-accentBlue text-lg">
+                            <i class="fa-solid fa-cube"></i>
                         </div>
-                        
-                        <!-- Right: W, D, H, G 스펙 레이아웃 (우측 정갈한 배치) -->
-                        <div class="flex flex-wrap items-center gap-4 bg-darkBg/50 px-5 py-3 rounded-xl border border-borderSlate/60 font-mono text-sm">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-slate-500 font-semibold">W:</span>
-                                <span class="text-accentBlue font-bold" id="specW">0mm</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 group">
+                                <h2 class="text-xl font-bold tracking-tight text-white cursor-pointer hover:text-accentBlue transition-colors" id="detailProductCode" onclick="startEditProductCode()" title="클릭하여 다른 제품 검색">PRODUCT_CODE</h2>
+                                <input type="text" id="detailProductCodeInput" class="hidden text-xl font-bold tracking-tight text-white bg-transparent border-b-2 border-accentBlue outline-none w-48 uppercase" onkeydown="handleProductCodeInputKey(event)" onblur="cancelEditProductCode()" />
+                                <button onclick="startEditProductCode()" class="opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-accentBlue" title="제품코드 변경">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
                             </div>
-                            <span class="text-slate-700">|</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-accentBlue font-bold" id="specD">0mm</span>
-                            </div>
-                            <span class="text-slate-700">|</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-accentBlue font-bold" id="specH">0mm</span>
-                            </div>
-                            <span class="text-slate-700">|</span>
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-slate-500 font-semibold">G:</span>
-                                <span class="text-accentGreen font-bold" id="specG">0kg</span>
-                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">클릭하여 다른 제품코드로 검색 가능</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 bg-darkBg/60 px-4 py-2.5 rounded-lg border border-borderSlate/60 font-mono text-sm">
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-500 font-semibold">W</span>
+                            <span class="text-slate-600">:</span>
+                            <span class="text-accentBlue font-bold" id="specW">-</span>
+                            <span class="text-slate-500 text-xs">mm</span>
+                        </div>
+                        <span class="text-slate-700">|</span>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-500 font-semibold">D</span>
+                            <span class="text-slate-600">:</span>
+                            <span class="text-accentBlue font-bold" id="specD">-</span>
+                            <span class="text-slate-500 text-xs">mm</span>
+                        </div>
+                        <span class="text-slate-700">|</span>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-500 font-semibold">H</span>
+                            <span class="text-slate-600">:</span>
+                            <span class="text-accentBlue font-bold" id="specH">-</span>
+                            <span class="text-slate-500 text-xs">mm</span>
+                        </div>
+                        <span class="text-slate-700">|</span>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-500 font-semibold">G</span>
+                            <span class="text-slate-600">:</span>
+                            <span class="text-accentGreen font-bold" id="specG">-</span>
+                            <span class="text-slate-500 text-xs">kg</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. 세부 원장 테이블 (납기일/상차일 오름차순/내림차순/정렬해제 3단계 정렬 완비) -->
-                <div class="bg-panelBg/70 backdrop-blur-md border border-borderSlate/60 rounded-xl shadow-xl overflow-hidden flex flex-col">
-                    <div class="px-6 py-4 border-b border-borderSlate/60 flex items-center justify-between bg-darkBg/10 select-none">
+                <div class="bg-darkBg/50 border border-borderSlate/60 rounded-xl overflow-hidden flex flex-col flex-1">
+                    <div class="px-4 py-3 border-b border-borderSlate/60 flex items-center justify-between bg-darkBg/30 select-none flex-shrink-0">
                         <div class="flex items-center gap-2">
-                            <span class="h-2.5 w-2.5 rounded-full bg-accentBlue"></span>
-                            <h3 class="text-sm font-bold text-white uppercase tracking-wider">수출 제품 세부 진행 이력</h3>
+                            <span class="h-2 w-2 rounded-full bg-accentBlue"></span>
+                            <h3 class="text-xs font-bold text-white uppercase tracking-wider">수출 제품 세부 진행 이력</h3>
                         </div>
-                        <span class="text-xs text-slate-400">품목별 수주 수량 및 배차 배인딩 정보</span>
+                        <span class="text-xs text-slate-500">품목별 수주 수량 및 진행</span>
                     </div>
 
-                    <div class="overflow-x-auto w-full">
-                        <table class="w-full text-left border-collapse">
+                    <div class="overflow-auto w-full">
+                        <table class="min-w-max w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="bg-darkBg/60 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-borderSlate/60 select-none">
-                                    <th class="py-4 px-6 text-center w-12">*</th>
-                                    <th onclick="handleDetailSort('round')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
-                                        차수 <span id="detail-sort-icon-round" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                <tr class="bg-darkBg/60 text-slate-400 font-semibold uppercase tracking-wider border-b border-borderSlate/60 select-none whitespace-nowrap">
+                                    <th class="py-3 px-3 text-center w-10">*</th>
+                                    <th onclick="handleDetailSort('round')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        차수 <span id="detail-sort-icon-round" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleDetailSort('code')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
-                                        제품코드 <span id="detail-sort-icon-code" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    <th onclick="handleDetailSort('code')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        제품코드 <span id="detail-sort-icon-code" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleDetailSort('color')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
-                                        컬러 <span id="detail-sort-icon-color" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    <th onclick="handleDetailSort('color')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        컬러 <span id="detail-sort-icon-color" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleDetailSort('qty')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors text-center">
-                                        수량 <span id="detail-sort-icon-qty" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    <th onclick="handleDetailSort('qty')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        수량 <span id="detail-sort-icon-qty" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleDetailSort('status')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors text-center">
-                                        진행상태 <span id="detail-sort-icon-status" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    <th onclick="handleDetailSort('status')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-center">
+                                        진행 <span id="detail-sort-icon-status" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleDetailSort('dueDate')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors">
-                                        납기일 <span id="detail-sort-icon-dueDate" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    <th onclick="handleDetailSort('dueDate')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors">
+                                        납기일 <span id="detail-sort-icon-dueDate" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
-                                    <th onclick="handleDetailSort('date')" class="py-4 px-6 cursor-pointer hover:bg-slate-800 transition-colors text-accentBlue">
-                                        상차일 <span id="detail-sort-icon-date" class="text-[10px] ml-1 text-slate-500"><i class="fa-solid fa-sort"></i></span>
+                                    <th onclick="handleDetailSort('date')" class="py-3 px-4 cursor-pointer hover:bg-slate-800 transition-colors text-accentBlue">
+                                        상차일 <span id="detail-sort-icon-date" class="text-[10px] ml-0.5 text-slate-500"><i class="fa-solid fa-sort"></i></span>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="productDetailTableBody" class="text-sm divide-y divide-borderSlate/40">
-                                <!-- 제품 전용 데이터 렌더링 -->
-                            </tbody>
+                            <tbody id="productDetailTableBody" class="divide-y divide-borderSlate/40">
+                                </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-
-        </section>
-
-        <!-- [3] 오른쪽 데이터 동기화 & 시스템 제어 패널 (lg:col-span-1) -->
-        <section class="lg:col-span-1 flex flex-col gap-5">
-            <div class="bg-panelBg border border-borderSlate rounded-xl p-5 shadow-xl flex flex-col gap-4">
-                <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-server text-accentGreen"></i> 데이터 연동 제어
-                </h2>
-                
-                <!-- 연동 상태 배지 표시 -->
-                <div class="space-y-1">
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">시스템 연결 상태</span>
-                    <div id="connIndicator" class="inline-flex w-full items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500/10 text-accentOrange border border-amber-500/20">
-                        <span class="h-1.5 w-1.5 rounded-full bg-accentOrange animate-ping"></span>
-                        연동 대기 중
-                    </div>
                 </div>
+        </div>
 
-                <!-- 마지막 데이터 동기화 시각 -->
-                <div class="bg-darkBg/50 p-3 rounded-lg border border-borderSlate/60 font-mono text-xs text-slate-400 flex flex-col gap-1">
-                    <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">동기화 시각</span>
-                    <span class="text-accentGreen font-bold" id="syncTimestamp">초기 로드 대기</span>
-                </div>
-
-                <!-- 데이터 연동 컨트롤 버튼 그룹 -->
-                <div class="flex flex-col gap-2.5 pt-2">
-                    <!-- 실시간 갱신 단추 -->
-                    <button onclick="syncWithGoogleSheets()" id="syncBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-3 rounded-lg border border-borderSlate flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold">
-                        <i class="fa-solid fa-arrows-rotate" id="syncIcon"></i> 실시간 시트 갱신
-                    </button>
-                    
-                    <!-- 수동 CSV 업로드 단추 -->
-                    <label class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-3 rounded-lg border border-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer font-bold shadow-lg shadow-blue-500/10 text-center">
-                        <i class="fa-solid fa-file-import"></i> CSV 파일 업로드
-                        <input type="file" id="csvFileInput" accept=".csv" multiple class="hidden" onchange="handleCsvUpload(event)">
-                    </label>
-
-                    <!-- 수동 설정(톱니바퀴) 단추 -->
-                    <button onclick="openSettingsModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-3 rounded-lg border border-borderSlate flex items-center justify-center gap-2 transition-all active:scale-95 font-semibold" title="구글 시트 연동 설정">
-                        <i class="fa-solid fa-cog"></i> 연동 세부 설정
-                    </button>
-                </div>
-
-                <!-- 현재 동적으로 누적 병합 연동된 활성 CSV 시트 리스트 명칭 표시판 -->
-                <div id="loadedFilesContainer" class="hidden bg-slate-900/60 p-3 rounded-lg border border-slate-700/60 text-xs space-y-1.5">
-                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        <span>현재 사용중인 데이터 탭</span>
-                        <button onclick="clearUploadedData()" class="text-accentRed hover:text-red-400 transition-colors" title="업로드 데이터 초기화 및 데모 복원">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                    <div class="text-slate-300 font-mono text-[11px] break-all leading-normal" id="loadedFilesList">대기 중</div>
-                </div>
-            </div>
-        </section>
     </main>
 
-    <!-- 수출 국가별 차수 상세정보 모달창 -->
     <div id="chartDetailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden transition-all duration-300">
         <div class="bg-panelBg border border-borderSlate p-6 rounded-2xl max-w-md w-full mx-4 shadow-2xl relative">
             <button onclick="closeChartDetailModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors">
@@ -576,8 +597,7 @@
                         </tr>
                     </thead>
                     <tbody id="chartModalTableBody" class="text-xs divide-y divide-borderSlate/40">
-                        <!-- Dynamic rows -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
             
@@ -589,7 +609,6 @@
         </div>
     </div>
 
-    <!-- 구글 시트 연동 설정 모달 -->
     <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden transition-all duration-300">
         <div class="bg-panelBg border border-borderSlate p-6 rounded-2xl max-w-lg w-full mx-4 shadow-2xl relative">
             <button onclick="closeSettingsModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors">
@@ -607,55 +626,15 @@
             
             <div class="space-y-4 my-5 text-sm">
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">연동 방식 선택</label>
-                    <div class="grid grid-cols-3 gap-1.5">
-                        <button onclick="toggleInputType('bypass')" id="btnTypeByp" class="py-2 px-1 rounded-lg text-[10px] font-bold text-center border transition-all bg-accentGreen/10 text-accentGreen border-accentGreen/30">
-                            사내 보안 우회 방식 (강추 🚀)
-                        </button>
-                        <button onclick="toggleInputType('published')" id="btnTypePub" class="py-2 px-1 rounded-lg text-[10px] font-semibold text-center border transition-all bg-slate-800 text-slate-400 border-borderSlate hover:bg-slate-700">
-                            웹에 게시 방식
-                        </button>
-                        <button onclick="toggleInputType('standard')" id="btnTypeStd" class="py-2 px-1 rounded-lg text-[10px] font-semibold text-center border transition-all bg-slate-800 text-slate-400 border-borderSlate hover:bg-slate-700">
-                            일반 스프레드 방식
-                        </button>
-                    </div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">웹에 게시 방식으로 연동하기</label>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">아래에 공개된 구글 시트 CSV 주소를 입력하면 이 대시보드가 실시간으로 데이터를 가져옵니다.</p>
                 </div>
 
-                <!-- [방식 1]: 가이드 및 주소창 -->
-                <div id="formTypeByp" class="space-y-2">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">사내 보안 우회 웹 앱 (Apps Script) URL</label>
-                    <input type="text" id="inputBypassUrl" placeholder="https://script.google.com/macros/s/.../exec" 
-                           class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentGreen text-xs font-mono">
-                    
-                    <div class="bg-darkBg/60 p-3 rounded-lg text-[11px] text-slate-400 leading-relaxed max-h-48 overflow-y-auto space-y-2">
-                        <p class="font-bold text-accentGreen">💡 구글 스프레드시트 탭 복수 추가 방법:</p>
-                        <p>1. 구글 스프레드시트의 <strong>도구 > Apps Script</strong>를 엽니다.</p>
-                        <p>2. 새로운 파일(gs)을 만들어 가동 코드를 넣고 <strong>배포(웹앱)</strong>를 누릅니다.</p>
-                        <p>3. 부여되는 최종 웹앱 URL 주소를 복사하여 위의 입력 창에 주입하세요.</p>
-                    </div>
-                </div>
-
-                <!-- [방식 2]: 웹에 게시 입력용 폼 -->
-                <div id="formTypePub" class="space-y-2">
+                <div class="space-y-2">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">구글 시트 웹에 게시 CSV 주소</label>
                     <input type="text" id="inputPubUrl" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" 
                            class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs">
-                </div>
-
-                <!-- [방식 3]: 표준 ID 입력용 폼 -->
-                <div id="formTypeStd" class="space-y-3 hidden">
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="col-span-2">
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">스프레드시트 ID</label>
-                            <input type="text" id="inputSheetId" placeholder="Spreadsheet ID" 
-                                   class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">시트 GID</label>
-                            <input type="text" id="inputGid" placeholder="1357513790" 
-                                   class="w-full bg-darkBg text-slate-200 px-3 py-2 rounded-lg border border-borderSlate focus:outline-none focus:border-accentBlue text-xs font-mono">
-                        </div>
-                    </div>
+                    <p class="text-[11px] text-slate-500">예시: 구글 스프레드시트의 파일 → 웹에 게시 → CSV로 발행 후 복사한 URL</p>
                 </div>
             </div>
 
@@ -670,7 +649,6 @@
         </div>
     </div>
 
-    <!-- 구글 시트 연동 도움말 모달 -->
     <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden transition-all duration-300">
         <div class="bg-panelBg border border-borderSlate p-6 rounded-2xl max-w-lg w-full mx-4 shadow-2xl relative">
             <button onclick="closeHelpModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors">
@@ -708,7 +686,6 @@
         </div>
     </div>
 
-    <!-- 토스트 알림창 UI -->
     <div id="toastAlert" class="fixed bottom-6 right-6 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300">
         <div class="bg-panelBg border border-borderSlate p-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-sm">
             <div id="toastIcon" class="p-2 rounded-lg text-white"></div>
@@ -719,38 +696,19 @@
         </div>
     </div>
 
-    <!-- 자바스크립트 비즈니스 로직 및 인터랙션 구현 -->
     <script>
-        // 시트 공유설정이 풀리지 않았을 때를 대비한 견고한 로컬 폴백 데이터셋
-        const initialData = [
-            // 제품 코드 CAC2083SN 에 해당하는 전수 4개 실 데이터 바인딩
-            { date: '2026-04-19', regDate: '2026-04-15', round: 'FAM-110', qty: 50, dueDate: '2026-04-19', code: 'CAC2083SN', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 50, strengthenedQty: 50, shippedQty: 50, cost: 350000, status: '출고완료', operator: '박사원', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
-            { date: '2026-06-24', regDate: '2026-06-20', round: 'FAM-131', qty: 8, dueDate: '2026-06-24', code: 'CAC2083SN', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 8, strengthenedQty: 8, shippedQty: 0, cost: 56000, status: '포장완료', operator: '김대리', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
-            { date: '2026-07-11', regDate: '2026-07-05', round: 'NY-45', qty: 1, dueDate: '2026-07-11', code: 'CAC2083SN', color: 'UM', product: 'OLED 디스플레이 패널 A급', country: 'NY', targetQty: 1, strengthenedQty: 0, shippedQty: 0, cost: 7000, status: '포장대기', operator: '장여사', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
-            { date: '2026-07-11', regDate: '2026-07-06', round: 'INICS-01', qty: 11, dueDate: '2026-07-11', code: 'CAC2083SN', color: 'RCN', product: 'OLED 디스플레이 패널 A급', country: 'INICS', targetQty: 11, strengthenedQty: 0, shippedQty: 0, cost: 0, status: '미입고', operator: '-', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
-            
-            // FAD0018NO 전용 데이터 바인딩 추가
-            { date: '2026-06-25', regDate: '2026-06-24', round: 'FAM-TOF-02/26', qty: 1, dueDate: '2026-06-25', code: 'FAD0018NO', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 1, strengthenedQty: 1, shippedQty: 1, cost: 1200, status: '출고완료', operator: '-', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
-            { date: '2026-06-25', regDate: '2026-06-24', round: 'FAM-TOF-05/26', qty: 50, dueDate: '2026-06-25', code: 'FAD0018NO', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 50, strengthenedQty: 50, shippedQty: 0, cost: 60000, status: '포장완료', operator: '-', specW: '1955mm', specD: '750mm', specH: '55mm', specG: '15.23kg' },
-            
-            // CAB0083N 전용 스펙 데이터 바인딩 추가 (로컬 시뮬레이션용 데이터셋 완전 보강 🌟)
-            { date: '2026-04-21', regDate: '2026-04-16', round: 'FAM-74/26', qty: 2, dueDate: '2026-05-08', code: 'CAB0083N', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 2, strengthenedQty: 2, shippedQty: 2, cost: 2400, status: '출고완료', operator: '-', specW: '855mm', specD: '565mm', specH: '40mm', specG: '11.60kg' },
-            { date: '2026-06-24', regDate: '2026-06-16', round: 'FAM-NY-03/26', qty: 20, dueDate: '2026-06-24', code: 'CAB0083N', color: 'WW', product: 'OLED 디스플레이 패널 A급', country: 'FAM', targetQty: 20, strengthenedQty: 20, shippedQty: 0, cost: 24000, status: '포장완료', operator: '-', specW: '855mm', specD: '565mm', specH: '40mm', specG: '11.60kg' },
-
-            { date: '2026-06-24', regDate: '2026-06-20', round: 'FAM-00', qty: 230, dueDate: '2026-07-15', code: 'FAD0016NO', color: 'WW', product: '정밀 OLED 패널', country: 'FAM', targetQty: 150, strengthenedQty: 150, shippedQty: 150, cost: 180000, status: '출고완료', operator: '김동현', specW: '1200mm', specD: '600mm', specH: '30mm', specG: '8.40kg' },
-            { date: '2026-06-24', regDate: '2026-06-20', round: 'FAM-00', qty: 140, dueDate: '2026-07-18', code: 'CCA9001MN', color: 'UM', product: '차량용 센서 카메라', country: 'FAM', targetQty: 80, strengthenedQty: 80, shippedQty: 60, cost: 272000, status: '포장완료', operator: '이지은', specW: '350mm', specD: '350mm', specH: '120mm', specG: '2.15kg' },
-            { date: '2026-06-23', regDate: '2026-06-16', round: 'NY-00', qty: 100, dueDate: '2026-07-10', code: 'FAD0022XP', color: 'RCN', product: '반도체 인쇄회로기판', country: 'NY', targetQty: 100, strengthenedQty: 40, shippedQty: 0, cost: 40000, status: '포장대기', operator: '최민서', specW: '500mm', specD: '500mm', specH: '10mm', specG: '0.95kg' },
-            { date: '2026-06-22', regDate: '2026-06-16', round: 'INICS-00', qty: 120, dueDate: '2026-07-20', code: 'CCA8005TY', color: 'WW', product: '고속 광케이블 코어', country: 'INICS', targetQty: 120, strengthenedQty: 120, shippedQty: 120, cost: 252000, status: '출고완료', operator: '박태준', specW: '800mm', specD: '800mm', specH: '400mm', specG: '12.50kg' },
-            { date: '2026-06-21', regDate: '2026-06-16', round: 'FAM-01', qty: 380, dueDate: '2026-07-12', code: 'FAD0016NO', color: 'WW', product: '광학 유리 렌즈군', country: 'Domestic', targetQty: 200, strengthenedQty: 200, shippedQty: 180, cost: 300000, status: '포장완료', operator: '김동현', specW: '1200mm', specD: '600mm', specH: '30mm', specG: '8.40kg' },
-            { date: '2026-06-20', regDate: '2026-06-16', round: 'FAM-01', qty: 85, dueDate: '2026-07-22', code: 'CCA9001MN', color: 'UM', product: '리튬배터리 팩', country: 'FAM', targetQty: 50, strengthenedQty: 30, shippedQty: 0, cost: 275000, status: '포장대기', operator: '이지은', specW: '350mm', specD: '350mm', specH: '120mm', specG: '2.15kg' }
-        ];
+        // 시트 공유설정이 풀리지 않았을 때를 대비한 견고한 로컬 폴백 데이터셋 (데모 비움)
+        const initialData = [];
 
         // 파일 세션별 동적 누적 Map 시스템 도입 (데이터 꼬임 및 누락 완벽 해결)
         let datasetMap = {};
 
         let state = {
             data: [],
-            filteredData: []
+            filteredData: [],
+            rawCsvRows: null,
+            rawStockRows: null,
+            rawShippedRows: null
         };
 
         let exportRoundChartInstance = null;
@@ -771,7 +729,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedSettings();
-            enableDatePickerOpen();
             
             // 1. 페이지 로딩 즉시 데모 데이터 세팅
             datasetMap['default'] = [...initialData];
@@ -780,18 +737,6 @@
             // 2. 실시간 스프레드시트 갱신 시도 (초기에는 반응속도 극대화를 위해 1.5초 이내 타임아웃 가동)
             syncWithGoogleSheets(true);
         });
-
-        function enableDatePickerOpen() {
-            ['startDateFilter', 'endDateFilter'].forEach(id => {
-                const input = document.getElementById(id);
-                if (!input) return;
-                input.addEventListener('click', () => {
-                    if (typeof input.showPicker === 'function') {
-                        input.showPicker();
-                    }
-                });
-            });
-        }
 
         // 다중 파일 로드 시 중복 행 증발 방지 및 결합 파이프라인
         function combineDatasets() {
@@ -802,7 +747,7 @@
             
             keys.forEach(k => {
                 if (hasRealUploads && k === 'default') return;
-                combined = combined.concat(datasetMap[k]);
+                combined = mergeDatasets(combined, datasetMap[k]);
             });
             
             // 전체 결합 데이터에 제품 스펙 전파 백필(Backfill) 작동
@@ -901,51 +846,26 @@
                 icon.classList.add('animate-spin');
             }
 
-            let savedType = localStorage.getItem('sheet_conn_type') || 'standard';
-            const bypassUrl = localStorage.getItem('sheet_bypass_url') || '';
             const pubUrl = localStorage.getItem('sheet_pub_url') || '';
-            const sheetId = localStorage.getItem('sheet_id') || '1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54';
-            const gid = localStorage.getItem('sheet_gid') || '1357513790';
 
-            if ((savedType === 'bypass' && !bypassUrl) || (savedType === 'published' && !pubUrl)) {
-                savedType = 'standard';
-            }
+            let csvUrl = pubUrl;
+            let isJsonMode = pubUrl.includes('script.google.com') || pubUrl.includes('/exec');
 
-            let csvUrl = '';
-            let isJsonMode = false;
-
-            if (savedType === 'bypass') {
-                if (!bypassUrl) {
-                    handleSyncFailure(isInitial);
-                    if (btn && icon) {
-                        btn.disabled = false;
-                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        icon.classList.remove('animate-spin');
-                    }
-                    return;
+            if (!csvUrl) {
+                handleSyncFailure(isInitial);
+                if (btn && icon) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    icon.classList.remove('animate-spin');
                 }
-                csvUrl = bypassUrl;
-                isJsonMode = true; 
-            } else if (savedType === 'published') {
-                if (!pubUrl) {
-                    handleSyncFailure(isInitial);
-                    if (btn && icon) {
-                        btn.disabled = false;
-                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        icon.classList.remove('animate-spin');
-                    }
-                    return;
-                }
-                csvUrl = pubUrl;
-            } else {
-                csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+                return;
             }
 
             let text = '';
             let success = false;
 
-            // 실시간 갱신 반응속도 조절용 AbortController 선언
-            const fetchTimeout = isInitial ? 8000 : 10000;
+            // Apps Script는 응답이 느리므로 타임아웃을 더 길게 설정
+            const fetchTimeout = isJsonMode ? 15000 : (isInitial ? 1500 : 3000);
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), fetchTimeout);
 
@@ -972,6 +892,7 @@
                 if (isJsonMode) {
                     try {
                         const jsonObj = JSON.parse(text);
+                        const ALLOWED_SHEETS = ['수출 표준품 현황', '출고 완료', '충주공장 재고'];
                         if (jsonObj && typeof jsonObj === 'object' && !Array.isArray(jsonObj)) {
                             Object.keys(datasetMap).forEach(k => {
                                 if (k.startsWith('sheet_')) delete datasetMap[k];
@@ -979,9 +900,20 @@
 
                             for (let sheetName in jsonObj) {
                                 if (jsonObj.hasOwnProperty(sheetName)) {
-                                    const sheetRows = jsonObj[sheetName];
-                                    const parsedSheetData = mapCSVData(sheetRows);
-                                    datasetMap['sheet_' + sheetName] = parsedSheetData;
+                                    if (ALLOWED_SHEETS.some(name => sheetName.includes(name))) {
+                                        const sheetRows = jsonObj[sheetName];
+                                        const parsedSheetData = mapCSVData(sheetRows);
+                                        datasetMap['sheet_' + sheetName] = parsedSheetData;
+                                        if (sheetName.includes('수출 표준품 현황')) {
+                                            state.rawCsvRows = sheetRows;
+                                        }
+                                        if (sheetName.includes('충주공장 재고')) {
+                                            state.rawStockRows = sheetRows;
+                                        }
+                                        if (sheetName.includes('출고 완료')) {
+                                            state.rawShippedRows = sheetRows;
+                                        }
+                                    }
                                 }
                             }
                         } else if (Array.isArray(jsonObj)) {
@@ -995,10 +927,17 @@
                     }
                 } else {
                     const csvRows = parseCSV(text);
+                    const mapped = mapCSVData(csvRows);
+                    if (!isValidSheetData(mapped)) {
+                        showNotification('시트 연동 거부', '필수 컬럼(제품코드·수량·건명)이 없는 시트입니다. 올바른 시트 URL을 설정해 주세요.', 'error');
+                        if (btn && icon) { btn.disabled = false; icon.classList.remove('animate-spin'); }
+                        return;
+                    }
+                    state.rawCsvRows = csvRows;
                     Object.keys(datasetMap).forEach(k => {
                         if (k.startsWith('sheet_')) delete datasetMap[k];
                     });
-                    datasetMap['sheet_실시간시트'] = mapCSVData(csvRows);
+                    datasetMap['sheet_실시간시트'] = mapped;
                 }
 
                 combineDatasets();
@@ -1014,7 +953,7 @@
                                     String(now.getSeconds()).padStart(2, '0');
                     document.getElementById('syncTimestamp').innerText = timeStr;
                     
-                    updateConnectionStatus(true, savedType);
+                    updateConnectionStatus(true, 'sheet');
                     autoAdjustDateFilters();
                     applyFilters();
                     if (!isInitial) {
@@ -1080,31 +1019,20 @@
             return '-';
         }
 
-        // [동적 지능형 시트 데이터 매퍼 (Semantic Auto-Mapper)]
+        // [동적 지능형 시트 데이터 매퍼]
         function mapCSVData(csvRows) {
             if (csvRows.length < 2) return [];
             let headers = csvRows[0].map(h => h ? h.toString().trim().replace(/\s+/g, '') : '');
             
-            // 시트 컬럼 유연 대응 사전 정의
             let fieldMap = {
-                date: ['상차일', '도착지', 'date'], // 상차일을 메인 date로 매핑
-                regDate: ['포장일', '등록일자', '일자', '등록', 'regDate'], // 포장일을 등록일자(regDate)로 1:1 분리 🌟
-                round: ['수주건명', '건명', '차수', '수출차수', 'round'],
-                qty: ['수량', '수량(EA)', 'qty', '개수'],
-                dueDate: ['전산상 납기', '납기일', '납기', 'dueDate'],
-                country: ['도착지', '도착', '국가', 'country'],
-                targetQty: ['대상(EA)', '대상(ea)', '대상', 'targetQty'],
-                strengthenedQty: ['강화(EA)', '강화(ea)', '강화', 'strengthenedQty'],
-                shippedQty: ['출고(EA)', '출고(ea)', '출고', 'shippedQty'],
-                cost: ['강화비용', '비용', 'cost'],
-                status: ['진행', '상태', '진행상태', 'status'],
-                operator: ['작업자', '담당', '담당자', 'operator'],
-                code: ['품목코드', '제품코드', '코드', 'code'],
-                color: ['색상', '컬러', 'color'],
-                specW: ['가로', 'W', 'w', 'width', 'specW'],
-                specD: ['세로', 'D', 'd', 'depth', 'length', 'specD'],
-                specH: ['높이', 'H', 'h', 'height', 'specH'],
-                specG: ['중량', '무게', 'G', 'g', 'weight', 'specG']
+                date: ['상차일', 'date'], regDate: ['포장일', '등록일자', 'regDate'], round: ['수주건명', '건명', '차수', 'round'],
+                qty: ['수량', 'qty'], dueDate: ['전산상납기', '전산 납기', 'dueDate'], country: ['제품 구분', '제품구분', 'country'],
+                targetQty: ['대상(EA)', 'targetQty'], strengthenedQty: ['강화(EA)', '강화', 'strengthenedQty'], shippedQty: ['출고(EA)', '출고', 'shippedQty'],
+                cost: ['강화비용', 'cost'], status: ['진행', '진행상태', '상태', 'status'], code: ['품목코드', '제품코드', 'code'], color: ['색상', '컬러', 'color'],
+                specW: ['가로', 'W', '폭', 'WIDTH', 'width', 'specW'],
+                specD: ['세로', 'D', '깊이', 'DEPTH', 'depth', 'specD'],
+                specH: ['높이', 'H', 'HEIGHT', 'height', 'specH'],
+                specG: ['무게', '중량', 'G', 'KG', '중량(KG)', '무게(KG)', 'weight', 'specG']
             };
 
             let indices = {};
@@ -1112,22 +1040,9 @@
                 indices[field] = -1;
                 for (let alias of fieldMap[field]) {
                     let idx = headers.findIndex(h => h.toLowerCase().replace(/\s+/g, '') === alias.toLowerCase());
-                    if (idx === -1) {
-                        idx = headers.findIndex(h => h.toLowerCase().includes(alias.toLowerCase()));
-                    }
-                    if (idx !== -1) {
-                        indices[field] = idx;
-                        break;
-                    }
+                    if (idx === -1) idx = headers.findIndex(h => h.toLowerCase().includes(alias.toLowerCase()));
+                    if (idx !== -1) { indices[field] = idx; break; }
                 }
-            }
-
-            let wIdx = headers.findIndex(h => h.includes('가로'));
-            if (wIdx !== -1) {
-                indices.specW = wIdx;
-                indices.specD = wIdx + 1;
-                indices.specH = wIdx + 2;
-                indices.specG = wIdx + 3;
             }
 
             let mappedList = [];
@@ -1135,133 +1050,83 @@
                 let row = csvRows[i];
                 if (row.length === 0 || row.every(cell => !cell || cell.toString().trim() === "")) continue;
 
-                let dateVal = indices.date !== -1 && indices.date < row.length && row[indices.date] ? normalizeDate(row[indices.date]) : '-';
-                let regDateVal = indices.regDate !== -1 && indices.regDate < row.length && row[indices.regDate] ? normalizeDate(row[indices.regDate]) : dateVal; // 등록일자(포장일) 🌟
-                let roundVal = indices.round !== -1 && indices.round < row.length && row[indices.round] ? row[indices.round].toString().trim() : 'FAM-00';
-                
+                // [핵심] 품목코드나 수량이 비어있으면 엑셀 찌꺼기(유령행)로 간주하고 즉시 버림!
+                let rawCodeStr = indices.code !== -1 && indices.code < row.length && row[indices.code] ? row[indices.code].toString().trim() : '';
+                if (!rawCodeStr && row[1]) rawCodeStr = row[1].toString().trim();
+                if (!rawCodeStr && row[0]) rawCodeStr = row[0].toString().trim();
                 let rawQtyStr = indices.qty !== -1 && indices.qty < row.length && row[indices.qty] ? row[indices.qty].toString().trim() : '';
                 let qtyVal = parseInt(rawQtyStr.replace(/[^0-9]/g, '')) || 0;
                 
-                let dueDateVal = indices.dueDate !== -1 && indices.dueDate < row.length && row[indices.dueDate] ? normalizeDate(row[indices.dueDate]) : '2026-06-24';
-                let statusRaw = indices.status !== -1 && indices.status < row.length && row[indices.status] ? row[indices.status].toString().trim() : '출고완료';
-                let operatorVal = indices.operator !== -1 && indices.operator < row.length && row[indices.operator] ? row[indices.operator].toString().trim() : '-';
-                let codeVal = indices.code !== -1 && indices.code < row.length && row[indices.code] ? row[indices.code].toString().trim() : 'CAC2083SN';
-                let colorVal = indices.color !== -1 && indices.color < row.length && row[indices.color] ? row[indices.color].toString().trim() : 'WW';
+                if (rawCodeStr === '' || qtyVal === 0) continue;
 
-                let specWVal = indices.specW !== -1 && indices.specW < row.length && row[indices.specW] ? row[indices.specW].toString().trim() : '';
-                let specDVal = indices.specD !== -1 && indices.specD < row.length && row[indices.specD] ? row[indices.specD].toString().trim() : '';
-                let specHVal = indices.specH !== -1 && indices.specH < row.length && row[indices.specH] ? row[indices.specH].toString().trim() : '';
-                let specGVal = indices.specG !== -1 && indices.specG < row.length && row[indices.specG] ? row[indices.specG].toString().trim() : '';
+                let dateVal = indices.date !== -1 && indices.date < row.length && row[indices.date] ? normalizeDate(row[indices.date]) : '-';
+                let regDateVal = indices.regDate !== -1 && indices.regDate < row.length && row[indices.regDate] ? normalizeDate(row[indices.regDate]) : dateVal;
+                let roundVal = indices.round !== -1 && indices.round < row.length && row[indices.round] ? row[indices.round].toString().trim() : '-';
+                let dueDateVal = indices.dueDate !== -1 && indices.dueDate < row.length && row[indices.dueDate] ? normalizeDate(row[indices.dueDate]) : '-';
 
-                if (specWVal && !specWVal.toLowerCase().includes('mm') && !isNaN(specWVal.replace(/[^0-9]/g, ''))) specWVal += 'mm';
-                if (specDVal && !specDVal.toLowerCase().includes('mm') && !isNaN(specDVal.replace(/[^0-9]/g, ''))) specDVal += 'mm';
-                if (specHVal && !specHVal.toLowerCase().includes('mm') && !isNaN(specHVal.replace(/[^0-9]/g, ''))) specHVal += 'mm';
-                if (specGVal && !specGVal.toLowerCase().includes('kg') && !isNaN(specGVal.replace(/[^0-9\.]/g, ''))) specGVal += 'kg';
+                let statusVal = indices.status !== -1 && indices.status < row.length && row[indices.status] ? row[indices.status].toString().trim() : '';
+                if (statusVal === '') statusVal = '미입고';
+                let rawStatusNorm = statusVal.toString().replace(/\s+/g, '').toLowerCase();
 
-                let statusVal = '출고완료';
-                if (statusRaw === '출고' || statusRaw === '출고완료' || statusRaw === '피킹') {
-                    statusVal = '출고완료';
-                } else if (statusRaw === '포장' || statusRaw === '포장완료') {
-                    statusVal = '포장완료';
-                } else if (statusRaw === '대기' || statusRaw === '포장대기') {
-                    statusVal = '포장대기';
-                } else if (statusRaw === '미입고' || statusRaw === '미입고상태' || statusRaw === '입고') {
-                    statusVal = '미입고';
+                let statusDisplay = '미입고';
+                let statusCategory = '미입고';
+
+                if (rawStatusNorm.includes('미입고') || rawStatusNorm.includes('일부입고') || rawStatusNorm.includes('입고대기')) {
+                    statusDisplay = statusVal;
+                    statusCategory = '미입고';
+                } else if (rawStatusNorm.includes('출고완료')) {
+                    statusDisplay = '출고완료';
+                    statusCategory = '입고';
+                } else if (rawStatusNorm.includes('포장완료')) {
+                    statusDisplay = '포장완료';
+                    statusCategory = '입고';
+                } else if (rawStatusNorm.includes('포장대기')) {
+                    statusDisplay = '포장대기';
+                    statusCategory = '미입고';
+                } else if (rawStatusNorm.includes('입고')) {
+                    statusDisplay = '입고';
+                    statusCategory = '입고';
                 } else {
-                    statusVal = statusRaw;
+                    statusDisplay = statusVal;
+                    statusCategory = rawStatusNorm.includes('입고') ? '입고' : '미입고';
                 }
 
-                let targetQtyVal = 0;
-                let strengthenedQtyVal = 0;
-                let shippedQtyVal = 0;
+                let countryVal = indices.country !== -1 && indices.country < row.length && row[indices.country] ? row[indices.country].toString().trim() : 'DOMESTIC';
+                let colorVal = indices.color !== -1 && indices.color < row.length && row[indices.color] ? row[indices.color].toString().trim() : '-';
 
-                let hasExplicitTarget = indices.targetQty !== -1 && indices.targetQty < row.length && row[indices.targetQty] && parseInt(row[indices.targetQty].toString().replace(/[^0-9]/g, '')) > 0;
-                let hasExplicitStrengthened = indices.strengthenedQty !== -1 && indices.strengthenedQty < row.length && row[indices.strengthenedQty] && parseInt(row[indices.strengthenedQty].toString().replace(/[^0-9]/g, '')) > 0;
-                let hasExplicitShipped = indices.shippedQty !== -1 && indices.shippedQty < row.length && row[indices.shippedQty] && parseInt(row[indices.shippedQty].toString().replace(/[^0-9]/g, '')) > 0;
+                const parsedTargetQty = indices.targetQty !== -1 && indices.targetQty < row.length && row[indices.targetQty] ? parseInt(row[indices.targetQty].toString().replace(/[^0-9]/g, '')) || 0 : qtyVal;
+                const parsedStrengthenedQty = indices.strengthenedQty !== -1 && indices.strengthenedQty < row.length && row[indices.strengthenedQty] ? parseInt(row[indices.strengthenedQty].toString().replace(/[^0-9]/g, '')) || 0 : null;
+                const parsedShippedQty = indices.shippedQty !== -1 && indices.shippedQty < row.length && row[indices.shippedQty] ? parseInt(row[indices.shippedQty].toString().replace(/[^0-9]/g, '')) || 0 : null;
+                const parsedCost = indices.cost !== -1 && indices.cost < row.length && row[indices.cost] ? parseInt(row[indices.cost].toString().replace(/[^0-9]/g, '')) || 0 : 0;
 
-                if (hasExplicitTarget || hasExplicitStrengthened || hasExplicitShipped) {
-                    targetQtyVal = indices.targetQty !== -1 && indices.targetQty < row.length && row[indices.targetQty] ? parseInt(row[indices.targetQty].toString().replace(/[^0-9]/g, '')) || 0 : 0;
-                    strengthenedQtyVal = indices.strengthenedQty !== -1 && indices.strengthenedQty < row.length && row[indices.strengthenedQty] ? parseInt(row[indices.strengthenedQty].toString().replace(/[^0-9]/g, '')) || 0 : 0;
-                    shippedQtyVal = indices.shippedQty !== -1 && indices.shippedQty < row.length && row[indices.shippedQty] ? parseInt(row[indices.shippedQty].toString().replace(/[^0-9]/g, '')) || 0 : 0;
-                } else {
-                    targetQtyVal = qtyVal;
-                    if (statusVal === '출고완료') {
-                        strengthenedQtyVal = qtyVal;
-                        shippedQtyVal = qtyVal;
-                    } else if (statusVal === '포장완료') {
-                        strengthenedQtyVal = qtyVal;
-                        shippedQtyVal = 0;
-                    } else { 
-                        strengthenedQtyVal = 0;
-                        shippedQtyVal = 0;
-                    }
-                }
+                const targetQtyVal = parsedTargetQty || qtyVal;
+                const strengthenedQtyVal = parsedStrengthenedQty !== null ? parsedStrengthenedQty : (statusCategory === '입고' ? qtyVal : 0);
+                const shippedQtyVal = parsedShippedQty !== null ? parsedShippedQty : (rawStatusNorm.includes('출고완료') ? qtyVal : 0);
 
-                let countryVal = 'FAM';
-                if (indices.country !== -1 && indices.country < row.length && row[indices.country] && row[indices.country].toString().trim() !== '') {
-                    countryVal = row[indices.country].toString().trim();
-                } else {
-                    let rUpper = roundVal.toUpperCase().trim();
-                    if (rUpper.startsWith('FAM')) {
-                        countryVal = 'FAM';
-                    } else if (rUpper.startsWith('NY')) {
-                        countryVal = 'NY';
-                    } else if (rUpper.startsWith('INICS')) {
-                        countryVal = 'INICS';
-                    } else if (rUpper.startsWith('TOF')) {
-                        countryVal = 'TOF';
-                    } else if (rUpper.startsWith('DOMESTIC')) {
-                        countryVal = 'Domestic';
-                    } else {
-                        let match = rUpper.match(/^([A-Z]+)/);
-                        countryVal = match ? match[1] : 'FAM';
-                    }
-                }
-
-                let costVal = indices.cost !== -1 && indices.cost < row.length && row[indices.cost] ? parseInt(row[indices.cost].toString().replace(/[^0-9]/g, '')) || 0 : 0;
-                if (costVal === 0 && strengthenedQtyVal > 0) {
-                    costVal = strengthenedQtyVal * 1200;
-                }
+                const getCell = (field) => indices[field] !== -1 && indices[field] < row.length && row[indices[field]] ? row[indices[field]].toString().trim() : '-';
 
                 mappedList.push({
-                    date: dateVal, regDate: regDateVal, round: roundVal, qty: qtyVal, dueDate: dueDateVal, country: countryVal,
-                    targetQty: targetQtyVal, strengthenedQty: strengthenedQtyVal, shippedQty: shippedQtyVal,
-                    cost: costVal, status: statusVal, operator: operatorVal, code: codeVal, color: colorVal,
-                    specW: specWVal, specD: specDVal, specH: specHVal, specG: specGVal
+                    date: dateVal,
+                    regDate: regDateVal,
+                    round: roundVal,
+                    qty: qtyVal,
+                    dueDate: dueDateVal,
+                    country: countryVal,
+                    targetQty: targetQtyVal,
+                    strengthenedQty: strengthenedQtyVal,
+                    shippedQty: shippedQtyVal,
+                    cost: parsedCost,
+                    status: statusCategory,
+                    statusLabel: statusDisplay,
+                    operator: '-',
+                    code: rawCodeStr.toUpperCase(),
+                    color: colorVal,
+                    specW: getCell('specW'),
+                    specD: getCell('specD'),
+                    specH: getCell('specH'),
+                    specG: getCell('specG')
                 });
             }
-
-            let specCache = {};
-            mappedList.forEach(item => {
-                let codeLower = (item.code || '').toLowerCase().trim();
-                let w = (item.specW && item.specW !== '-') ? item.specW : '';
-                let d = (item.specD && item.specD !== '-') ? item.specD : '';
-                let h = (item.specH && item.specH !== '-') ? item.specH : '';
-                let g = (item.specG && item.specG !== '-') ? item.specG : '';
-                
-                if (w || d || h || g) {
-                    if (!specCache[codeLower]) {
-                        specCache[codeLower] = { w, d, h, g };
-                    } else {
-                        if (w) specCache[codeLower].w = w;
-                        if (d) specCache[codeLower].d = d;
-                        if (h) specCache[codeLower].h = h;
-                        if (g) specCache[codeLower].g = g;
-                    }
-                }
-            });
-
-            mappedList.forEach(item => {
-                let codeLower = (item.code || '').toLowerCase().trim();
-                let cache = specCache[codeLower];
-                if (cache) {
-                    if (!item.specW || item.specW === '-') item.specW = cache.w || '-';
-                    if (!item.specD || item.specD === '-') item.specD = cache.d || '-';
-                    if (!item.specH || item.specH === '-') item.specH = cache.h || '-';
-                    if (!item.specG || item.specG === '-') item.specG = cache.g || '-';
-                }
-            });
-
             return mappedList;
         }
 
@@ -1272,7 +1137,11 @@
                 const dates = state.data.map(item => item.date).filter(d => d && typeof d === 'string' && d !== '-' && d.match(/^\d{4}-\d{2}-\d{2}$/));
                 if (dates.length === 0) {
                     const dueDates = state.data.map(item => item.dueDate).filter(d => d && typeof d === 'string' && d !== '-' && d.match(/^\d{4}-\d{2}-\d{2}$/));
-                    if (dueDates.length === 0) return;
+                    if (dueDates.length === 0) {
+                        document.getElementById('startDateFilter').value = '';
+                        document.getElementById('endDateFilter').value = '';
+                        return;
+                    }
                     dueDates.sort();
                     document.getElementById('startDateFilter').value = dueDates[0];
                     document.getElementById('endDateFilter').value = dueDates[dueDates.length - 1];
@@ -1341,36 +1210,26 @@
             const files = event.target.files;
             if (!files || files.length === 0) return;
 
-            let fileNames = [];
+            // [핵심] 기존 데이터를 완전히 지워버림! (무한 누적 뻥튀기 방지)
+            datasetMap = {};
 
             try {
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    fileNames.push(file.name);
                     const text = await readFileAsText(file);
                     const csvRows = parseCSV(text);
+                    if (i === 0) state.rawCsvRows = csvRows;
                     const parsedData = mapCSVData(csvRows);
-                    
-                    // 파일명 기준 개별 수용 🌟
                     datasetMap[file.name] = parsedData;
                 }
 
                 combineDatasets();
                 updateFileBadges();
-
-                const now = new Date();
-                document.getElementById('syncTimestamp').innerText = now.getFullYear() + '-' + 
-                                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                                String(now.getDate()).padStart(2, '0') + ' ' + 
-                                String(now.getHours()).padStart(2, '0') + ':' + 
-                                String(now.getMinutes()).padStart(2, '0');
-
                 autoAdjustDateFilters();
                 applyFilters();
-                showNotification('CSV 업로드 성공', `${fileNames.length}개 시트의 데이터와 제품 스펙이 실시간 크로스 결합되었습니다.`, 'success');
             } catch (err) {
                 console.error(err);
-                showNotification('파일 병합 오류', '업로드하신 파일의 수식을 정상 분석할 수 없습니다.', 'error');
+                alert('파일 오류가 발생했습니다.');
             }
         }
 
@@ -1542,16 +1401,16 @@
                 state.filteredData = state.data.filter(item => {
                     let itemDate = item.date && item.date !== '-' ? item.date : item.dueDate;
                     let matchesDate = true;
-                    if (startDate) {
-                        matchesDate = matchesDate && (itemDate >= startDate);
-                    }
-                    if (endDate) {
-                        matchesDate = matchesDate && (itemDate <= endDate);
+                    const isValidItemDate = itemDate && itemDate !== '-' && /^\d{4}-\d{2}-\d{2}$/.test(itemDate);
+                    if (isValidItemDate) {
+                        if (startDate) matchesDate = matchesDate && (itemDate >= startDate);
+                        if (endDate) matchesDate = matchesDate && (itemDate <= endDate);
                     }
 
                     const matchesRound = item.round ? item.round.toLowerCase().includes(roundQuery) : true;
                     const matchesCode = item.code ? item.code.toLowerCase().includes(productCodeQuery) : true;
-                    const matchesCountry = item.country ? item.country.toLowerCase().includes(countryQuery) : true;
+                    const roundCountry = item.round ? item.round.split('-')[0].trim().toLowerCase() : '';
+                    const matchesCountry = countryQuery === '' || roundCountry.includes(countryQuery);
 
                     return matchesDate && matchesRound && matchesCode && matchesCountry;
                 });
@@ -1577,8 +1436,11 @@
 
         // 6-1. [제품 전용 상세 뷰 렌더러]
         function switchToProductDetailView(productCode) {
-            document.getElementById('generalDashboardView').classList.add('hidden');
-            document.getElementById('productDetailView').classList.remove('hidden');
+            const panel = document.getElementById('productDetailView');
+            const backdrop = document.getElementById('productDetailBackdrop');
+            backdrop.classList.remove('hidden');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
 
             document.getElementById('detailProductCode').innerText = productCode.toUpperCase();
 
@@ -1587,11 +1449,15 @@
                              || state.filteredData.find(item => item.code.toLowerCase() === productCode.toLowerCase()) 
                              || state.data.find(item => item.code.toLowerCase() === productCode.toLowerCase());
 
+            const stripUnit = (val) => {
+                if (!val || val === '-') return '-';
+                return val.toString().trim().replace(/[a-zA-Z가-힣]+$/g, '').trim() || '-';
+            };
             if (matchItem) {
-                document.getElementById('specW').innerText = (matchItem.specW && matchItem.specW.trim() !== '') ? matchItem.specW : '-';
-                document.getElementById('specD').innerText = (matchItem.specD && matchItem.specD.trim() !== '') ? matchItem.specD : '-';
-                document.getElementById('specH').innerText = (matchItem.specH && matchItem.specH.trim() !== '') ? matchItem.specH : '-';
-                document.getElementById('specG').innerText = (matchItem.specG && matchItem.specG.trim() !== '') ? matchItem.specG : '-';
+                document.getElementById('specW').innerText = stripUnit(matchItem.specW);
+                document.getElementById('specD').innerText = stripUnit(matchItem.specD);
+                document.getElementById('specH').innerText = stripUnit(matchItem.specH);
+                document.getElementById('specG').innerText = stripUnit(matchItem.specG);
             } else {
                 document.getElementById('specW').innerText = '-';
                 document.getElementById('specD').innerText = '-';
@@ -1671,14 +1537,14 @@
                 }
 
                 tr.innerHTML = `
-                    <td class="py-4 px-6 text-center text-slate-500 font-bold text-xs">*</td>
-                    <td class="py-4 px-6 font-semibold text-white">${item.round}</td>
-                    <td class="py-4 px-6 font-mono text-accentBlue font-medium">${item.code}</td>
-                    <td class="py-4 px-6 font-semibold text-slate-400 font-mono">${item.color || 'WW'}</td>
-                    <td class="py-4 px-6 text-center font-bold text-slate-300 font-mono">${item.qty}EA</td>
-                    <td class="py-4 px-6 text-center"><span class="px-3 py-1 rounded-full border text-xs ${statusBadge}">${item.status}</span></td>
-                    <td class="py-4 px-6 text-slate-400 font-mono text-xs">${normalizeDate(item.dueDate)}</td>
-                    <td class="py-4 px-6 text-accentBlue font-bold text-sm font-mono">${normalizeDate(item.date)}</td>
+                    <td class="py-3 px-3 text-center text-slate-500 font-bold text-xs whitespace-nowrap">*</td>
+                    <td class="py-3 px-4 font-semibold text-white whitespace-nowrap">${item.round}</td>
+                    <td class="py-3 px-4 font-mono text-accentBlue font-medium whitespace-nowrap">${item.code}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-400 font-mono whitespace-nowrap">${item.color || 'WW'}</td>
+                    <td class="py-3 px-4 text-center font-bold text-slate-300 font-mono whitespace-nowrap">${item.qty}EA</td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap"><span class="px-2.5 py-1 rounded-full border text-xs ${statusBadge}">${item.statusLabel || item.status}</span></td>
+                    <td class="py-3 px-4 text-slate-400 font-mono text-xs whitespace-nowrap">${normalizeDate(item.dueDate)}</td>
+                    <td class="py-3 px-4 text-accentBlue font-bold font-mono whitespace-nowrap">${normalizeDate(item.date)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1762,6 +1628,14 @@
 
                 document.getElementById('nearestLoadDate').innerText = nearestItem.date && nearestItem.date !== '-' ? normalizeDate(nearestItem.date) : '미구성';
                 document.getElementById('nearestDueDate').innerText = normalizeDate(nearestItem.dueDate);
+
+                // 4번 카드 동기화
+                document.getElementById('card4RoundName').innerText = nearestItem.round;
+                document.getElementById('card4LoadDate').innerText = nearestItem.date && nearestItem.date !== '-' ? normalizeDate(nearestItem.date) : '미구성';
+                document.getElementById('card4DueDate').innerText = normalizeDate(nearestItem.dueDate);
+                const card4DDay = document.getElementById('card4DDay');
+                card4DDay.innerText = document.getElementById('nearestDDay').innerText;
+                card4DDay.className = document.getElementById('nearestDDay').className;
             } else {
                 clearNearestScheduleUI();
             }
@@ -1774,72 +1648,324 @@
             ddayEl.className = 'text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20 px-2 py-0.5 rounded-full font-bold';
             document.getElementById('nearestLoadDate').innerText = '-';
             document.getElementById('nearestDueDate').innerText = '-';
+
+            // 4번 카드 동기화
+            document.getElementById('card4RoundName').innerText = '진행 예정 없음';
+            const card4DDay = document.getElementById('card4DDay');
+            card4DDay.innerText = '-';
+            card4DDay.className = 'text-[10px] bg-slate-500/10 text-slate-400 border border-slate-500/20 px-2 py-0.5 rounded-full font-bold';
+            document.getElementById('card4LoadDate').innerText = '-';
+            document.getElementById('card4DueDate').innerText = '-';
         }
 
         function exitProductDetailView() {
+            const panel = document.getElementById('productDetailView');
+            const backdrop = document.getElementById('productDetailBackdrop');
+            panel.classList.add('translate-x-full');
+            panel.classList.remove('translate-x-0');
+            backdrop.classList.add('hidden');
             document.getElementById('productCodeFilter').value = '';
-            switchToGeneralDashboardView();
             applyFilters();
         }
 
-        function switchToGeneralDashboardView() {
-            document.getElementById('productDetailView').classList.add('hidden');
-            document.getElementById('generalDashboardView').classList.remove('hidden');
+        function openDetailPanelFromTable(code) {
+            switchToProductDetailView(code);
         }
 
-        // 지표 계산기
+        function startEditProductCode() {
+            const label = document.getElementById('detailProductCode');
+            const input = document.getElementById('detailProductCodeInput');
+            input.value = label.innerText;
+            label.classList.add('hidden');
+            input.classList.remove('hidden');
+            input.focus();
+            input.select();
+        }
+
+        function cancelEditProductCode() {
+            const label = document.getElementById('detailProductCode');
+            const input = document.getElementById('detailProductCodeInput');
+            input.classList.add('hidden');
+            label.classList.remove('hidden');
+        }
+
+        function handleProductCodeInputKey(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('detailProductCodeInput');
+                const newCode = input.value.trim().toUpperCase();
+                if (!newCode) { cancelEditProductCode(); return; }
+                document.getElementById('productCodeFilter').value = newCode;
+                cancelEditProductCode();
+                applyFilters();
+            } else if (e.key === 'Escape') {
+                cancelEditProductCode();
+            }
+        }
+
+        function switchToGeneralDashboardView() {
+            const panel = document.getElementById('productDetailView');
+            const backdrop = document.getElementById('productDetailBackdrop');
+            panel.classList.add('translate-x-full');
+            panel.classList.remove('translate-x-0');
+            backdrop.classList.add('hidden');
+        }
+
+        // 지표 계산기 (1, 2번 카드는 전체 데이터 고정, 입고/포장완료만 엄격 분류)
         function updateKPIs() {
+            // 카드1 상세현황은 "수출 표준품 현황" 시트 단독 데이터 사용
+            const exportSheetKey = Object.keys(datasetMap).find(k => k.includes('수출 표준품 현황'));
+            const rawData = exportSheetKey ? datasetMap[exportSheetKey] : state.data;
             const filtered = state.filteredData;
             
-            let totalTarget = 0;
-            let totalStrengthened = 0;
-            let totalShipped = 0;
-            let totalCost = 0;
+            let receivedQty = 0;
+            let notReceivedQty = 0;
+            const codeStatusMap = new Map();
+            
+            let totalTargetRaw = 0;
+            let totalStrengthenedRaw = 0;
+            let remainingCodesCount = 0;
 
-            const targetCodesSet = new Set();
-            const strengthenedCodesSet = new Set();
-            const shippedCodesSet = new Set();
-            const remainingCodesSet = new Set();
+            rawData.forEach(item => {
+                const statusNorm = (item.status || '').toString().replace(/\s+/g, '').toLowerCase();
+                // 미입고: "미입고" 또는 "일부입고" / 입고: "입고" 또는 "포장완료"
+                const isNotReceived = /미입고|일부입고/.test(statusNorm);
 
-            filtered.forEach(item => {
-                totalTarget += item.targetQty;
-                totalStrengthened += item.strengthenedQty;
-                totalShipped += item.shippedQty;
-                totalCost += item.cost;
-
-                targetCodesSet.add(item.code);
-                
-                if (item.strengthenedQty > 0) {
-                    strengthenedCodesSet.add(item.code);
+                if (isNotReceived) {
+                    notReceivedQty += item.qty;
+                } else {
+                    receivedQty += item.qty;
                 }
-                if (item.shippedQty > 0) {
-                    shippedCodesSet.add(item.code);
+
+                const codeKey = (item.code || '').toString().trim().toUpperCase();
+                if (codeKey) {
+                    // 포장완료(3) > 입고(2) > 기타(1) 우선순위로 코드 상태 결정 (statusLabel 기준)
+                    const labelNorm = (item.statusLabel || item.status || '').toString().replace(/\s+/g, '').toLowerCase();
+                    const currentPriority = /포장완료/.test(labelNorm) ? 3 : (/^입고$/.test(labelNorm) ? 2 : 1);
+                    const existing = codeStatusMap.get(codeKey);
+                    if (!existing || currentPriority > existing.priority) {
+                        codeStatusMap.set(codeKey, { status: isNotReceived ? '미입고' : '입고', priority: currentPriority });
+                    }
                 }
-                if (item.targetQty - item.strengthenedQty > 0) {
-                    remainingCodesSet.add(item.code);
+
+                totalTargetRaw += item.qty;
+                totalStrengthenedRaw += item.strengthenedQty;
+                if (item.qty - item.strengthenedQty > 0) {
+                    remainingCodesCount++;
                 }
             });
 
-            const totalRemaining = totalTarget - totalStrengthened;
-            const strengthenedRate = totalTarget > 0 ? ((totalStrengthened / totalTarget) * 100).toFixed(1) : '0.0';
+            let receivedCodesCount = 0;
+            let notReceivedCodesCount = 0;
+            codeStatusMap.forEach(value => {
+                if (value.status === '입고') {
+                    receivedCodesCount++;
+                } else {
+                    notReceivedCodesCount++;
+                }
+            });
+            const totalRemaining = totalTargetRaw - totalStrengthenedRaw;
 
-            // 종합 지표 맵핑 (CODE 수치 완벽 환원)
-            document.getElementById('generalKpiTargetQty').innerText = totalTarget.toLocaleString();
-            document.getElementById('generalKpiTargetCodes').innerText = targetCodesSet.size.toLocaleString() + ' CODE';
+            let latestReceivedDate = null;
+            let absoluteLatestReceivedDate = null;
+            let latestReceivedItem = '-';
+            let receivedItemCount = 0;
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const tenDaysAgo = new Date(today); tenDaysAgo.setDate(today.getDate() - 10);
+            rawData.forEach(item => {
+                const statusNorm = (item.status || '').toString().replace(/\s+/g, '').toLowerCase();
+                const isNotReceived = /미입고|일부입고/.test(statusNorm);
+                if (!isNotReceived) {
+                    const itemDate = item.date || item.regDate || item.dueDate;
+                    const parsedDate = itemDate ? new Date(itemDate) : null;
+                    if (!(parsedDate instanceof Date) || isNaN(parsedDate)) return;
+                    // 10일 제한 없이 전체 최신 날짜 추적
+                    if (!absoluteLatestReceivedDate || parsedDate > absoluteLatestReceivedDate) {
+                        absoluteLatestReceivedDate = parsedDate;
+                    }
+                    if (parsedDate < tenDaysAgo) return;
+                    receivedItemCount++;
+                    if (!latestReceivedDate || parsedDate > latestReceivedDate) {
+                        latestReceivedDate = parsedDate;
+                        const parts = [
+                            item.round || null,
+                            item.code  || null,
+                            item.color || null,
+                            item.qty   ? item.qty.toLocaleString() + ' EA' : null
+                        ].filter(Boolean);
+                        latestReceivedItem = parts.join(' - ') || '-';
+                    }
+                }
+            });
+            const receivedExtra = receivedItemCount > 1 ? '외 ' + (receivedItemCount - 1) + ' 항목' : '';
 
-            document.getElementById('generalKpiStrengthenedRate').innerText = `${strengthenedRate}%`;
-            document.getElementById('generalKpiStrengthenedQty').innerText = `${totalStrengthened.toLocaleString()} ea`;
-            document.getElementById('generalKpiStrengthenedCodes').innerText = `${strengthenedCodesSet.size.toLocaleString()} CODE`;
+            let totalTargetFilt = 0;
+            let totalStrengthenedFilt = 0;
+            let totalShippedFilt = 0;
+            let strengthenedCodesCount = 0;
+            let shippedCodesCount = 0;
 
-            document.getElementById('generalKpiShippedQty').innerText = totalShipped.toLocaleString();
-            document.getElementById('generalKpiShippedCodes').innerText = `${shippedCodesSet.size.toLocaleString()} CODE`;
+            filtered.forEach(item => {
+                totalTargetFilt += item.qty;
+                totalStrengthenedFilt += item.strengthenedQty;
+                totalShippedFilt += item.shippedQty;
+                if (item.strengthenedQty > 0) strengthenedCodesCount++;
+                if (item.shippedQty > 0) shippedCodesCount++;
+            });
 
-            document.getElementById('generalKpiRemainingQty').innerText = Math.max(0, totalRemaining).toLocaleString();
-            document.getElementById('generalKpiRemainingCodes').innerText = `${remainingCodesSet.size.toLocaleString()} CODE`;
-            
+            const strengthenedRate = totalTargetFilt > 0 ? ((totalStrengthenedFilt / totalTargetFilt) * 100).toFixed(1) : '0.0';
+
+            const setIfEmpty = (id, value) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.innerText.trim() === '') el.innerText = value;
+            };
+
+            // 카드1: 시트 K1(총 EA), M1(총 CODE) 직접 사용
+            const rows = state.rawCsvRows;
+            const k1Raw = rows && rows[0] && rows[0][10] != null ? rows[0][10].toString().replace(/[^0-9]/g, '') : '';
+            const m1Raw = rows && rows[0] && rows[0][12] != null ? rows[0][12].toString().replace(/[^0-9]/g, '') : '';
+            const card1EA   = m1Raw !== '' ? parseInt(m1Raw).toLocaleString() : receivedQty.toLocaleString();
+            const card1CODE = k1Raw !== '' ? parseInt(k1Raw).toLocaleString() : receivedCodesCount.toLocaleString();
+
+            const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.innerText = value; };
+            setVal('kpiReceivedQty', card1EA);
+            setVal('kpiReceivedCodes', card1CODE);
+
+            setVal('hoverReceivedQty', receivedQty.toLocaleString());
+            setVal('hoverReceivedCodes', receivedCodesCount.toLocaleString());
+            setVal('hoverNotReceivedQty', notReceivedQty.toLocaleString());
+            setVal('hoverNotReceivedCodes', notReceivedCodesCount.toLocaleString());
+            setVal('hoverRecentReceivedItem', latestReceivedItem);
+            setVal('hoverRecentReceivedExtra', receivedExtra);
+
+            const lastDateStr = absoluteLatestReceivedDate
+                ? absoluteLatestReceivedDate.toISOString().slice(0, 10)
+                : '-';
+            setVal('kpiLastReceivedDate', document.getElementById('syncTimestamp').innerText);
+
+            // 카드2: "충주공장 재고" 시트 — Q1=CODE, S1=EA (원본 행 직접 참조)
+            const stockRows = state.rawStockRows;
+            const stockQ1 = stockRows && stockRows[0] && stockRows[0][16] != null ? stockRows[0][16].toString().replace(/[^0-9]/g, '') : '';
+            const stockS1 = stockRows && stockRows[0] && stockRows[0][18] != null ? stockRows[0][18].toString().replace(/[^0-9]/g, '') : '';
+
+            const stockSheetKey = Object.keys(datasetMap).find(k => k.includes('충주공장 재고'));
+            const stockData = stockSheetKey ? datasetMap[stockSheetKey] : [];
+            let stockWaitingQty = 0;
+            const stockWaitingCodes = new Set();
+            let stockDoneQty = 0;
+            const stockDoneCodes = new Set();
+            let latestPackingDate = null;
+            stockData.forEach(item => {
+                const statusNorm = (item.statusLabel || item.status || '').toString().replace(/\s+/g, '').toLowerCase();
+                const code = (item.code || '').toString().trim().toUpperCase();
+                // 포장완료/철물 → 포장완료, 미확인/포장대기 → 포장대기
+                const isDone = statusNorm.includes('포장완료') || statusNorm.includes('철물');
+                const isWaiting = statusNorm.includes('미확인') || statusNorm.includes('포장대기');
+                if (isDone) {
+                    stockDoneQty += item.qty || 0;
+                    if (code) stockDoneCodes.add(code);
+                } else if (isWaiting) {
+                    stockWaitingQty += item.qty || 0;
+                    if (code) stockWaitingCodes.add(code);
+                }
+            });
+
+            // 최근 포장일: 충주공장 재고 시트 H열(index 7) 포장일 컬럼에서 직접 최대값 추출
+            if (stockRows && stockRows.length > 1) {
+                for (let i = 1; i < stockRows.length; i++) {
+                    const rawPackDate = stockRows[i] && stockRows[i][7] != null ? stockRows[i][7] : null;
+                    if (!rawPackDate || rawPackDate.toString().trim() === '') continue;
+                    const normalized = normalizeDate(rawPackDate);
+                    if (normalized && normalized !== '-') {
+                        const d = new Date(normalized);
+                        if (!isNaN(d) && (!latestPackingDate || d > latestPackingDate)) latestPackingDate = d;
+                    }
+                }
+            }
+
+            const stockU1 = stockRows && stockRows[0] && stockRows[0][20] != null ? stockRows[0][20].toString().replace(/[^0-9]/g, '') : '';
+            const card2EA   = stockS1 !== '' ? parseInt(stockS1).toLocaleString() : (stockDoneQty + stockWaitingQty).toLocaleString();
+            const card2CODE = stockQ1 !== '' ? parseInt(stockQ1).toLocaleString() : (stockDoneCodes.size + stockWaitingCodes.size).toLocaleString();
+            setVal('generalKpiRemainingQty', card2EA);
+            setVal('generalKpiRemainingCodes', card2CODE);
+            setVal('hoverStockWaitingQty', stockWaitingQty.toLocaleString());
+            setVal('hoverStockWaitingCodes', stockWaitingCodes.size.toLocaleString());
+            setVal('hoverStockDoneQty', stockDoneQty.toLocaleString());
+            setVal('hoverStockDoneCodes', stockDoneCodes.size.toLocaleString());
+            setVal('hoverStockPallets', stockU1 !== '' ? parseInt(stockU1).toLocaleString() + ' PALET' : '-');
+            setVal('kpiLastPackingDate', latestPackingDate ? latestPackingDate.toISOString().slice(0, 10) : '-');
+
+            setIfEmpty('generalKpiStrengthenedRate', `${strengthenedRate}%`);
+            setIfEmpty('generalKpiStrengthenedQty', `${totalStrengthenedFilt.toLocaleString()} ea`);
+            setIfEmpty('generalKpiStrengthenedCodes', strengthenedCodesCount.toLocaleString());
+
+            // 카드3: 출고 완료 시트 직접 연동
+            const shippedRows = state.rawShippedRows;
+            // Q1(index 16) = 총 EA, O1(index 14) = 총 CODE
+            const shippedQ1 = shippedRows && shippedRows[0] && shippedRows[0][16] != null ? shippedRows[0][16].toString().replace(/[^0-9]/g, '') : '';
+            const shippedO1 = shippedRows && shippedRows[0] && shippedRows[0][14] != null ? shippedRows[0][14].toString().replace(/[^0-9]/g, '') : '';
+            setVal('generalKpiShippedQty', shippedQ1 !== '' ? parseInt(shippedQ1).toLocaleString() : totalShippedFilt.toLocaleString());
+            setVal('generalKpiShippedCodes', shippedO1 !== '' ? parseInt(shippedO1).toLocaleString() : shippedCodesCount.toLocaleString());
+
+            // 최근 출고일: H열(index 7) 포장일 컬럼에서 최대 날짜 추출
+            let latestShippedDate = null;
+            if (shippedRows && shippedRows.length > 1) {
+                for (let i = 1; i < shippedRows.length; i++) {
+                    const rawD = shippedRows[i] && shippedRows[i][7] != null ? shippedRows[i][7] : null;
+                    if (!rawD || rawD.toString().trim() === '') continue;
+                    const norm = normalizeDate(rawD);
+                    if (norm && norm !== '-') {
+                        const d = new Date(norm);
+                        if (!isNaN(d) && (!latestShippedDate || d > latestShippedDate)) latestShippedDate = d;
+                    }
+                }
+            }
+            setVal('recentShippedDate', latestShippedDate ? latestShippedDate.toISOString().slice(0, 10) : '-');
+
+            // 상세 현황: I열(index 8)=진행, D열(index 3)=수량, B열(index 1)=품목코드
+            let shippedTotalQty = 0;
+            const shippedTotalCodes = new Set();
+            let shippedPickingQty = 0;
+            const shippedPickingCodes = new Set();
+            if (shippedRows && shippedRows.length > 1) {
+                for (let i = 1; i < shippedRows.length; i++) {
+                    const row = shippedRows[i];
+                    if (!row || row.every(c => !c || c.toString().trim() === '')) continue;
+                    const progress = row[8] ? row[8].toString().trim() : '';
+                    const qty  = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                    const code = row[1] ? row[1].toString().trim().toUpperCase() : '';
+                    if (progress === '출고') {
+                        shippedTotalQty += qty;
+                        if (code) shippedTotalCodes.add(code);
+                    } else if (progress === '피킹') {
+                        shippedPickingQty += qty;
+                        if (code) shippedPickingCodes.add(code);
+                    }
+                }
+            }
+            setVal('hoverShippedTotalQty', shippedTotalQty.toLocaleString());
+            setVal('hoverShippedTotalCodes', shippedTotalCodes.size.toLocaleString());
+            setVal('hoverShippedPickingQty', shippedPickingQty.toLocaleString());
+            setVal('hoverShippedPickingCodes', shippedPickingCodes.size.toLocaleString());
+
             document.getElementById('matchCount').innerText = filtered.length;
             document.getElementById('totalDisplayCount').innerText = filtered.length;
             document.getElementById('packagingRateAvg').innerText = `${strengthenedRate}%`;
+
+            // 4번 카드 진행 바 업데이트
+            const shippedRate = totalTargetFilt > 0 ? ((totalShippedFilt / totalTargetFilt) * 100).toFixed(1) : '0.0';
+            const srEl = document.getElementById('generalKpiStrengthenedRate');
+            if (srEl) srEl.innerText = `${strengthenedRate}%`;
+            const sqEl = document.getElementById('generalKpiStrengthenedQty');
+            if (sqEl) sqEl.innerText = `${totalStrengthenedFilt.toLocaleString()} ea`;
+            const scEl = document.getElementById('generalKpiStrengthenedCodes');
+            if (scEl) scEl.innerText = `${strengthenedCodesCount.toLocaleString()} CODE`;
+            const prEl = document.getElementById('kpiPickingRate');
+            if (prEl) prEl.innerText = `${shippedRate}%`;
+            const strengthBar = document.getElementById('kpiStrengthBar');
+            if (strengthBar) strengthBar.style.width = `${Math.min(100, parseFloat(strengthenedRate))}%`;
+            const pickingBar = document.getElementById('kpiPickingBar');
+            if (pickingBar) pickingBar.style.width = `${Math.min(100, parseFloat(shippedRate))}%`;
         }
 
         // 포장 관리 원장 테이블 마운터
@@ -1873,19 +1999,19 @@
                 }
 
                 tr.innerHTML = `
-                    <td class="py-3.5 px-4 font-mono text-xs text-slate-400">${normalizeDate(item.regDate)}</td> <!-- 등록일자 (포장일 연계) -->
-                    <td class="py-3.5 px-4 font-semibold text-white text-xs">${item.round}</td> <!-- 건명 -->
-                    <td class="py-3.5 px-4 font-mono text-xs text-accentBlue">${item.code}</td> <!-- 제품코드 -->
-                    <td class="py-3.5 px-4 font-bold text-slate-300">${item.qty.toLocaleString()}</td> <!-- 수량 -->
-                    <td class="py-3.5 px-4 text-slate-400 font-mono text-xs">${normalizeDate(item.dueDate)}</td> <!-- 납기일 -->
-                    <td class="py-3.5 px-4 text-accentBlue font-bold text-sm font-mono">${normalizeDate(item.date)}</td> <!-- 상차일 -->
-                    <td class="py-3.5 px-4 text-center font-semibold text-slate-300">${item.targetQty.toLocaleString()}</td> <!-- 대상 -->
-                    <td class="py-3.5 px-4 text-center font-semibold text-accentGreen">${item.strengthenedQty.toLocaleString()}</td> <!-- 강화 -->
-                    <td class="py-3.5 px-4 text-center font-semibold text-accentOrange">${item.shippedQty.toLocaleString()}</td> <!-- 출고 -->
-                    <td class="py-3.5 px-4 text-right font-medium text-slate-300">${item.cost.toLocaleString()}원</td> <!-- 강화비용 -->
-                    <td class="py-3.5 px-4 text-center"><span class="px-2.5 py-0.5 rounded border text-xs ${badgeClass}">${item.status}</span></td> <!-- 상태 -->
-                    <td class="py-3.5 px-4 text-xs text-center"><span class="bg-slate-800 text-slate-300 px-2 py-1 rounded font-mono">${item.country}</span></td> <!-- 도착지 -->
-                `;
+                    <td class="py-3.5 px-4 font-mono text-xs text-slate-400">${normalizeDate(item.regDate)}</td>
+                    <td class="py-3.5 px-4 font-semibold text-white text-xs">${item.round}</td>
+                    <td class="py-3.5 px-4 font-mono text-xs">
+                        <span class="text-accentBlue hover:text-white cursor-pointer transition-colors" onclick="openDetailPanelFromTable('${item.code}')">${item.code}</span>
+                    </td>
+                    <td class="py-3.5 px-4 font-bold text-slate-300">${item.qty.toLocaleString()}</td>
+                    <td class="py-3.5 px-4 text-slate-400 font-mono text-xs">${normalizeDate(item.dueDate)}</td>
+                    <td class="py-3.5 px-4 text-accentBlue font-bold text-sm font-mono">${normalizeDate(item.date)}</td>
+                    <td class="py-3.5 px-4 text-center font-semibold text-slate-300">${item.targetQty.toLocaleString()}</td>
+                    <td class="py-3.5 px-4 text-center font-semibold text-accentGreen">${item.strengthenedQty.toLocaleString()}</td>
+                    <td class="py-3.5 px-4 text-center font-semibold text-accentOrange">${item.shippedQty.toLocaleString()}</td>
+                    <td class="py-3.5 px-4 text-right font-medium text-slate-300">${item.cost.toLocaleString()}원</td>
+                    <td class="py-3.5 px-4 text-center"><span class="px-2.5 py-0.5 rounded border text-xs ${badgeClass}">${item.statusLabel || item.status}</span></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -1897,27 +2023,48 @@
             const filtered = state.filteredData;
 
             const countryMap = {};
-            filtered.forEach(item => {
-                if (item.country.toLowerCase() === 'domestic') {
-                    return;
-                }
-                
-                if (!countryMap[item.country]) {
-                    countryMap[item.country] = { strengthened: 0, shipped: 0, rounds: {} };
-                }
-                countryMap[item.country].strengthened += item.strengthenedQty;
-                countryMap[item.country].shipped += item.shippedQty;
 
-                if (!countryMap[item.country].rounds[item.round]) {
-                    countryMap[item.country].rounds[item.round] = { strengthened: 0, shipped: 0 };
-                }
-                countryMap[item.country].rounds[item.round].strengthened += item.strengthenedQty;
-                countryMap[item.country].rounds[item.round].shipped += item.shippedQty;
-            });
+            // 강화완료 + 출고완료: 출고 완료 시트(rawShippedRows)에서 함께 집계
+            // E열(index 4)=수주건명, D열(index 3)=수량, I열(index 8)=진행
+            // 강화완료 = 전체 행 (출고+피킹 모두 강화 완료된 항목)
+            // 출고완료 = 진행이 "출고"인 행만
+            const shippedSheetRows = state.rawShippedRows;
+            if (shippedSheetRows && shippedSheetRows.length > 1) {
+                for (let i = 1; i < shippedSheetRows.length; i++) {
+                    const row = shippedSheetRows[i];
+                    if (!row || row.every(c => !c || c.toString().trim() === '')) continue;
 
-            const countryLabels = Object.keys(countryMap).sort();
+                    const roundVal = row[4] ? row[4].toString().trim() : '';
+                    const label    = roundVal ? roundVal.split('-')[0].trim().toUpperCase() : '';
+                    if (!label) continue;
+
+                    const qty      = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                    const progress = row[8] ? row[8].toString().trim() : '';
+
+                    if (!countryMap[label]) {
+                        countryMap[label] = { strengthened: 0, shipped: 0, rounds: {} };
+                    }
+                    if (!countryMap[label].rounds[roundVal]) {
+                        countryMap[label].rounds[roundVal] = { strengthened: 0, shipped: 0 };
+                    }
+
+                    // 강화완료: 모든 행 합산
+                    countryMap[label].strengthened += qty;
+                    countryMap[label].rounds[roundVal].strengthened += qty;
+
+                    // 출고완료: 진행 = "출고"인 행만
+                    if (progress === '출고') {
+                        countryMap[label].shipped += qty;
+                        countryMap[label].rounds[roundVal].shipped += qty;
+                    }
+                }
+            }
+
+            const countryLabels = Object.keys(countryMap)
+                .filter(c => (countryMap[c].strengthened > 0 || countryMap[c].shipped > 0) && c !== '미구성')
+                .sort();
             const strengthenedData = countryLabels.map(c => countryMap[c].strengthened);
-            const shippedData = countryLabels.map(c => countryMap[c].shipped);
+            const shippedData      = countryLabels.map(c => countryMap[c].shipped);
 
             if (exportRoundChartInstance) {
                 exportRoundChartInstance.destroy();
@@ -2011,19 +2158,42 @@
                 }
             });
 
-            // 일별 가동 흐름 연산
+            // 일별 가동 흐름 연산 - 출고 완료 시트(rawShippedRows) 기준
+            // H열(index 7)=포장일, D열(index 3)=수량, I열(index 8)=진행
             const dateMap = {};
-            filtered.forEach(item => {
-                if (!dateMap[item.date]) {
-                    dateMap[item.date] = { strengthened: 0, shipped: 0 };
+            const trendRows = state.rawShippedRows;
+            if (trendRows && trendRows.length > 1) {
+                for (let i = 1; i < trendRows.length; i++) {
+                    const row = trendRows[i];
+                    if (!row || row.every(c => !c || c.toString().trim() === '')) continue;
+
+                    const dateKey = normalizeDate(row[7]);
+                    if (!dateKey || dateKey === '-') continue;
+
+                    const qty      = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                    const progress = row[8] ? row[8].toString().trim() : '';
+
+                    if (!dateMap[dateKey]) dateMap[dateKey] = { strengthened: 0, shipped: 0 };
+
+                    dateMap[dateKey].strengthened += qty;           // 포장량: 전체 (출고+피킹)
+                    if (progress === '출고') dateMap[dateKey].shipped += qty; // 출고량: 출고만
                 }
-                dateMap[item.date].strengthened += item.strengthenedQty;
-                dateMap[item.date].shipped += item.shippedQty;
+            }
+
+            // 일별 → 월별로 집계
+            const monthMap = {};
+            Object.keys(dateMap).filter(d => d !== '-').forEach(d => {
+                const month = d.slice(0, 7); // "YYYY-MM"
+                if (!monthMap[month]) monthMap[month] = 0;
+                monthMap[month] += dateMap[d].strengthened;
             });
 
-            const sortedDates = Object.keys(dateMap).sort();
-            const flowStrengthened = sortedDates.map(d => dateMap[d].strengthened);
-            const flowShipped = sortedDates.map(d => dateMap[d].shipped);
+            const sortedMonths = Object.keys(monthMap).sort();
+            const monthLabels  = sortedMonths.map(m => {
+                const [y, mo] = m.split('-');
+                return y + '년 ' + parseInt(mo) + '월';
+            });
+            const monthData = sortedMonths.map(m => monthMap[m]);
 
             if (trendChartInstance) {
                 trendChartInstance.destroy();
@@ -2031,35 +2201,41 @@
 
             const ctxB = document.getElementById('trendChart').getContext('2d');
             trendChartInstance = new Chart(ctxB, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: sortedDates.map(d => d.slice(5)), 
+                    labels: monthLabels,
                     datasets: [
                         {
-                            label: '누적 강화량',
-                            data: flowStrengthened,
-                            borderColor: '#00E676',
-                            backgroundColor: 'rgba(0, 230, 118, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.25
-                        },
-                        {
-                            label: '누적 출고량',
-                            data: flowShipped,
-                            borderColor: '#FF9100',
-                            backgroundColor: 'rgba(255, 145, 0, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.25
+                            label: '월별 강화 수량 (EA)',
+                            data: monthData,
+                            backgroundColor: 'rgba(0, 176, 255, 0.65)',
+                            borderColor: '#00B0FF',
+                            borderWidth: 1.5,
+                            borderRadius: 6
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    barPercentage: 0.55,
+                    categoryPercentage: 0.65,
                     plugins: {
-                        legend: { labels: { color: '#F1F5F9', font: { size: 10 } } }
+                        legend: { labels: { color: '#F1F5F9', font: { size: 10 } } },
+                        tooltip: {
+                            backgroundColor: '#111827',
+                            titleColor: '#00B0FF',
+                            bodyColor: '#F1F5F9',
+                            bodyFont: { size: 13, weight: 'bold' },
+                            borderColor: '#1E293B',
+                            borderWidth: 1.5,
+                            padding: 10,
+                            cornerRadius: 8,
+                            displayColors: false,
+                            callbacks: {
+                                label: ctx => '강화 수량: ' + ctx.raw.toLocaleString() + ' EA'
+                            }
+                        }
                     },
                     scales: {
                         y: {
@@ -2078,14 +2254,7 @@
 
         // 설정 패널 제어
         function openSettingsModal() {
-            document.getElementById('inputSheetId').value = safeLocalStorage.getItem('sheet_id') || '1Utm_IuDQkguqvX8-zhfVtfMMQVb_n7SOJ3A7_fVPx54';
-            document.getElementById('inputGid').value = safeLocalStorage.getItem('sheet_gid') || '1357513790';
             document.getElementById('inputPubUrl').value = safeLocalStorage.getItem('sheet_pub_url') || '';
-            document.getElementById('inputBypassUrl').value = safeLocalStorage.getItem('sheet_bypass_url') || '';
-            
-            const savedType = safeLocalStorage.getItem('sheet_conn_type') || 'standard';
-            toggleInputType(savedType);
-
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
@@ -2093,55 +2262,24 @@
             document.getElementById('settingsModal').classList.add('hidden');
         }
 
-        function toggleInputType(type) {
-            activeSettingType = type;
-            const btnByp = document.getElementById('btnTypeByp');
-            const btnPub = document.getElementById('btnTypePub');
-            const btnStd = document.getElementById('btnTypeStd');
-            const formByp = document.getElementById('formTypeByp');
-            const formPub = document.getElementById('formTypePub');
-            const formStd = document.getElementById('formTypeStd');
-
-            if (type === 'bypass') {
-                btnByp.className = 'bg-accentGreen text-darkBg font-bold text-xs py-2 px-1 rounded-lg border border-accentGreen/30 transition-all';
-                btnPub.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
-                btnStd.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
-                formByp.classList.remove('hidden');
-                formPub.classList.add('hidden');
-                formStd.classList.add('hidden');
-            } else if (type === 'published') {
-                btnPub.className = 'bg-accentBlue text-darkBg font-bold text-xs py-2 px-1 rounded-lg border border-accentBlue/30 transition-all';
-                btnByp.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
-                btnStd.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
-                formPub.classList.remove('hidden');
-                formByp.classList.add('hidden');
-                formStd.classList.add('hidden');
-            } else {
-                btnStd.className = 'bg-accentBlue text-darkBg font-bold text-xs py-2 px-1 rounded-lg border border-accentBlue/30 transition-all';
-                btnByp.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
-                btnPub.className = 'bg-slate-800 text-slate-400 font-semibold text-xs py-2 px-1 rounded-lg border border-borderSlate hover:bg-slate-700 transition-all';
-                formStd.classList.remove('hidden');
-                formByp.classList.add('hidden');
-                formPub.classList.add('hidden');
-            }
-        }
 
         function saveConnectionSettings() {
-            const sheetId = document.getElementById('inputSheetId').value.trim();
-            const gid = document.getElementById('inputGid').value.trim();
             const pubUrl = document.getElementById('inputPubUrl').value.trim();
-            const bypassUrl = document.getElementById('inputBypassUrl').value.trim();
-
-            safeLocalStorage.setItem('sheet_conn_type', activeSettingType);
-            safeLocalStorage.setItem('sheet_id', sheetId);
-            safeLocalStorage.setItem('sheet_gid', gid);
             safeLocalStorage.setItem('sheet_pub_url', pubUrl);
-            safeLocalStorage.setItem('sheet_bypass_url', bypassUrl);
 
             closeSettingsModal();
             showNotification('설정 저장 완료', '수정된 구글 시트 연결 정보를 저장하고 즉시 갱신합니다.', 'success');
             
             syncWithGoogleSheets();
+        }
+        
+        // [추가] 연동 설정 완전 초기화 함수
+        function resetConnectionSettings() {
+            if(confirm("저장된 모든 연동 설정(주소)을 삭제하고 초기화하시겠습니까?")) {
+                safeLocalStorage.setItem('sheet_pub_url', '');
+                clearUploadedData(); // 화면 데이터도 함께 데모 상태로 초기화
+                showNotification('초기화 완료', '모든 연동 설정이 깨끗하게 지워졌습니다.', 'success');
+            }
         }
 
         // 🌟 [안전 가드 장착]: G-Suite Iframe의 로컬 스토리지 차단 정책 우회용 보안 모듈 장착 🌟
@@ -2178,6 +2316,14 @@
             applyFilters();
         }
 
+        function onCard4Click() {
+            const roundName = document.getElementById('card4RoundName').innerText.trim();
+            if (!roundName || roundName === '-' || roundName === '진행 예정 없음') return;
+            document.getElementById('roundFilter').value = roundName;
+            applyFilters();
+            document.getElementById('roundFilter').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
         function resetFilters() {
             document.getElementById('roundFilter').value = '';
             document.getElementById('productCodeFilter').value = '';
@@ -2192,12 +2338,12 @@
         }
 
         function exportToCSV() {
-            const headers = ['등록일자','건명','제품코드','수량','납기일','상차일','대상(EA)','강화(EA)','출고(EA)','강화비용','상태','도착지'];
+            const headers = ['등록일자','건명','제품코드','수량','납기일','상차일','대상(EA)','강화(EA)','출고(EA)','강화비용','상태'];
             const rows = state.filteredData.map(item => [
                 normalizeDate(item.regDate), item.round, item.code, item.qty,
                 normalizeDate(item.dueDate), normalizeDate(item.date),
                 item.targetQty, item.strengthenedQty, item.shippedQty,
-                item.cost, item.status, item.country
+                item.cost, item.status
             ]);
             const csvContent = [headers, ...rows].map(r => r.map(v => '"' + v + '"').join(',')).join('\n');
             const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -2207,6 +2353,17 @@
             a.download = '수출포장강화_export.csv';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        // 가져온 데이터가 올바른 시트인지 검증 (제품코드·수량·건명 중 2개 이상 있어야 통과)
+        function isValidSheetData(mapped) {
+            if (!mapped || mapped.length === 0) return false;
+            const sample = mapped[0];
+            let score = 0;
+            if (sample.code  && sample.code  !== '-') score++;
+            if (sample.qty   && sample.qty   > 0)     score++;
+            if (sample.round && sample.round !== '-') score++;
+            return score >= 2;
         }
 
         function parseCSV(text) {
@@ -2233,23 +2390,50 @@
         }
 
         function openChartDetailModal(country, statusType) {
-            const filtered = state.filteredData.filter(item => item.country === country);
+            // 출고 완료 시트(rawShippedRows) 기준으로 집계
+            // E열(index 4)=수주건명, D열(index 3)=수량, I열(index 8)=진행
+            const shippedRows = state.rawShippedRows;
             const roundMap = {};
-            filtered.forEach(item => {
-                if (!roundMap[item.round]) roundMap[item.round] = { strengthened: 0, shipped: 0 };
-                roundMap[item.round].strengthened += item.strengthenedQty;
-                roundMap[item.round].shipped += item.shippedQty;
-            });
+
+            if (shippedRows && shippedRows.length > 1) {
+                for (let i = 1; i < shippedRows.length; i++) {
+                    const row = shippedRows[i];
+                    if (!row || row.every(c => !c || c.toString().trim() === '')) continue;
+
+                    const roundVal = row[4] ? row[4].toString().trim() : '';
+                    const label    = roundVal ? roundVal.split('-')[0].trim().toUpperCase() : '';
+                    if (label !== country) continue;
+
+                    const qty      = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
+                    const progress = row[8] ? row[8].toString().trim() : '';
+
+                    if (!roundMap[roundVal]) roundMap[roundVal] = { strengthened: 0, shipped: 0 };
+
+                    roundMap[roundVal].strengthened += qty;
+                    if (progress === '출고') roundMap[roundVal].shipped += qty;
+                }
+            }
+
             document.getElementById('chartModalTitle').innerText = country + ' - ' + statusType + ' 차수 상세';
             const tbody = document.getElementById('chartModalTableBody');
             tbody.innerHTML = '';
-            Object.keys(roundMap).sort().forEach(round => {
-                const val = statusType === '강화완료' ? roundMap[round].strengthened : roundMap[round].shipped;
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/40 transition-colors';
-                tr.innerHTML = '<td class="py-2.5 px-4 font-semibold text-white">' + round + '</td><td class="py-2.5 px-4 text-right text-accentBlue font-bold">' + val.toLocaleString() + ' ea</td>';
-                tbody.appendChild(tr);
-            });
+
+            const sortedRounds = Object.keys(roundMap)
+                .map(round => ({ round, val: statusType === '강화완료' ? roundMap[round].strengthened : roundMap[round].shipped }))
+                .filter(r => r.val > 0)
+                .sort((a, b) => a.round.localeCompare(b.round));
+
+            if (sortedRounds.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="py-4 text-center text-slate-500">데이터 없음</td></tr>';
+            } else {
+                sortedRounds.forEach(({ round, val }) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/40 transition-colors';
+                    tr.innerHTML = '<td class="py-2.5 px-4 font-semibold text-white">' + round + '</td><td class="py-2.5 px-4 text-right text-accentBlue font-bold">' + val.toLocaleString() + ' ea</td>';
+                    tbody.appendChild(tr);
+                });
+            }
+
             document.getElementById('chartDetailModal').classList.remove('hidden');
         }
 
@@ -2282,6 +2466,27 @@
                 toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
                 toast.classList.remove('translate-y-0', 'opacity-100');
             }, 3500);
+        }
+
+        // Hover detail helpers for KPI cards (fade in/out using opacity + transform)
+        const _hoverTimers = {};
+
+        function showHover(id) {
+            if (_hoverTimers[id]) { clearTimeout(_hoverTimers[id]); delete _hoverTimers[id]; }
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+            el.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        }
+
+        function hideHover(id) {
+            _hoverTimers[id] = setTimeout(() => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                el.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+                delete _hoverTimers[id];
+            }, 80);
         }
     </script>
 </body>
