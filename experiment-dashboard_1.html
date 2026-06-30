@@ -1069,6 +1069,20 @@
   </div>
 </div>
 
+<!-- ─── DETAIL MODAL ─── -->
+<div class="modal-bg" id="detail-modal-bg">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="detail-modal-title">시험 상세</span>
+      <button class="modal-close" onclick="closeDetailModal()">×</button>
+    </div>
+    <div id="detail-modal-body" style="display:grid;gap:10px;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-outline" onclick="closeDetailModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── CERT SIDE PANEL ─── -->
 <div class="cert-overlay" id="cert-overlay" onclick="closeCertPanel()"></div>
 <div class="cert-panel" id="cert-panel">
@@ -1350,6 +1364,46 @@ function openModal() {
 function closeModal() {
   document.getElementById('modal-bg').classList.remove('open');
 }
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+function openDetailModal(id) {
+  const e = experiments.find(x => x.id === id);
+  if (!e) {
+    showToast('상세 내용을 찾을 수 없습니다.');
+    return;
+  }
+  const rows = [
+    ['시험명', e.name],
+    ['의뢰기관', e.client || '-'],
+    ['담당자', e.person || '-'],
+    ['접수일', e.date || '-'],
+    ['우선순위', e.priority || '-'],
+    ['상태', e.status || '-'],
+    ['비고', e.note || '-']
+  ];
+  document.getElementById('detail-modal-title').textContent = e.name || '시험 상세';
+  document.getElementById('detail-modal-body').innerHTML = rows.map(([label, value]) => `
+    <div style="display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:start;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
+      <div style="font-size:12px;color:var(--text3);font-weight:700;">${label}</div>
+      <div style="font-size:14px;color:var(--text);font-weight:600;white-space:pre-wrap;word-break:break-word;">${escapeHtml(value)}</div>
+    </div>
+  `).join('');
+  document.getElementById('detail-modal-bg').classList.add('open');
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal-bg').classList.remove('open');
+}
+
 function addExperiment() {
   const name = document.getElementById('m-name').value.trim();
   if (!name) { showToast('시험명을 입력해주세요.'); return; }
@@ -2335,6 +2389,9 @@ function showToast(msg) {
 
 document.getElementById('modal-bg').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-bg')) closeModal();
+});
+document.getElementById('detail-modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('detail-modal-bg')) closeDetailModal();
 });
 </script>
 </body>
