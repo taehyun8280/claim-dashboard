@@ -1202,6 +1202,15 @@
           <option value="5">5개</option>
           <option value="6">6개</option>
         </select>
+        <label class="field-label" style="margin:0;">사진 칸</label>
+        <select class="field-select" id="photo-split-count" style="width:78px;padding:5px 8px;font-size:12px;" onchange="setPhotoSplitCount(this.value)">
+          <option value="1">1개</option>
+          <option value="2">2개</option>
+          <option value="3">3개</option>
+          <option value="4">4개</option>
+          <option value="5">5개</option>
+          <option value="6">6개</option>
+        </select>
         <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
       </div>
     </div>
@@ -1277,6 +1286,7 @@ let complexMode = false;
 let complexTableData = [];
 let complexColIdx = {};
 let resultSplitCount = 1;
+let photoSplitCount = 1;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1455,10 +1465,10 @@ function addResultRow() {
     const border = i < resultSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
     return `<textarea data-field="result" data-result-index="${i}" placeholder="결과${resultSplitCount > 1 ? i + 1 : ''}" style="${taStyle}${border}width:${100 / resultSplitCount}%;text-align:center;"></textarea>`;
   }).join('');
-  const photoDrops = Array.from({length: resultSplitCount}, (_, i) => {
-    const border = i < resultSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
+  const photoDrops = Array.from({length: photoSplitCount}, (_, i) => {
+    const border = i < photoSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
     return `<div class="img-drop" data-row="${rc}" data-photo-index="${i}" tabindex="0"
-        style="${border}width:${100 / resultSplitCount}%;height:110px;min-width:0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);border-left:${i === 0 ? '1px dashed var(--border)' : '0'};border-radius:${resultSplitCount === 1 ? '6px' : '0'};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
+        style="${border}width:${100 / photoSplitCount}%;height:110px;min-width:0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);border-left:${i === 0 ? '1px dashed var(--border)' : '0'};border-radius:${photoSplitCount === 1 ? '6px' : '0'};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
         <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
         <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
       </div>`;
@@ -1469,7 +1479,7 @@ function addResultRow() {
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
     <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
     <td data-result-cell style="text-align:center;vertical-align:middle;padding:0;" colspan="${resultSplitCount}"><div style="display:flex;height:100%;">${resultInputs}</div></td>
-    <td class="img-cell" data-photo-cell style="width:180px;min-width:160px;padding:0;" colspan="${resultSplitCount}"><div style="display:flex;height:100%;">${photoDrops}</div></td>
+    <td class="img-cell" data-photo-cell style="width:180px;min-width:160px;padding:0;" colspan="${photoSplitCount}"><div style="display:flex;height:100%;">${photoDrops}</div></td>
     <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
     <td data-no-cap style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
@@ -1489,10 +1499,10 @@ function renderResultHeader() {
   const resultSubHeaders = Array.from({length: resultSplitCount}, (_, i) =>
     `<th><input id="result-label${i + 1}" placeholder="구분${i + 1}" style="${subHeaderStyle}"></th>`
   ).join('');
-  const photoSubHeaders = Array.from({length: resultSplitCount}, (_, i) =>
+  const photoSubHeaders = Array.from({length: photoSplitCount}, (_, i) =>
     `<th>사진${i + 1}</th>`
   ).join('');
-  const hasSplit = resultSplitCount > 1;
+  const hasSplit = resultSplitCount > 1 || photoSplitCount > 1;
   document.getElementById('result-thead').innerHTML = hasSplit ? `
     <tr>
       <th rowspan="2" style="width:40px;">No</th>
@@ -1500,7 +1510,7 @@ function renderResultHeader() {
       <th rowspan="2">기준</th>
       <th rowspan="2">조건</th>
       <th colspan="${resultSplitCount}" id="result-th">결과</th>
-      <th colspan="${resultSplitCount}" style="width:180px;">시험사진</th>
+      <th colspan="${photoSplitCount}" style="width:180px;">시험사진</th>
       <th rowspan="2">비고</th>
       <th data-no-cap rowspan="2" style="width:30px;"></th>
     </tr>
@@ -1540,6 +1550,50 @@ function setResultSplitCount(value, labels) {
       if (input) input.value = label || '';
     });
   }
+  document.getElementById('result-tbody').innerHTML = '';
+  rowCount = 0;
+  rows.forEach(row => {
+    addResultRow();
+    const tr = document.querySelector('#result-tbody tr:last-child');
+    tr.querySelector('[data-field="item"]').value = row.item;
+    tr.querySelector('[data-field="spec"]').value = row.spec;
+    tr.querySelector('[data-field="cond"]').value = row.cond;
+    tr.querySelectorAll('[data-field="result"]').forEach((el, i) => {
+      el.value = row.resultParts[i] || '';
+    });
+    tr.querySelector('[data-field="note"]').value = row.note;
+    tr.querySelectorAll('.img-drop').forEach((drop, i) => {
+      const src = row.imgParts[i] || '';
+      if (src) {
+        drop.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:contain;" data-src="${src}">
+          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+      }
+    });
+  });
+}
+
+function setPhotoSplitCount(value) {
+  const next = Math.max(1, Math.min(6, parseInt(value, 10) || 1));
+  if (complexMode) resetToSimpleTable();
+  const labels = Array.from({length: resultSplitCount}, (_, i) =>
+    document.getElementById(`result-label${i + 1}`)?.value || ''
+  );
+  const rows = [...document.querySelectorAll('#result-tbody tr')].map(tr => ({
+    item: tr.querySelector('[data-field="item"]')?.value || '',
+    spec: tr.querySelector('[data-field="spec"]')?.value || '',
+    cond: tr.querySelector('[data-field="cond"]')?.value || '',
+    resultParts: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || ''),
+    imgParts: [...tr.querySelectorAll('.img-drop')].map(drop => drop.querySelector('img')?.dataset.src || ''),
+    note: tr.querySelector('[data-field="note"]')?.value || ''
+  }));
+  photoSplitCount = next;
+  const splitSelect = document.getElementById('photo-split-count');
+  if (splitSelect) splitSelect.value = String(photoSplitCount);
+  renderResultHeader();
+  labels.forEach((label, i) => {
+    const input = document.getElementById(`result-label${i + 1}`);
+    if (input) input.value = label || '';
+  });
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
   rows.forEach(row => {
@@ -1671,6 +1725,7 @@ function saveCert() {
     note: document.getElementById('cf-note').value,
     pf: pfState,
     resultSplitCount: complexMode ? null : resultSplitCount,
+    photoSplitCount: complexMode ? null : photoSplitCount,
     splitLabels: resultSplitCount > 1 ? Array.from({length: resultSplitCount}, (_, i) => document.getElementById(`result-label${i + 1}`)?.value || '') : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
@@ -1763,11 +1818,14 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
-    const savedSplitCount = c.resultSplitCount || (c.splitResultMode ? 2 : Math.max(1, ...(c.rows||[]).map(r => Math.max(
-      Array.isArray(r.resultParts) ? r.resultParts.length : (r.result2 ? 2 : 1),
+    const savedSplitCount = c.resultSplitCount || (c.splitResultMode ? 2 : Math.max(1, ...(c.rows||[]).map(r =>
+      Array.isArray(r.resultParts) ? r.resultParts.length : (r.result2 ? 2 : 1)
+    )));
+    const savedPhotoSplitCount = c.photoSplitCount || Math.max(1, ...(c.rows||[]).map(r =>
       Array.isArray(r.imgParts) ? r.imgParts.length : (r.img ? 1 : 1)
-    ))));
+    ));
     setResultSplitCount(savedSplitCount, c.splitLabels || []);
+    setPhotoSplitCount(savedPhotoSplitCount);
     (c.rows||[]).forEach(r => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
@@ -2120,8 +2178,11 @@ function resetToSimpleTable() {
   complexTableData = [];
   complexColIdx = {};
   resultSplitCount = 1;
+  photoSplitCount = 1;
   const splitSelect = document.getElementById('result-split-count');
   if (splitSelect) splitSelect.value = '1';
+  const photoSelect = document.getElementById('photo-split-count');
+  if (photoSelect) photoSelect.value = '1';
   renderResultHeader();
 }
 
