@@ -846,7 +846,8 @@
                 icon.classList.add('animate-spin');
             }
 
-            const pubUrl = localStorage.getItem('sheet_pub_url') || '';
+            const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbzsmA9Cu7xJ5D3DeouBsWKt_ii0YM4U6GPnbWX_NhZughWWh93dTLE4_VNMuBElXqA/exec';
+            const pubUrl = localStorage.getItem('sheet_pub_url') || DEFAULT_URL;
 
             let csvUrl = pubUrl;
             let isJsonMode = pubUrl.includes('script.google.com') || pubUrl.includes('/exec');
