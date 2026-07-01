@@ -850,6 +850,17 @@
         </svg>
         구글 시트 연동/테스트
       </button>
+      <button class="hero-btn hero-btn-excel" onclick="configureRealtimeSync()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+          <path d="M12 20h9"/>
+          <path d="M12 4h9"/>
+          <path d="M4 9h16"/>
+          <path d="M4 15h16"/>
+          <circle cx="7" cy="20" r="2"/>
+          <circle cx="7" cy="4" r="2"/>
+        </svg>
+        실시간 저장 연동
+      </button>
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1307,10 +1318,15 @@ let resultSplitCount = 1;
 let photoSplitCount = 1;
 const SHEET_SYNC_URL_KEY = 'experiment_sheet_sync_url';
 const SHEET_SYNC_TS_KEY = 'experiment_sheet_sync_updated_at';
+const REALTIME_SYNC_CONFIG_KEY = 'experiment_realtime_firebase_config';
+const REALTIME_SYNC_PATH = 'experimentDashboard/experiments';
 let isApplyingRemoteData = false;
 let sheetSyncTimer = null;
 let sheetPushTimer = null;
 let sheetLastUpdatedAt = localStorage.getItem(SHEET_SYNC_TS_KEY) || '';
+let realtimeDbRef = null;
+let realtimePushTimer = null;
+let realtimeInitialized = false;
 
 function getGoogleSheetSyncUrl() {
   return (localStorage.getItem(SHEET_SYNC_URL_KEY) || '').trim();
@@ -1441,6 +1457,106 @@ async function pushGoogleSheetData() {
   }
 }
 
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      existing.addEventListener('load', resolve, {once: true});
+      if (existing.dataset.loaded === 'true') resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => {
+      script.dataset.loaded = 'true';
+      resolve();
+    };
+    script.onerror = () => reject(new Error(`script load failed: ${src}`));
+    document.head.appendChild(script);
+  });
+}
+
+async function loadFirebaseSdk() {
+  if (window.firebase?.database) return;
+  await loadScriptOnce('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
+  await loadScriptOnce('https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js');
+}
+
+function getRealtimeConfig() {
+  try {
+    const raw = localStorage.getItem(REALTIME_SYNC_CONFIG_KEY) || '';
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function configureRealtimeSync() {
+  const current = localStorage.getItem(REALTIME_SYNC_CONFIG_KEY) || '';
+  const input = prompt('Firebase 설정값(JSON)을 붙여넣으세요. 비우면 실시간 연동을 해제합니다.', current);
+  if (input === null) return;
+  const trimmed = input.trim();
+  if (!trimmed) {
+    localStorage.removeItem(REALTIME_SYNC_CONFIG_KEY);
+    if (realtimeDbRef) realtimeDbRef.off();
+    realtimeDbRef = null;
+    realtimeInitialized = false;
+    showToast('실시간 저장 연동을 해제했습니다.');
+    return;
+  }
+  try {
+    JSON.parse(trimmed);
+  } catch (e) {
+    showToast('Firebase 설정값 JSON 형식이 올바르지 않습니다.');
+    return;
+  }
+  localStorage.setItem(REALTIME_SYNC_CONFIG_KEY, trimmed);
+  await startRealtimeSync(true);
+}
+
+async function startRealtimeSync(showMessage) {
+  const config = getRealtimeConfig();
+  if (!config) return;
+  try {
+    await loadFirebaseSdk();
+    const appName = 'experiment-dashboard-sync';
+    const app = window.firebase.apps.find(app => app.name === appName)
+      || window.firebase.initializeApp(config, appName);
+    realtimeDbRef = app.database().ref(REALTIME_SYNC_PATH);
+    realtimeDbRef.off();
+    realtimeDbRef.on('value', snap => {
+      const value = snap.val();
+      if (!value || !Array.isArray(value.experiments)) return;
+      isApplyingRemoteData = true;
+      experiments = value.experiments;
+      localStorage.setItem('exp_data', JSON.stringify(experiments));
+      render();
+      isApplyingRemoteData = false;
+    });
+    realtimeInitialized = true;
+    if (showMessage) showToast('실시간 저장 연동이 연결되었습니다.');
+    scheduleRealtimePush();
+  } catch (e) {
+    realtimeInitialized = false;
+    console.error(e);
+    if (showMessage) showToast(`실시간 저장 연동 실패: ${e.message}`);
+  }
+}
+
+function scheduleRealtimePush() {
+  if (!realtimeDbRef || isApplyingRemoteData) return;
+  if (realtimePushTimer) clearTimeout(realtimePushTimer);
+  realtimePushTimer = setTimeout(() => {
+    realtimeDbRef.set({
+      experiments,
+      updatedAt: new Date().toISOString()
+    }).catch(e => {
+      console.error(e);
+      showToast('실시간 저장에 실패했습니다.');
+    });
+  }, 300);
+}
+
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
@@ -1455,6 +1571,7 @@ document.addEventListener('DOMContentLoaded', () => {
   mcInit('cf-spec');
   startGoogleSheetSync();
   pullGoogleSheetData(false);
+  startRealtimeSync(false);
 });
 
 // ─── RENDER KANBAN ───
@@ -2352,6 +2469,7 @@ function printCert() { window.print(); }
 function save() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
   scheduleGoogleSheetPush();
+  scheduleRealtimePush();
 }
 
 /* ─── CERT IMAGE COPY ─── */
