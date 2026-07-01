@@ -16,13 +16,9 @@ function doGet(e) {
     }
 
     var state = readState_();
-    return jsonp_(callback, {
-      ok: true,
-      updatedAt: state.updatedAt || '',
-      data: state.data || {experiments: []}
-    });
+    return jsonp_(callback, state);
   } catch (err) {
-    return jsonp_(callback, {ok: false, error: String(err)});
+    return jsonp_(callback, {updatedAt: '', data: {experiments: []}, error: String(err)});
   }
 }
 
@@ -45,16 +41,16 @@ function doPost(e) {
 function readState_() {
   var sheet = getSheet_();
   var raw = sheet.getRange(1, 1).getValue();
-  if (!raw) return {updatedAt: '', data: {experiments: []}};
+  if (!raw) return {updatedAt: '', experiments: []};
 
   try {
     var state = JSON.parse(raw);
     return {
       updatedAt: state.updatedAt || '',
-      data: state.data || {experiments: []}
+      experiments: state.experiments || (state.data && state.data.experiments) || []
     };
   } catch (err) {
-    return {updatedAt: '', data: {experiments: []}};
+    return {updatedAt: '', experiments: []};
   }
 }
 
@@ -70,7 +66,7 @@ function writeState_(payload) {
 
     var state = {
       updatedAt: payload.updatedAt || new Date().toISOString(),
-      data: payload.data || {experiments: []}
+      experiments: payload.experiments || (payload.data && payload.data.experiments) || []
     };
     var sheet = getSheet_();
     sheet.getRange(1, 1).setValue(JSON.stringify(state));

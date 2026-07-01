@@ -1427,9 +1427,14 @@ async function pullGoogleSheetData(showMessage) {
   if (!SHEET_SYNC_URL) return;
   try {
     const res = await sheetJsonp();
-    if (!res || !res.ok) throw new Error(res?.error || 'read failed');
+    if (!res) throw new Error('read failed');
+    if (res.error) throw new Error(res.error);
     const updatedAt = res.updatedAt || '';
-    const remoteExperiments = Array.isArray(res.data?.experiments) ? res.data.experiments : [];
+    const remoteExperiments = Array.isArray(res.experiments)
+      ? res.experiments
+      : Array.isArray(res.data?.experiments)
+        ? res.data.experiments
+        : [];
     if (updatedAt && updatedAt !== sheetLastUpdatedAt) {
       isApplyingRemoteData = true;
       experiments = remoteExperiments;
@@ -1460,7 +1465,7 @@ async function pushGoogleSheetData() {
   const payload = {
     action: 'write',
     updatedAt,
-    data: {experiments}
+    experiments
   };
   try {
     await fetch(SHEET_SYNC_URL, {
