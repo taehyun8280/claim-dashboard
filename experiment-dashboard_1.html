@@ -1334,6 +1334,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="./config.js?v=1"></script>
 <script>
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1347,7 +1348,8 @@ let resultSplitCount = 1;
 let photoSplitCount = 1;
 const SHEET_SYNC_URL_KEY = 'experiment_sheet_sync_url';
 const SHEET_SYNC_TS_KEY = 'experiment_sheet_sync_updated_at';
-const SHEET_SYNC_DEFAULT_URL = '';
+const APP_CONFIG = window.APP_CONFIG || {};
+const SHEET_SYNC_DEFAULT_URL = APP_CONFIG.googleSheetsWebAppUrl || '';
 const REALTIME_SYNC_CONFIG_KEY = 'experiment_realtime_firebase_config';
 const REALTIME_SYNC_PATH = 'experimentDashboard/experiments';
 let isApplyingRemoteData = false;
@@ -1369,7 +1371,7 @@ function setSheetSyncStatus(type, text) {
 }
 
 function getGoogleSheetSyncUrl() {
-  return (localStorage.getItem(SHEET_SYNC_URL_KEY) || SHEET_SYNC_DEFAULT_URL || '').trim();
+  return normalizeGoogleSheetSyncUrl(SHEET_SYNC_DEFAULT_URL || localStorage.getItem(SHEET_SYNC_URL_KEY) || '');
 }
 
 function normalizeGoogleSheetSyncUrl(url) {
@@ -1397,6 +1399,11 @@ function initGoogleSheetSyncFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const url = params.get('sheet') || params.get('sheetSyncUrl');
   const normalized = normalizeGoogleSheetSyncUrl(url);
+  const configured = normalizeGoogleSheetSyncUrl(SHEET_SYNC_DEFAULT_URL);
+  if (configured) {
+    localStorage.setItem(SHEET_SYNC_URL_KEY, configured);
+    return;
+  }
   if (normalized) {
     if (normalized !== getGoogleSheetSyncUrl()) {
       sheetLastUpdatedAt = '';
@@ -1414,6 +1421,11 @@ function buildGoogleSheetTestUrl(url) {
 }
 
 function configureGoogleSheetSync() {
+  if (normalizeGoogleSheetSyncUrl(SHEET_SYNC_DEFAULT_URL)) {
+    showToast('config.js에 설정된 구글 시트 연동을 사용 중입니다.');
+    testGoogleSheetSync(true);
+    return;
+  }
   const current = getGoogleSheetSyncUrl();
   const url = prompt('Google Apps Script 웹앱 URL(/exec로 끝나는 주소)을 붙여넣으세요. 비우면 연동을 해제합니다.', current);
   if (url === null) return;
@@ -1463,12 +1475,12 @@ async function testGoogleSheetSync(showHelp) {
 function startGoogleSheetSync() {
   if (sheetSyncTimer) clearInterval(sheetSyncTimer);
   if (!getGoogleSheetSyncUrl()) {
-    setSheetSyncStatus('', '최신 데이터 확인 중');
+    setSheetSyncStatus('error', '동기화 설정 필요');
     return;
   }
   sheetInitialPullDone = false;
   setSheetSyncStatus('', '최신 데이터 확인 중');
-  sheetSyncTimer = setInterval(() => pullGoogleSheetData(false), 5000);
+  sheetSyncTimer = setInterval(() => pullGoogleSheetData(false), APP_CONFIG.syncIntervalMs || 5000);
 }
 
 function sheetJsonp(params) {
