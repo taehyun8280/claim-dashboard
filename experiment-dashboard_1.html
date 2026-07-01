@@ -1403,7 +1403,7 @@ function sheetJsonp(params = {}) {
     if (!SHEET_SYNC_URL) return reject(new Error('sync url missing'));
     const callback = `sharedStateCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const script = document.createElement('script');
-    const query = new URLSearchParams({...params, callback, t: Date.now()});
+    const query = new URLSearchParams({...params, callback, t: Date.now()}).toString();
     const sep = SHEET_SYNC_URL.includes('?') ? '&' : '?';
     const timeout = setTimeout(() => {
       cleanup();
@@ -1418,11 +1418,7 @@ function sheetJsonp(params = {}) {
       cleanup();
       resolve(payload);
     };
-    script.onerror = () => {
-      cleanup();
-      reject(new Error('구글 시트 웹앱 연결 실패'));
-    };
-    script.src = `${SHEET_SYNC_URL}${sep}${query.toString()}`;
+    script.src = `${SHEET_SYNC_URL}${sep}${query}`;
     document.body.appendChild(script);
   });
 }
