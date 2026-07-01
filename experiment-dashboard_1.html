@@ -1334,7 +1334,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="./config.js?v=51f1539-1"></script>
+<script src="./config.js?v=9f3d5ad-bridge"></script>
 <script>
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1358,6 +1358,10 @@ let sheetPushTimer = null;
 let sheetLastUpdatedAt = localStorage.getItem(SHEET_SYNC_TS_KEY) || '';
 let sheetSyncReady = false;
 let sheetInitialPullDone = false;
+let sheetBridgeFrame = null;
+let sheetBridgeReady = false;
+let sheetBridgeWaiters = [];
+const sheetBridgePending = new Map();
 let realtimeDbRef = null;
 let realtimePushTimer = null;
 let realtimeInitialized = false;
@@ -1517,19 +1521,87 @@ function sheetJsonp(params) {
   });
 }
 
-function readSheetState() {
-  return sheetJsonp({});
+window.addEventListener('message', event => {
+  const msg = event.data || {};
+  if (msg.source !== 'experiment-dashboard-bridge') return;
+  if (msg.type === 'ready') {
+    sheetBridgeReady = true;
+    sheetBridgeWaiters.splice(0).forEach(resolve => resolve());
+    return;
+  }
+  if (!msg.id || !sheetBridgePending.has(msg.id)) return;
+  const {resolve, reject} = sheetBridgePending.get(msg.id);
+  sheetBridgePending.delete(msg.id);
+  if (msg.ok) resolve(msg.result);
+  else reject(new Error(msg.error || 'bridge failed'));
+});
+
+function getSheetBridgeUrl() {
+  const url = getGoogleSheetSyncUrl();
+  if (!url) return '';
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}mode=bridge&v=2`;
+}
+
+function initSheetBridge() {
+  const bridgeUrl = getSheetBridgeUrl();
+  if (!bridgeUrl) return;
+  if (sheetBridgeFrame && sheetBridgeFrame.dataset.src === bridgeUrl) return;
+  sheetBridgeReady = false;
+  sheetBridgeFrame?.remove();
+  sheetBridgeFrame = document.createElement('iframe');
+  sheetBridgeFrame.dataset.src = bridgeUrl;
+  sheetBridgeFrame.src = bridgeUrl;
+  sheetBridgeFrame.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0;opacity:0;';
+  document.body.appendChild(sheetBridgeFrame);
+}
+
+function waitSheetBridgeReady() {
+  initSheetBridge();
+  if (sheetBridgeReady) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('브리지 응답 시간 초과')), 12000);
+    sheetBridgeWaiters.push(() => {
+      clearTimeout(timeout);
+      resolve();
+    });
+  });
+}
+
+async function sheetBridgeCall(type, payload) {
+  await waitSheetBridgeReady();
+  const id = `sheetBridge_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      sheetBridgePending.delete(id);
+      reject(new Error('브리지 처리 시간 초과'));
+    }, 15000);
+    sheetBridgePending.set(id, {
+      resolve: value => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      reject: error => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
+    sheetBridgeFrame.contentWindow.postMessage({source: 'experiment-dashboard', id, type, payload}, '*');
+  });
+}
+
+async function readSheetState() {
+  try {
+    const state = await sheetBridgeCall('read');
+    return {ok: true, updatedAt: state.updatedAt || '', data: state.data || {experiments: []}};
+  } catch (e) {
+    console.warn('Sheet bridge read failed, falling back to JSONP', e);
+    return sheetJsonp({});
+  }
 }
 
 async function sheetPost(payload) {
-  const url = getGoogleSheetSyncUrl();
-  if (!url) throw new Error('sync url missing');
-  await fetch(url, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: JSON.stringify(payload)
-  });
+  await sheetBridgeCall('write', payload);
 }
 
 async function pullGoogleSheetData(showMessage) {
@@ -1737,6 +1809,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCertList();
   mcInit('cf-item');
   mcInit('cf-spec');
+  initSheetBridge();
   startGoogleSheetSync();
   pullGoogleSheetData(false);
 });

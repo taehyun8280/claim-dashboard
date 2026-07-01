@@ -5,6 +5,12 @@ function doGet(e) {
   var callback = params.callback || '';
 
   try {
+    if (params.mode === 'bridge') {
+      return HtmlService
+        .createHtmlOutput(bridgeHtml_())
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
+
     var action = params.action || 'read';
 
     if (action === 'ping') {
@@ -26,6 +32,15 @@ function doGet(e) {
   } catch (err) {
     return jsonp_(callback, {ok: false, error: String(err)});
   }
+}
+
+function bridgeRead() {
+  return readState_();
+}
+
+function bridgeWrite(payload) {
+  writeState_(payload || {});
+  return {ok: true, updatedAt: payload && payload.updatedAt ? payload.updatedAt : new Date().toISOString()};
 }
 
 function doPost(e) {
@@ -116,4 +131,25 @@ function jsonp_(callback, obj) {
   return ContentService
     .createTextOutput(body)
     .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+function bridgeHtml_() {
+  return [
+    '<!doctype html><html><body><script>',
+    '(function(){',
+    'function reply(target,id,payload){target.postMessage(Object.assign({source:"experiment-dashboard-bridge",id:id},payload),"*");}',
+    'window.addEventListener("message",function(event){',
+    'var msg=event.data||{};',
+    'if(msg.source!=="experiment-dashboard")return;',
+    'if(msg.type==="read"){',
+    'google.script.run.withSuccessHandler(function(result){reply(event.source,msg.id,{ok:true,result:result});}).withFailureHandler(function(err){reply(event.source,msg.id,{ok:false,error:String(err)});}).bridgeRead();',
+    '}',
+    'if(msg.type==="write"){',
+    'google.script.run.withSuccessHandler(function(result){reply(event.source,msg.id,{ok:true,result:result});}).withFailureHandler(function(err){reply(event.source,msg.id,{ok:false,error:String(err)});}).bridgeWrite(msg.payload);',
+    '}',
+    '});',
+    'parent.postMessage({source:"experiment-dashboard-bridge",type:"ready"},"*");',
+    '})();',
+    '</scr' + 'ipt></body></html>'
+  ].join('');
 }
