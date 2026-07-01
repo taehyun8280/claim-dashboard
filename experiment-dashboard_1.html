@@ -8,17 +8,17 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
 
   :root {
-    --bg: #f4f7fb;
-    --surface: #ffffff;
-    --surface2: #f8fafc;
-    --border: #d7e0ea;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2a3444;
     --accent: #00c8a0;
     --accent2: #3b82f6;
     --accent3: #f59e0b;
     --danger: #ef4444;
-    --text: #172033;
-    --text2: #526176;
-    --text3: #7c8aa0;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
     --status-wait: #3b82f6;
     --status-prog: #f59e0b;
     --status-done: #00c8a0;
@@ -90,7 +90,7 @@
 
   /* ─── HERO HEADER BANNER ─── */
   .hero-header {
-    background: linear-gradient(135deg, #ffffff 0%, #edf7ff 48%, #f5fffb 100%);
+    background: linear-gradient(135deg, #0d1b2e 0%, #0f2340 40%, #0a1628 100%);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -102,8 +102,8 @@
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 60% 80% at 70% 50%, rgba(0,200,160,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 60% at 90% 20%, rgba(59,130,246,0.12) 0%, transparent 50%);
+      radial-gradient(ellipse 60% 80% at 70% 50%, rgba(0,200,160,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 90% 20%, rgba(59,130,246,0.08) 0%, transparent 50%);
     pointer-events: none;
   }
   .hero-grid-bg {
@@ -174,9 +174,9 @@
     font-size: 13px;
     font-weight: 700;
     font-family: 'Noto Sans KR', sans-serif;
-    color: #0f2f5f;
-    background: #dbeafe;
-    border: 1px solid #bfdbfe;
+    color: #0d1117;
+    background: var(--text2);
+    border: none;
     border-radius: 22px;
     padding: 9px 18px;
     letter-spacing: -0.2px;
@@ -194,16 +194,6 @@
     font-family: 'Noto Sans KR', sans-serif;
     transition: all .15s;
     letter-spacing: -0.2px;
-  }
-  .hero-btn-excel {
-    background: #dcfce7;
-    color: #14532d;
-    border: 1px solid #86efac;
-  }
-  .hero-btn-excel:hover {
-    background: #bbf7d0;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(34,197,94,.22);
   }
   .hero-btn-cert {
     background: var(--accent);
@@ -228,45 +218,6 @@
     height: 15px;
     flex-shrink: 0;
   }
-  .sync-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 14px;
-    border-radius: 22px;
-    border: 1px solid #d8dde6;
-    background: rgba(255,255,255,0.72);
-    color: #4b5563;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-  .sync-pill::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #e0a91b;
-    box-shadow: 0 0 0 3px rgba(224,169,27,.12);
-  }
-  .sync-pill.live {
-    border-color: #86efac;
-    color: #15803d;
-    background: rgba(240,253,244,0.9);
-  }
-  .sync-pill.live::before {
-    background: #22c55e;
-    box-shadow: 0 0 0 3px rgba(34,197,94,.14);
-  }
-  .sync-pill.error {
-    border-color: #fecaca;
-    color: #b91c1c;
-    background: rgba(254,242,242,0.92);
-  }
-  .sync-pill.error::before {
-    background: #ef4444;
-    box-shadow: 0 0 0 3px rgba(239,68,68,.12);
-  }
 
   /* ─── LAYOUT ─── */
   .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
@@ -282,15 +233,15 @@
     position: relative;
   }
   .hero-stat-card {
-    background: rgba(255,255,255,0.72);
-    border: 1px solid rgba(148,163,184,0.25);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 10px;
     padding: 16px 20px;
     backdrop-filter: blur(4px);
   }
   .hero-stat-card:hover {
-    background: rgba(255,255,255,0.95);
-    border-color: rgba(59,130,246,0.28);
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
   }
   .card-label {
     color: var(--text2);
@@ -422,12 +373,7 @@
     border-radius: 20px;
     padding: 2px 10px;
   }
-  .kanban-body {
-    padding: 10px;
-    min-height: 200px;
-    max-height: 420px;
-    overflow-y: auto;
-  }
+  .kanban-body { padding: 10px; min-height: 200px; max-height: 520px; overflow-y: auto; }
 
   .exp-card {
     background: var(--surface2);
@@ -534,10 +480,7 @@
     font-family: 'Noto Sans KR', sans-serif;
   }
   .list-search:focus { border-color: var(--accent); }
-  .list-table-wrap {
-    overflow: auto;
-    max-height: 460px;
-  }
+  .list-table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
   .list-table {
     width: 100%;
     border-collapse: collapse;
@@ -856,6 +799,8 @@
 
   .divider { height: 1px; background: var(--border); margin: 18px 0; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -870,7 +815,7 @@
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
-      <button class="hero-btn hero-btn-excel" onclick="triggerExcelImport()">
+      <button class="hero-btn" style="background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.15);" onclick="triggerExcelImport()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
@@ -881,15 +826,6 @@
         엑셀 데이터 가져오기
       </button>
       <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
-      <button class="hero-btn hero-btn-excel" onclick="configureGoogleSheetSync()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
-          <path d="M3 3h18v18H3z"/>
-          <path d="M3 9h18"/>
-          <path d="M9 3v18"/>
-        </svg>
-        구글 시트 연동
-      </button>
-      <div class="sync-pill" id="sheet-sync-status">최신 데이터 확인 중</div>
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1033,9 +969,9 @@
           <tr>
             <th>제목</th>
             <th>의뢰 기관</th>
-            <th>시료 정보</th>
-            <th>의뢰 기간</th>
             <th>의뢰자</th>
+            <th>시료 정보</th>
+            <th>시험 기간</th>
             <th>담당자</th>
             <th>판정(결과)</th>
             <th>시험사진</th>
@@ -1127,20 +1063,6 @@
   </div>
 </div>
 
-<!-- ─── DETAIL MODAL ─── -->
-<div class="modal-bg" id="detail-modal-bg">
-  <div class="modal">
-    <div class="modal-title">
-      <span id="detail-modal-title">시험 상세</span>
-      <button class="modal-close" onclick="closeDetailModal()">×</button>
-    </div>
-    <div id="detail-modal-body" style="display:grid;gap:10px;"></div>
-    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-      <button class="btn btn-outline" onclick="closeDetailModal()">닫기</button>
-    </div>
-  </div>
-</div>
-
 <!-- ─── CERT SIDE PANEL ─── -->
 <div class="cert-overlay" id="cert-overlay" onclick="closeCertPanel()"></div>
 <div class="cert-panel" id="cert-panel">
@@ -1192,16 +1114,16 @@
         </select>
       </div>
       <div>
+        <div class="field-label">의뢰자</div>
+        <input class="field-input" id="cf-requester" placeholder="의뢰자 이름">
+      </div>
+      <div>
         <div class="field-label">담당자</div>
         <select class="field-select" id="cf-person">
           <option value="">선택</option>
           <option value="박태현">박태현</option>
           <option value="박동현">박동현</option>
         </select>
-      </div>
-      <div>
-        <div class="field-label">의뢰자</div>
-        <input class="field-input" id="cf-requester" placeholder="의뢰자 이름">
       </div>
       <div>
         <div class="field-label">시험 항목</div>
@@ -1250,27 +1172,7 @@
     <!-- 시험 결과 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <label class="field-label" style="margin:0;">결과 칸</label>
-        <select class="field-select" id="result-split-count" style="width:78px;padding:5px 8px;font-size:12px;" onchange="setResultSplitCount(this.value)">
-          <option value="1">1개</option>
-          <option value="2">2개</option>
-          <option value="3">3개</option>
-          <option value="4">4개</option>
-          <option value="5">5개</option>
-          <option value="6">6개</option>
-        </select>
-        <label class="field-label" style="margin:0;">사진 칸</label>
-        <select class="field-select" id="photo-split-count" style="width:78px;padding:5px 8px;font-size:12px;" onchange="setPhotoSplitCount(this.value)">
-          <option value="1">1개</option>
-          <option value="2">2개</option>
-          <option value="3">3개</option>
-          <option value="4">4개</option>
-          <option value="5">5개</option>
-          <option value="6">6개</option>
-        </select>
-        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
-      </div>
+      <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
     </div>
     <div class="result-table-wrap">
       <table class="result-table" id="result-table">
@@ -1280,7 +1182,7 @@
             <th>시험</th>
             <th>기준</th>
             <th>조건</th>
-            <th id="result-th" colspan="1">결과</th>
+            <th id="result-th" colspan="1">결과 <select onchange="setSplitCount(this.value)" style="font-size:10px;padding:1px 3px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text);cursor:pointer;"><option value="1" selected>분할없음</option><option value="2">2열</option><option value="3">3열</option><option value="4">4열</option></select></th>
             <th style="width:180px;">시험사진</th>
             <th>비고</th>
             <th data-no-cap style="width:30px;"></th>
@@ -1334,8 +1236,29 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="./config.js?v=b112a74-jsonp"></script>
 <script>
+// ─── FIREBASE ───
+const firebaseConfig = {
+  apiKey: "AIzaSyD3nS7b5hGJKXDeeuT50C9xlxenTceCASk",
+  authDomain: "experiment-dashboard-50db5.firebaseapp.com",
+  databaseURL: "https://experiment-dashboard-50db5-default-rtdb.firebaseio.com",
+  projectId: "experiment-dashboard-50db5",
+  storageBucket: "experiment-dashboard-50db5.firebasestorage.app",
+  messagingSenderId: "807748487712",
+  appId: "1:807748487712:web:bbb10a9f35564da1a88a45"
+};
+firebase.initializeApp(firebaseConfig);
+const fbDb = firebase.database();
+
+function fbSaveExperiments() {
+  fbDb.ref('experiments').set(experiments);
+  localStorage.setItem('exp_data', JSON.stringify(experiments));
+}
+function fbSaveCertificates() {
+  fbDb.ref('certificates').set(certificates);
+  localStorage.setItem('cert_data', JSON.stringify(certificates));
+}
+
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
 let certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
@@ -1344,160 +1267,32 @@ let rowCount = 0;
 let complexMode = false;
 let complexTableData = [];
 let complexColIdx = {};
-let resultSplitCount = 1;
-let photoSplitCount = 1;
-const APP_CONFIG = window.APP_CONFIG || {};
-const SHEET_SYNC_URL = normalizeGoogleSheetSyncUrl(
-  APP_CONFIG.googleSheetsWebAppUrl ||
-  'https://script.google.com/macros/s/AKfycbzlQs1la0yP2ne8wSBktj1A6JqSfBMb7QU6aIRWNEowCeN5WtBAHWtWb5lXEihIkhoF/exec'
-);
-const SHEET_SYNC_TS_KEY = 'experiment_sheet_sync_updated_at';
-let isApplyingRemoteData = false;
-let sheetSyncTimer = null;
-let sheetPushTimer = null;
-let sheetLastUpdatedAt = localStorage.getItem(SHEET_SYNC_TS_KEY) || '';
-let sheetInitialPullDone = false;
-
-function setSheetSyncStatus(type, text) {
-  const el = document.getElementById('sheet-sync-status');
-  if (!el) return;
-  el.classList.remove('live', 'error');
-  if (type) el.classList.add(type);
-  el.textContent = text;
-}
-
-function normalizeGoogleSheetSyncUrl(url) {
-  const raw = String(url || '').trim();
-  if (!raw) return '';
-  try {
-    const parsed = new URL(raw);
-    if (parsed.hostname === 'script.google.com' && parsed.pathname.includes('/macros/s/')) {
-      const parts = parsed.pathname.split('/').filter(Boolean);
-      const scriptId = parts[2] || '';
-      if (scriptId) {
-        parsed.pathname = `/macros/s/${scriptId}/exec`;
-        return parsed.toString();
-      }
-    }
-  } catch (e) {}
-  return raw.replace(/\/dev(\?|$)/, '/exec$1');
-}
-
-function configureGoogleSheetSync() {
-  pullGoogleSheetData(true);
-}
-
-function startGoogleSheetSync() {
-  if (sheetSyncTimer) clearInterval(sheetSyncTimer);
-  if (!SHEET_SYNC_URL) {
-    setSheetSyncStatus('error', '동기화 설정 없음');
-    return;
-  }
-  setSheetSyncStatus('', '최신 데이터 확인 중');
-  pullGoogleSheetData(false);
-  sheetSyncTimer = setInterval(() => pullGoogleSheetData(false), APP_CONFIG.syncIntervalMs || 5000);
-}
-
-function sheetJsonp(params = {}) {
-  return new Promise((resolve, reject) => {
-    if (!SHEET_SYNC_URL) return reject(new Error('sync url missing'));
-    const callback = `sharedStateCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const script = document.createElement('script');
-    const query = new URLSearchParams({...params, callback, t: Date.now()}).toString();
-    const sep = SHEET_SYNC_URL.includes('?') ? '&' : '?';
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error('응답 시간 초과'));
-    }, 30000);
-    const cleanup = () => {
-      clearTimeout(timeout);
-      delete window[callback];
-      script.remove();
-    };
-    window[callback] = payload => {
-      cleanup();
-      resolve(payload);
-    };
-    script.src = `${SHEET_SYNC_URL}${sep}${query}`;
-    document.body.appendChild(script);
-  });
-}
-
-async function pullGoogleSheetData(showMessage) {
-  if (!SHEET_SYNC_URL) return;
-  try {
-    const res = await sheetJsonp();
-    if (!res) throw new Error('read failed');
-    if (res.error) throw new Error(res.error);
-    const updatedAt = res.updatedAt || '';
-    const remoteExperiments = Array.isArray(res.experiments)
-      ? res.experiments
-      : Array.isArray(res.data?.experiments)
-        ? res.data.experiments
-        : [];
-    if (updatedAt && updatedAt !== sheetLastUpdatedAt) {
-      isApplyingRemoteData = true;
-      experiments = remoteExperiments;
-      localStorage.setItem('exp_data', JSON.stringify(experiments));
-      sheetLastUpdatedAt = updatedAt;
-      localStorage.setItem(SHEET_SYNC_TS_KEY, sheetLastUpdatedAt);
-      render();
-      isApplyingRemoteData = false;
-    }
-    sheetInitialPullDone = true;
-    setSheetSyncStatus('live', '실시간 동기화 중');
-    if (showMessage) showToast('구글 시트 동기화 확인 완료');
-  } catch (e) {
-    isApplyingRemoteData = false;
-    setSheetSyncStatus('error', `동기화 실패: ${e.message}`);
-    console.error(e);
-  }
-}
-
-function scheduleGoogleSheetPush() {
-  if (!SHEET_SYNC_URL || isApplyingRemoteData || !sheetInitialPullDone) return;
-  if (sheetPushTimer) clearTimeout(sheetPushTimer);
-  sheetPushTimer = setTimeout(pushGoogleSheetData, 600);
-}
-
-async function pushGoogleSheetData() {
-  const updatedAt = new Date().toISOString();
-  const payload = {
-    action: 'write',
-    updatedAt,
-    experiments
-  };
-  try {
-    await fetch(SHEET_SYNC_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
-    });
-    sheetLastUpdatedAt = updatedAt;
-    localStorage.setItem(SHEET_SYNC_TS_KEY, sheetLastUpdatedAt);
-    setSheetSyncStatus('live', '실시간 동기화 중');
-  } catch (e) {
-    setSheetSyncStatus('error', `저장 실패: ${e.message}`);
-    console.error(e);
-  }
-}
+let splitResultCount = 1;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
-  initGoogleSheetSyncFromUrl();
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('cf-date').value = today;
   document.getElementById('m-date').value = today;
   document.getElementById('nowDate').textContent =
     new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
   addResultRow(); addResultRow(); addResultRow();
-  render();
-  renderCertList();
   mcInit('cf-item');
   mcInit('cf-spec');
-  startGoogleSheetSync();
-  pullGoogleSheetData(false);
+
+  // ── Firebase 실시간 동기화 리스너 ──
+  fbDb.ref('experiments').on('value', snapshot => {
+    const val = snapshot.val();
+    experiments = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+    localStorage.setItem('exp_data', JSON.stringify(experiments));
+    render();
+  });
+  fbDb.ref('certificates').on('value', snapshot => {
+    const val = snapshot.val();
+    certificates = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+    localStorage.setItem('cert_data', JSON.stringify(certificates));
+    renderCertList();
+  });
 });
 
 // ─── RENDER KANBAN ───
@@ -1534,6 +1329,7 @@ function renderCol(id, items, status, showAdd) {
     html += `
       <div class="exp-card" onclick="openDetailModal('${e.id}')">
         <div class="exp-card-top">
+          <span class="exp-id">${e.id}</span>
           <span class="priority-badge ${pClass}">${e.priority}</span>
         </div>
         <div class="exp-name">${e.name}</div>
@@ -1572,46 +1368,6 @@ function openModal() {
 function closeModal() {
   document.getElementById('modal-bg').classList.remove('open');
 }
-
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, ch => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  }[ch]));
-}
-
-function openDetailModal(id) {
-  const e = experiments.find(x => x.id === id);
-  if (!e) {
-    showToast('상세 내용을 찾을 수 없습니다.');
-    return;
-  }
-  const rows = [
-    ['시험명', e.name],
-    ['의뢰기관', e.client || '-'],
-    ['담당자', e.person || '-'],
-    ['접수일', e.date || '-'],
-    ['우선순위', e.priority || '-'],
-    ['상태', e.status || '-'],
-    ['비고', e.note || '-']
-  ];
-  document.getElementById('detail-modal-title').textContent = e.name || '시험 상세';
-  document.getElementById('detail-modal-body').innerHTML = rows.map(([label, value]) => `
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:start;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
-      <div style="font-size:12px;color:var(--text3);font-weight:700;">${label}</div>
-      <div style="font-size:14px;color:var(--text);font-weight:600;white-space:pre-wrap;word-break:break-word;">${escapeHtml(value)}</div>
-    </div>
-  `).join('');
-  document.getElementById('detail-modal-bg').classList.add('open');
-}
-
-function closeDetailModal() {
-  document.getElementById('detail-modal-bg').classList.remove('open');
-}
-
 function addExperiment() {
   const name = document.getElementById('m-name').value.trim();
   if (!name) { showToast('시험명을 입력해주세요.'); return; }
@@ -1659,159 +1415,34 @@ function addResultRow() {
   tr.id = 'row-' + rowCount;
   const rc = rowCount;
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
-  const resultInputs = Array.from({length: resultSplitCount}, (_, i) => {
-    const border = i < resultSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
-    return `<textarea data-field="result" data-result-index="${i}" placeholder="결과${resultSplitCount > 1 ? i + 1 : ''}" style="${taStyle}${border}width:${100 / resultSplitCount}%;text-align:center;"></textarea>`;
-  }).join('');
-  const photoDrops = Array.from({length: photoSplitCount}, (_, i) => {
-    const border = i < photoSplitCount - 1 ? 'border-right:1px solid var(--border);' : '';
-    return `<div class="img-drop" data-row="${rc}" data-photo-index="${i}" tabindex="0"
-        style="${border}width:${100 / photoSplitCount}%;height:110px;min-width:0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);border-left:${i === 0 ? '1px dashed var(--border)' : '0'};border-radius:${photoSplitCount === 1 ? '6px' : '0'};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
-        <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
-      </div>`;
-  }).join('');
   tr.innerHTML = `
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;">${rc}</td>
     <td><textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea></td>
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
     <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
-    <td data-result-cell style="text-align:center;vertical-align:middle;padding:0;" colspan="${resultSplitCount}"><div style="display:flex;height:100%;">${resultInputs}</div></td>
-    <td class="img-cell" data-photo-cell style="width:180px;min-width:160px;padding:0;" colspan="${photoSplitCount}"><div style="display:flex;height:100%;">${photoDrops}</div></td>
+    <td data-result-cell style="text-align:center;vertical-align:middle;" colspan="${splitResultCount > 1 ? splitResultCount : 1}">${splitResultCount > 1
+      ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
+      : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
+    }</td>
+    <td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
+      <div class="img-drop" data-row="${rc}" tabindex="0"
+        style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
+        <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
+      </div>
+    </td>
     <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
     <td data-no-cap style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
   tbody.appendChild(tr);
 
-  tr.querySelectorAll('.img-drop').forEach(drop => {
-    drop.addEventListener('paste', e => handleImgPaste(e, drop));
-    drop.addEventListener('click', () => drop.focus());
-    drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
-  });
+  // paste event on the img-drop div
+  const drop = tr.querySelector('.img-drop');
+  drop.addEventListener('paste', e => handleImgPaste(e, drop));
+  drop.addEventListener('click', () => drop.focus());
+  drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
 
   renumberRows();
-}
-
-function renderResultHeader() {
-  const subHeaderStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;font-weight:bold;';
-  const resultSubHeaders = Array.from({length: resultSplitCount}, (_, i) =>
-    `<th><input id="result-label${i + 1}" placeholder="구분${i + 1}" style="${subHeaderStyle}"></th>`
-  ).join('');
-  const photoSubHeaders = Array.from({length: photoSplitCount}, (_, i) =>
-    `<th>사진${i + 1}</th>`
-  ).join('');
-  const hasSplit = resultSplitCount > 1 || photoSplitCount > 1;
-  document.getElementById('result-thead').innerHTML = hasSplit ? `
-    <tr>
-      <th rowspan="2" style="width:40px;">No</th>
-      <th rowspan="2">시험</th>
-      <th rowspan="2">기준</th>
-      <th rowspan="2">조건</th>
-      <th colspan="${resultSplitCount}" id="result-th">결과</th>
-      <th colspan="${photoSplitCount}" style="width:180px;">시험사진</th>
-      <th rowspan="2">비고</th>
-      <th data-no-cap rowspan="2" style="width:30px;"></th>
-    </tr>
-    <tr>${resultSubHeaders}${photoSubHeaders}</tr>` : `
-    <tr>
-      <th style="width:40px;">No</th>
-      <th>시험</th>
-      <th>기준</th>
-      <th>조건</th>
-      <th id="result-th" colspan="1">결과</th>
-      <th style="width:180px;">시험사진</th>
-      <th>비고</th>
-      <th data-no-cap style="width:30px;"></th>
-    </tr>`;
-}
-
-function setResultSplitCount(value, labels) {
-  const next = Math.max(1, Math.min(6, parseInt(value, 10) || 1));
-  if (complexMode) resetToSimpleTable();
-  const rows = [...document.querySelectorAll('#result-tbody tr')].map(tr => {
-    return {
-      item: tr.querySelector('[data-field="item"]')?.value || '',
-      spec: tr.querySelector('[data-field="spec"]')?.value || '',
-      cond: tr.querySelector('[data-field="cond"]')?.value || '',
-      resultParts: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || ''),
-      imgParts: [...tr.querySelectorAll('.img-drop')].map(drop => drop.querySelector('img')?.dataset.src || ''),
-      note: tr.querySelector('[data-field="note"]')?.value || ''
-    };
-  });
-  resultSplitCount = next;
-  const splitSelect = document.getElementById('result-split-count');
-  if (splitSelect) splitSelect.value = String(resultSplitCount);
-  renderResultHeader();
-  if (Array.isArray(labels)) {
-    labels.forEach((label, i) => {
-      const input = document.getElementById(`result-label${i + 1}`);
-      if (input) input.value = label || '';
-    });
-  }
-  document.getElementById('result-tbody').innerHTML = '';
-  rowCount = 0;
-  rows.forEach(row => {
-    addResultRow();
-    const tr = document.querySelector('#result-tbody tr:last-child');
-    tr.querySelector('[data-field="item"]').value = row.item;
-    tr.querySelector('[data-field="spec"]').value = row.spec;
-    tr.querySelector('[data-field="cond"]').value = row.cond;
-    tr.querySelectorAll('[data-field="result"]').forEach((el, i) => {
-      el.value = row.resultParts[i] || '';
-    });
-    tr.querySelector('[data-field="note"]').value = row.note;
-    tr.querySelectorAll('.img-drop').forEach((drop, i) => {
-      const src = row.imgParts[i] || '';
-      if (src) {
-        drop.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:contain;" data-src="${src}">
-          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-      }
-    });
-  });
-}
-
-function setPhotoSplitCount(value) {
-  const next = Math.max(1, Math.min(6, parseInt(value, 10) || 1));
-  if (complexMode) resetToSimpleTable();
-  const labels = Array.from({length: resultSplitCount}, (_, i) =>
-    document.getElementById(`result-label${i + 1}`)?.value || ''
-  );
-  const rows = [...document.querySelectorAll('#result-tbody tr')].map(tr => ({
-    item: tr.querySelector('[data-field="item"]')?.value || '',
-    spec: tr.querySelector('[data-field="spec"]')?.value || '',
-    cond: tr.querySelector('[data-field="cond"]')?.value || '',
-    resultParts: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || ''),
-    imgParts: [...tr.querySelectorAll('.img-drop')].map(drop => drop.querySelector('img')?.dataset.src || ''),
-    note: tr.querySelector('[data-field="note"]')?.value || ''
-  }));
-  photoSplitCount = next;
-  const splitSelect = document.getElementById('photo-split-count');
-  if (splitSelect) splitSelect.value = String(photoSplitCount);
-  renderResultHeader();
-  labels.forEach((label, i) => {
-    const input = document.getElementById(`result-label${i + 1}`);
-    if (input) input.value = label || '';
-  });
-  document.getElementById('result-tbody').innerHTML = '';
-  rowCount = 0;
-  rows.forEach(row => {
-    addResultRow();
-    const tr = document.querySelector('#result-tbody tr:last-child');
-    tr.querySelector('[data-field="item"]').value = row.item;
-    tr.querySelector('[data-field="spec"]').value = row.spec;
-    tr.querySelector('[data-field="cond"]').value = row.cond;
-    tr.querySelectorAll('[data-field="result"]').forEach((el, i) => {
-      el.value = row.resultParts[i] || '';
-    });
-    tr.querySelector('[data-field="note"]').value = row.note;
-    tr.querySelectorAll('.img-drop').forEach((drop, i) => {
-      const src = row.imgParts[i] || '';
-      if (src) {
-        drop.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:contain;" data-src="${src}">
-          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-      }
-    });
-  });
 }
 
 function handleImgPaste(e, drop) {
@@ -1864,8 +1495,7 @@ function setPF(v) {
 }
 
 function saveCert() {
-  // 저장 직전 localStorage에서 최신 목록 재동기화 (탭 간 / 페이지 재로드 후 stale 방지)
-  certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
+  // Firebase에서 최신 상태는 onValue 리스너가 유지하므로 별도 재동기화 불필요
 
   // auto-generate no if empty
   let no = document.getElementById('cf-no').value.trim();
@@ -1889,15 +1519,14 @@ function saveCert() {
     });
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
-      const imgParts = [...tr.querySelectorAll('.img-drop')].map(drop => drop.querySelector('img')?.dataset.src || '');
+      const imgEl = tr.querySelector('.img-drop img');
       rows.push({
         item: tr.querySelector('[data-field="item"]')?.value || '',
         spec: tr.querySelector('[data-field="spec"]')?.value || '',
         cond: tr.querySelector('[data-field="cond"]')?.value || '',
-        resultParts: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || ''),
-        result: [...tr.querySelectorAll('[data-field="result"]')].map(el => el.value || '').filter(Boolean).join(' / '),
-        imgParts,
-        img: imgParts.find(Boolean) || '',
+        result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || '',
+        results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
+        img: imgEl ? imgEl.dataset.src : '',
         note: tr.querySelector('[data-field="note"]')?.value || ''
       });
     });
@@ -1922,9 +1551,8 @@ function saveCert() {
     signer: document.getElementById('cf-signer').value,
     note: document.getElementById('cf-note').value,
     pf: pfState,
-    resultSplitCount: complexMode ? null : resultSplitCount,
-    photoSplitCount: complexMode ? null : photoSplitCount,
-    splitLabels: resultSplitCount > 1 ? Array.from({length: resultSplitCount}, (_, i) => document.getElementById(`result-label${i + 1}`)?.value || '') : [],
+    splitResultCount,
+    splitLabels: splitResultCount > 1 ? Array.from({length: splitResultCount}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || '') : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
     savedAt: new Date().toISOString()
@@ -1934,7 +1562,7 @@ function saveCert() {
   if (idx>=0) { certificates[idx]=cert; showToast('성적서가 수정되었습니다.'); }
   else { certificates.push(cert); showToast('성적서가 저장되었습니다.'); }
 
-  localStorage.setItem('cert_data', JSON.stringify(certificates));
+  fbSaveCertificates();
   renderCertList();
 }
 
@@ -1952,17 +1580,12 @@ function renderCertList(filter='') {
   tbody.innerHTML = list.map(c => {
     const rows = c.rows || [];
 
-    // 판정(결과): PASS면 "적합" 하나만, 아니면 각 행 결과 나열
     const resultText = c.pf === 'pass' ? '적합'
       : c.pf === 'fail' ? '부적합'
-      : (rows.map(r => Array.isArray(r.resultParts) ? r.resultParts.filter(Boolean).join(' / ') : (r.result || '')).filter(Boolean).join('<br>') || '—');
+      : (rows.map(r => r.result||r.result1||'').filter(Boolean).join('<br>') || '—');
 
-    // 시험사진: 이미지 있는 모든 행 썸네일
-    const imgRows = rows.flatMap(r => Array.isArray(r.imgParts) ? r.imgParts.filter(Boolean).map(img => ({img})) : (r.img ? [{img:r.img}] : []));
-
-    // 비고: 모든 행의 비고 줄바꿈으로 표시
+    const imgRows = rows.filter(r => r.img);
     const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
-
     const titleDisplay = c.title || c.no || '—';
     const imgCellDbl = imgRows.length
       ? imgRows.map(r => `<img src="${r.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal('${r.img}')">`).join('')
@@ -1970,9 +1593,9 @@ function renderCertList(filter='') {
     return `<tr>
       <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;white-space:nowrap;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
       <td style="white-space:nowrap;">${c.client||'—'}</td>
+      <td style="white-space:nowrap;">${c.requester||'—'}</td>
       <td>${c.sample||'—'}</td>
       <td style="white-space:nowrap;">${c.start||'—'} ~ ${c.end||'—'}</td>
-      <td style="white-space:nowrap;">${c.requester||'—'}</td>
       <td style="white-space:nowrap;">${c.person||'—'}</td>
       <td style="max-width:100px;line-height:1.6;">${resultText}</td>
       <td style="text-align:center;">${imgCellDbl}</td>
@@ -2016,33 +1639,38 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
-    const savedSplitCount = c.resultSplitCount || (c.splitResultMode ? 2 : Math.max(1, ...(c.rows||[]).map(r =>
-      Array.isArray(r.resultParts) ? r.resultParts.length : (r.result2 ? 2 : 1)
-    )));
-    const savedPhotoSplitCount = c.photoSplitCount || Math.max(1, ...(c.rows||[]).map(r =>
-      Array.isArray(r.imgParts) ? r.imgParts.length : (r.img ? 1 : 1)
-    ));
-    setResultSplitCount(savedSplitCount, c.splitLabels || []);
-    setPhotoSplitCount(savedPhotoSplitCount);
+    const loadCount = c.splitResultCount || (c.splitResultMode ? 2 : 1);
+    if (loadCount > 1) {
+      setSplitCount(loadCount);
+      if (c.splitLabels) {
+        c.splitLabels.forEach((lv, i) => {
+          const el = document.getElementById(`result-label${i+1}`);
+          if (el) el.value = lv;
+        });
+      }
+    }
     (c.rows||[]).forEach(r => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
       tr.querySelector('[data-field="item"]').value = r.item||'';
       tr.querySelector('[data-field="spec"]').value = r.spec||'';
       if (tr.querySelector('[data-field="cond"]')) tr.querySelector('[data-field="cond"]').value = r.cond||'';
-      const parts = Array.isArray(r.resultParts) ? r.resultParts : [r.result || '', r.result2 || ''].filter(Boolean);
-      tr.querySelectorAll('[data-field="result"]').forEach((el, i) => {
-        el.value = parts[i] || '';
+      const savedResults = r.results || [r.result||'', r.result2||''];
+      savedResults.forEach((rv, i) => {
+        const key = splitResultCount > 1 ? `result${i+1}` : 'result';
+        const el = tr.querySelector(`[data-field="${key}"]`);
+        if (el) el.value = rv;
       });
+      if (!splitResultCount || splitResultCount <= 1) {
+        const el = tr.querySelector('[data-field="result"]');
+        if (el) el.value = r.result || '';
+      }
       tr.querySelector('[data-field="note"]').value = r.note||'';
-      const imgParts = Array.isArray(r.imgParts) ? r.imgParts : [r.img || ''];
-      tr.querySelectorAll('.img-drop').forEach((drop, i) => {
-        const src = imgParts[i] || '';
-        if (src) {
-          drop.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:contain;" data-src="${src}">
-            <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-        }
-      });
+      if (r.img) {
+        const drop = tr.querySelector('.img-drop');
+        drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
+          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+      }
     });
   }
 
@@ -2052,7 +1680,7 @@ function loadCert(no) {
 
 function deleteCert(no) {
   certificates = certificates.filter(c=>c.no!==no);
-  localStorage.setItem('cert_data', JSON.stringify(certificates));
+  fbSaveCertificates();
   renderCertList();
   showToast('삭제되었습니다.');
 }
@@ -2375,17 +2003,80 @@ function resetToSimpleTable() {
   complexMode = false;
   complexTableData = [];
   complexColIdx = {};
-  resultSplitCount = 1;
-  photoSplitCount = 1;
-  const splitSelect = document.getElementById('result-split-count');
-  if (splitSelect) splitSelect.value = '1';
-  const photoSelect = document.getElementById('photo-split-count');
-  if (photoSelect) photoSelect.value = '1';
-  renderResultHeader();
+  splitResultCount = 1;
+  document.getElementById('result-thead').innerHTML = `
+    <tr>
+      <th style="width:40px;">No</th>
+      <th>시험</th>
+      <th>기준</th>
+      <th>조건</th>
+      <th id="result-th" colspan="1">결과 ${splitSelectHTML(1)}</th>
+      <th style="width:180px;">시험사진</th>
+      <th>비고</th>
+      <th style="width:30px;"></th>
+    </tr>`;
 }
 
-function toggleSplitResult() {
-  setResultSplitCount(resultSplitCount > 1 ? 1 : 2);
+function splitSelectHTML(current) {
+  return `<select onchange="setSplitCount(this.value)" style="font-size:10px;padding:1px 3px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text);cursor:pointer;">
+    <option value="1"${current===1?' selected':''}>분할없음</option>
+    <option value="2"${current===2?' selected':''}>2열</option>
+    <option value="3"${current===3?' selected':''}>3열</option>
+    <option value="4"${current===4?' selected':''}>4열</option>
+  </select>`;
+}
+
+function setSplitCount(n) {
+  if (complexMode) return;
+  n = parseInt(n) || 1;
+  splitResultCount = n;
+  const thead = document.getElementById('result-thead');
+  const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
+  if (n > 1) {
+    const labelThs = Array.from({length:n}, (_,i) =>
+      `<th><input id="result-label${i+1}" placeholder="구분${i+1}" style="${inStyle}font-weight:bold;"></th>`
+    ).join('');
+    thead.innerHTML = `
+      <tr>
+        <th rowspan="2" style="width:40px;">No</th>
+        <th rowspan="2">시험</th>
+        <th rowspan="2">기준</th>
+        <th rowspan="2">조건</th>
+        <th colspan="${n}" id="result-th">결과 ${splitSelectHTML(n)}</th>
+        <th rowspan="2" style="width:180px;">시험사진</th>
+        <th rowspan="2">비고</th>
+        <th data-no-cap rowspan="2" style="width:30px;"></th>
+      </tr>
+      <tr>${labelThs}</tr>`;
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const td = tr.querySelector('td[data-result-cell]');
+      if (!td) return;
+      const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+      td.colSpan = n;
+      td.style.padding = '0';
+      td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${inStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
+    });
+  } else {
+    thead.innerHTML = `
+      <tr>
+        <th style="width:40px;">No</th>
+        <th>시험</th>
+        <th>기준</th>
+        <th>조건</th>
+        <th id="result-th" colspan="1">결과 ${splitSelectHTML(1)}</th>
+        <th style="width:180px;">시험사진</th>
+        <th>비고</th>
+        <th style="width:30px;"></th>
+      </tr>`;
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const td = tr.querySelector('td[data-result-cell]');
+      if (!td) return;
+      const v = td.querySelector('textarea')?.value || '';
+      td.colSpan = 1;
+      td.style.padding = '';
+      td.innerHTML = `<textarea data-field="result" placeholder="결과" style="${inStyle}text-align:center;">${v}</textarea>`;
+    });
+  }
 }
 
 function filterList(v) { renderCertList(v); }
@@ -2393,8 +2084,7 @@ function filterList(v) { renderCertList(v); }
 function printCert() { window.print(); }
 
 function save() {
-  localStorage.setItem('exp_data', JSON.stringify(experiments));
-  scheduleGoogleSheetPush();
+  fbSaveExperiments();
 }
 
 /* ─── CERT IMAGE COPY ─── */
@@ -2405,17 +2095,47 @@ async function copyCertImage(btn) {
   try {
     const target = document.getElementById('result-table').closest('.result-table-wrap');
 
-    // ── 1. textarea/input을 전체 내용이 보이는 <div>로 교체 (th input 포함) ──
+    // ── 1a. 분할 결과 셀을 실제 N개의 <td>로 교체 (DOM에서 완전 제거) ──
+    const splitRestores = [];
+    target.querySelectorAll('td[data-result-cell]').forEach(td => {
+      const textareas = Array.from(td.querySelectorAll('textarea'));
+      if (textareas.length < 2) return;
+      const n = textareas.length;
+      const totalW = td.getBoundingClientRect().width;
+      const perW = Math.floor(totalW / n);
+      const parent = td.parentNode;
+      const nextSib = td.nextSibling;
+      const newCells = textareas.map((ta, i) => {
+        const cell = document.createElement('td');
+        cell.className = '__split-cap-td';
+        const w = i === n - 1 ? totalW - perW * (n - 1) : perW;
+        cell.style.cssText = `width:${w}px;min-width:${w}px;max-width:${w}px;box-sizing:border-box;`;
+        cell.textContent = ta.value || '';
+        parent.insertBefore(cell, td);
+        return cell;
+      });
+      parent.removeChild(td);
+      splitRestores.push({ td, newCells, parent, nextSib });
+    });
+    // 헤더 label th에도 동일 너비 적용
+    const resultTh = target.querySelector('#result-th');
+    if (resultTh && splitResultCount > 1) {
+      const thTotalW = resultTh.getBoundingClientRect().width;
+      const perThW = Math.floor(thTotalW / splitResultCount);
+      const labelThs = [];
+      for (let i = 1; i <= splitResultCount; i++) {
+        const el = target.querySelector(`#result-label${i}`)?.closest('th');
+        if (el) { labelThs.push({ el, orig: el.style.cssText }); const w = i === splitResultCount ? thTotalW - perThW*(splitResultCount-1) : perThW; el.style.cssText = `width:${w}px;min-width:${w}px;max-width:${w}px;`; }
+      }
+      if (labelThs.length) splitRestores.push({ cleanup: () => labelThs.forEach(({el, orig}) => el.style.cssText = orig) });
+    }
+
+    // ── 1b. textarea/input을 전체 내용이 보이는 <div>로 교체 (th input 포함) ──
     const replaced = [];
     target.querySelectorAll('td textarea, td input, th input').forEach(el => {
       const div = document.createElement('div');
       div.className = '__cap-text';
       div.textContent = el.value || '';
-      // 분할 결과 셀 첫 번째 input: 우측 경계선 유지
-      if (el.dataset.field === 'result' && el.closest('td[data-result-cell]') &&
-          el.closest('td[data-result-cell]').querySelector('[data-field="result2"]')) {
-        div.classList.add('__cap-result1');
-      }
       el.parentNode.insertBefore(div, el);
       el.style.display = 'none';
       replaced.push({ el, div });
@@ -2451,22 +2171,11 @@ async function copyCertImage(btn) {
         text-align: center !important; white-space: pre-wrap !important;
         word-break: keep-all !important; line-height: 1.6 !important;
       }
-      .result-table-wrap td[data-result-cell] {
-        padding: 0 !important; position: relative !important;
-      }
-      .result-table-wrap td[data-result-cell] > div {
-        position: absolute !important; inset: 0 !important;
-        display: flex !important; align-items: stretch !important;
-      }
-      .result-table-wrap td[data-result-cell] > div > .__cap-text {
-        flex: 1 !important; padding: 10px 6px !important;
-        display: flex !important; align-items: center !important;
-        justify-content: center !important; white-space: pre-wrap !important;
-        word-break: keep-all !important; line-height: 1.6 !important;
-        font-size: 17px !important;
-      }
-      .result-table-wrap .__cap-result1 {
-        border-right: 1.5px solid #ccc !important;
+      .result-table-wrap .__split-cap-td {
+        font-size: 17px !important; color: #111 !important; background: #fff !important;
+        text-align: center !important; vertical-align: middle !important;
+        padding: 10px 6px !important; border: 1.5px solid #ccc !important;
+        word-break: keep-all !important; white-space: pre-wrap !important;
       }
       .result-table-wrap .img-drop {
         border: none !important; background: transparent !important; overflow: visible !important;
@@ -2476,6 +2185,9 @@ async function copyCertImage(btn) {
       .result-table-wrap .img-placeholder { display: none !important; }
     `;
     document.head.appendChild(styleEl);
+
+    // ── 2.5. 브라우저 레이아웃 완료 대기 ──
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     // ── 3. 캡처 ──
     const fullH = target.scrollHeight;
@@ -2494,6 +2206,12 @@ async function copyCertImage(btn) {
     // ── 4. 복원 ──
     styleEl.remove();
     replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
+    splitRestores.forEach(item => {
+      if (item.cleanup) { item.cleanup(); return; }
+      const { td, newCells, parent, nextSib } = item;
+      parent.insertBefore(td, nextSib);
+      newCells.forEach(c => c.remove());
+    });
 
     canvas.toBlob(async blob => {
       try {
@@ -2649,9 +2367,6 @@ function showToast(msg) {
 
 document.getElementById('modal-bg').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-bg')) closeModal();
-});
-document.getElementById('detail-modal-bg').addEventListener('click', e => {
-  if (e.target === document.getElementById('detail-modal-bg')) closeDetailModal();
 });
 </script>
 </body>
