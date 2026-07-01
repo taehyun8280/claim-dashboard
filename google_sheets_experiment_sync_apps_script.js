@@ -7,6 +7,11 @@ function doGet(e) {
     if (action === 'ping') {
       return jsonp_(callback, {ok: true, message: 'pong'});
     }
+    if (action === 'write') {
+      const payload = JSON.parse(e.parameter.payload || '{}');
+      writeState_(payload);
+      return jsonp_(callback, {ok: true, updatedAt: payload.updatedAt || new Date().toISOString()});
+    }
     const state = readState_();
     const response = {
       ok: true,

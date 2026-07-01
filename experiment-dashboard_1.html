@@ -1404,17 +1404,11 @@ async function pushGoogleSheetData() {
   if (!url) return;
   const updatedAt = new Date().toISOString();
   const body = {
-    action: 'write',
     updatedAt,
     data: {experiments}
   };
   try {
-    await fetch(url, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify(body)
-    });
+    await sheetJsonp({action: 'write', payload: JSON.stringify(body)});
     sheetLastUpdatedAt = updatedAt;
     localStorage.setItem(SHEET_SYNC_TS_KEY, sheetLastUpdatedAt);
   } catch (e) {
