@@ -1466,8 +1466,8 @@ async function pushGoogleSheetData() {
     await fetch(SHEET_SYNC_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: new URLSearchParams({payload: JSON.stringify(payload)})
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
     });
     sheetLastUpdatedAt = updatedAt;
     localStorage.setItem(SHEET_SYNC_TS_KEY, sheetLastUpdatedAt);
