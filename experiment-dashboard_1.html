@@ -849,6 +849,14 @@
         </svg>
         시험 데이터 공유
       </button>
+      <button class="hero-btn hero-btn-excel" onclick="configureGoogleSheetSync()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+          <path d="M3 3h18v18H3z"/>
+          <path d="M3 9h18"/>
+          <path d="M9 3v18"/>
+        </svg>
+        구글 시트 연동
+      </button>
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1304,6 +1312,12 @@ let complexTableData = [];
 let complexColIdx = {};
 let resultSplitCount = 1;
 let photoSplitCount = 1;
+const SHEET_SYNC_URL_KEY = 'experiment_sheet_sync_url';
+const SHEET_SYNC_TS_KEY = 'experiment_sheet_sync_updated_at';
+let isApplyingRemoteData = false;
+let sheetSyncTimer = null;
+let sheetPushTimer = null;
+let sheetLastUpdatedAt = localStorage.getItem(SHEET_SYNC_TS_KEY) || '';
 
 function encodeSharePayload(payload) {
   const json = JSON.stringify(payload);
@@ -1353,6 +1367,111 @@ async function copyExperimentShareLink() {
   }
 }
 
+function getGoogleSheetSyncUrl() {
+  return (localStorage.getItem(SHEET_SYNC_URL_KEY) || '').trim();
+}
+
+function configureGoogleSheetSync() {
+  const current = getGoogleSheetSyncUrl();
+  const url = prompt('Google Apps Script 웹앱 URL을 붙여넣으세요. 비우면 연동을 해제합니다.', current);
+  if (url === null) return;
+  const next = url.trim();
+  if (!next) {
+    localStorage.removeItem(SHEET_SYNC_URL_KEY);
+    if (sheetSyncTimer) clearInterval(sheetSyncTimer);
+    sheetSyncTimer = null;
+    showToast('구글 시트 연동을 해제했습니다.');
+    return;
+  }
+  localStorage.setItem(SHEET_SYNC_URL_KEY, next);
+  showToast('구글 시트 연동 URL을 저장했습니다.');
+  startGoogleSheetSync();
+  pullGoogleSheetData(true);
+}
+
+function startGoogleSheetSync() {
+  if (sheetSyncTimer) clearInterval(sheetSyncTimer);
+  if (!getGoogleSheetSyncUrl()) return;
+  sheetSyncTimer = setInterval(() => pullGoogleSheetData(false), 5000);
+}
+
+function sheetJsonp(params) {
+  const url = getGoogleSheetSyncUrl();
+  return new Promise((resolve, reject) => {
+    if (!url) return reject(new Error('sync url missing'));
+    const callback = `sheetSyncCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement('script');
+    const query = new URLSearchParams({...params, callback, _: Date.now()});
+    const sep = url.includes('?') ? '&' : '?';
+    const cleanup = () => {
+      delete window[callback];
+      script.remove();
+    };
+    window[callback] = data => {
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('sync read failed'));
+    };
+    script.src = `${url}${sep}${query.toString()}`;
+    document.body.appendChild(script);
+  });
+}
+
+async function pullGoogleSheetData(showMessage) {
+  const url = getGoogleSheetSyncUrl();
+  if (!url) return;
+  try {
+    const res = await sheetJsonp({action: 'read'});
+    if (!res || !res.ok) throw new Error(res?.error || 'read failed');
+    const updatedAt = res.updatedAt || '';
+    if (!updatedAt || updatedAt === sheetLastUpdatedAt) return;
+    const remoteExperiments = Array.isArray(res.data?.experiments) ? res.data.experiments : [];
+    isApplyingRemoteData = true;
+    experiments = remoteExperiments;
+    localStorage.setItem('exp_data', JSON.stringify(experiments));
+    sheetLastUpdatedAt = updatedAt;
+    localStorage.setItem(SHEET_SYNC_TS_KEY, sheetLastUpdatedAt);
+    render();
+    isApplyingRemoteData = false;
+    if (showMessage) showToast('구글 시트 데이터를 불러왔습니다.');
+  } catch (e) {
+    isApplyingRemoteData = false;
+    if (showMessage) showToast('구글 시트 데이터를 불러오지 못했습니다.');
+  }
+}
+
+function scheduleGoogleSheetPush() {
+  if (!getGoogleSheetSyncUrl() || isApplyingRemoteData) return;
+  if (sheetPushTimer) clearTimeout(sheetPushTimer);
+  sheetPushTimer = setTimeout(pushGoogleSheetData, 500);
+}
+
+async function pushGoogleSheetData() {
+  const url = getGoogleSheetSyncUrl();
+  if (!url) return;
+  const updatedAt = new Date().toISOString();
+  const body = {
+    action: 'write',
+    updatedAt,
+    data: {experiments}
+  };
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(body)
+    });
+    sheetLastUpdatedAt = updatedAt;
+    localStorage.setItem(SHEET_SYNC_TS_KEY, sheetLastUpdatedAt);
+  } catch (e) {
+    showToast('구글 시트 저장에 실패했습니다.');
+  }
+}
+
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
@@ -1366,6 +1485,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCertList();
   mcInit('cf-item');
   mcInit('cf-spec');
+  startGoogleSheetSync();
+  pullGoogleSheetData(false);
 });
 
 // ─── RENDER KANBAN ───
@@ -2262,6 +2383,7 @@ function printCert() { window.print(); }
 
 function save() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
+  scheduleGoogleSheetPush();
 }
 
 /* ─── CERT IMAGE COPY ─── */
