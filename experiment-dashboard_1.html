@@ -1431,6 +1431,7 @@ function configureGoogleSheetSync() {
     sheetLastUpdatedAt = '';
     localStorage.removeItem(SHEET_SYNC_TS_KEY);
     setSheetSyncStatus('', '최신 데이터 확인 중');
+    resetSheetBridge();
     startGoogleSheetSync();
     pullGoogleSheetData(true);
     return;
@@ -1454,6 +1455,7 @@ function configureGoogleSheetSync() {
   localStorage.removeItem(SHEET_SYNC_TS_KEY);
   setSheetSyncStatus('', '최신 데이터 확인 중');
   showToast('구글 시트 연동 URL을 저장했습니다.');
+  resetSheetBridge();
   startGoogleSheetSync();
   testGoogleSheetSync(true);
 }
@@ -1556,6 +1558,16 @@ function initSheetBridge() {
   document.body.appendChild(sheetBridgeFrame);
 }
 
+function resetSheetBridge() {
+  sheetBridgeReady = false;
+  sheetBridgeWaiters = [];
+  sheetBridgePending.forEach(({reject}) => reject(new Error('브리지 재연결')));
+  sheetBridgePending.clear();
+  sheetBridgeFrame?.remove();
+  sheetBridgeFrame = null;
+  initSheetBridge();
+}
+
 function waitSheetBridgeReady() {
   initSheetBridge();
   if (sheetBridgeReady) return Promise.resolve();
@@ -1591,13 +1603,8 @@ async function sheetBridgeCall(type, payload) {
 }
 
 async function readSheetState() {
-  try {
-    const state = await sheetBridgeCall('read');
-    return {ok: true, updatedAt: state.updatedAt || '', data: state.data || {experiments: []}};
-  } catch (e) {
-    console.warn('Sheet bridge read failed, falling back to JSONP', e);
-    return sheetJsonp({});
-  }
+  const state = await sheetBridgeCall('read');
+  return {ok: true, updatedAt: state.updatedAt || '', data: state.data || {experiments: []}};
 }
 
 async function sheetPost(payload) {
