@@ -1,23 +1,23 @@
-const SHEET_NAME = 'experimentDashboard';
+var SHEET_NAME = 'experimentDashboard';
 
 function doGet(e) {
-  const params = (e && e.parameter) || {};
-  const callback = params.callback || '';
+  var params = (e && e.parameter) ? e.parameter : {};
+  var callback = params.callback || '';
 
   try {
-    const action = params.action || 'read';
+    var action = params.action || 'read';
 
     if (action === 'ping') {
       return jsonp_(callback, {ok: true, message: 'pong'});
     }
 
     if (action === 'write') {
-      const payload = JSON.parse(params.payload || '{}');
-      writeState_(payload);
-      return jsonp_(callback, {ok: true, updatedAt: payload.updatedAt || new Date().toISOString()});
+      var getPayload = JSON.parse(params.payload || '{}');
+      writeState_(getPayload);
+      return jsonp_(callback, {ok: true, updatedAt: getPayload.updatedAt || new Date().toISOString()});
     }
 
-    const state = readState_();
+    var state = readState_();
     return jsonp_(callback, {
       ok: true,
       updatedAt: state.updatedAt || '',
@@ -29,32 +29,37 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  const params = (e && e.parameter) || {};
-  const callback = params.callback || '';
+  var params = (e && e.parameter) ? e.parameter : {};
+  var callback = params.callback || '';
 
   try {
-    const body = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
-    const payload = JSON.parse(body);
+    var body = (e && e.postData && e.postData.contents) ? e.postData.contents : '{}';
+    var postPayload = JSON.parse(body);
 
-    if (payload.action !== 'write') {
+    if (postPayload.action !== 'write') {
       return jsonp_(callback, {ok: false, error: 'unknown action'});
     }
 
-    writeState_(payload);
-    return jsonp_(callback, {ok: true, updatedAt: payload.updatedAt || new Date().toISOString()});
+    writeState_(postPayload);
+    return jsonp_(callback, {ok: true, updatedAt: postPayload.updatedAt || new Date().toISOString()});
   } catch (err) {
     return jsonp_(callback, {ok: false, error: String(err)});
   }
 }
 
 function readState_() {
-  const sheet = getSheet_();
-  const raw = sheet.getRange(1, 1).getValue();
-  if (!raw) return {updatedAt: '', data: {experiments: []}};
+  var sheet = getSheet_();
+  var raw = sheet.getRange(1, 1).getValue();
+
+  if (!raw) {
+    return {updatedAt: '', data: {experiments: []}};
+  }
 
   try {
-    const state = JSON.parse(raw);
-    if (!state || typeof state !== 'object') throw new Error('invalid state');
+    var state = JSON.parse(raw);
+    if (!state || typeof state !== 'object') {
+      throw new Error('invalid state');
+    }
     return {
       updatedAt: state.updatedAt || '',
       data: state.data || {experiments: []}
@@ -65,18 +70,20 @@ function readState_() {
 }
 
 function writeState_(payload) {
-  const lock = LockService.getDocumentLock();
+  var lock = LockService.getDocumentLock();
   lock.waitLock(10000);
 
   try {
-    const sheet = getSheet_();
-    const current = readState_();
-    const currentTime = Date.parse(current.updatedAt || '') || 0;
-    const nextTime = Date.parse(payload.updatedAt || '') || Date.now();
+    var sheet = getSheet_();
+    var current = readState_();
+    var currentTime = Date.parse(current.updatedAt || '') || 0;
+    var nextTime = Date.parse(payload.updatedAt || '') || Date.now();
 
-    if (currentTime > nextTime) return;
+    if (currentTime > nextTime) {
+      return;
+    }
 
-    const state = {
+    var state = {
       updatedAt: payload.updatedAt || new Date().toISOString(),
       data: payload.data || {experiments: []}
     };
@@ -89,20 +96,22 @@ function writeState_(payload) {
 }
 
 function getSheet_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
   if (!ss) {
-    throw new Error('구글 시트에서 확장 프로그램 > Apps Script로 만든 스크립트가 아닙니다.');
+    throw new Error('Open this script from Google Sheets: Extensions > Apps Script.');
   }
 
-  let sheet = ss.getSheetByName(SHEET_NAME);
-  if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+  }
   return sheet;
 }
 
 function jsonp_(callback, obj) {
-  const body = callback
-    ? `${callback}(${JSON.stringify(obj)});`
-    : JSON.stringify(obj);
+  var json = JSON.stringify(obj);
+  var body = callback ? callback + '(' + json + ');' : json;
 
   return ContentService
     .createTextOutput(body)
