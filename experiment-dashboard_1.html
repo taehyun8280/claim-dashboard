@@ -848,7 +848,7 @@
           <path d="M3 9h18"/>
           <path d="M9 3v18"/>
         </svg>
-        구글 시트 연동
+        구글 시트 연동/테스트
       </button>
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1320,6 +1320,13 @@ function normalizeGoogleSheetSyncUrl(url) {
   return String(url || '').trim().replace(/\/dev(\?|$)/, '/exec$1');
 }
 
+function buildGoogleSheetTestUrl(url) {
+  const normalized = normalizeGoogleSheetSyncUrl(url);
+  if (!normalized) return '';
+  const sep = normalized.includes('?') ? '&' : '?';
+  return `${normalized}${sep}action=read&callback=test&_=${Date.now()}`;
+}
+
 function configureGoogleSheetSync() {
   const current = getGoogleSheetSyncUrl();
   const url = prompt('Google Apps Script 웹앱 URL을 붙여넣으세요. 비우면 연동을 해제합니다.', current);
@@ -1335,7 +1342,25 @@ function configureGoogleSheetSync() {
   localStorage.setItem(SHEET_SYNC_URL_KEY, next);
   showToast('구글 시트 연동 URL을 저장했습니다.');
   startGoogleSheetSync();
-  pullGoogleSheetData(true);
+  testGoogleSheetSync(true);
+}
+
+async function testGoogleSheetSync(showHelp) {
+  try {
+    const res = await sheetJsonp({action: 'read'});
+    if (!res || !res.ok) throw new Error(res?.error || 'read failed');
+    showToast('구글 시트 연동 테스트 성공');
+    await pullGoogleSheetData(false);
+    return true;
+  } catch (e) {
+    console.error(e);
+    const testUrl = buildGoogleSheetTestUrl(getGoogleSheetSyncUrl());
+    if (showHelp) {
+      prompt('연동 테스트가 실패했습니다. 아래 URL을 새 탭에서 열었을 때 test({...})가 보여야 합니다.', testUrl);
+    }
+    showToast(`구글 시트 연동 실패: ${e.message}`);
+    return false;
+  }
 }
 
 function startGoogleSheetSync() {
