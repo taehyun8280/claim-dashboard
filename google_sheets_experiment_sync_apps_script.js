@@ -1,14 +1,22 @@
 const SHEET_NAME = 'experimentDashboard';
 
 function doGet(e) {
-  const callback = e.parameter.callback || '';
-  const state = readState_();
-  const response = {
-    ok: true,
-    updatedAt: state.updatedAt || '',
-    data: state.data || {experiments: []}
-  };
-  return jsonp_(callback, response);
+  const callback = (e && e.parameter && e.parameter.callback) || '';
+  try {
+    const action = (e && e.parameter && e.parameter.action) || 'read';
+    if (action === 'ping') {
+      return jsonp_(callback, {ok: true, message: 'pong'});
+    }
+    const state = readState_();
+    const response = {
+      ok: true,
+      updatedAt: state.updatedAt || '',
+      data: state.data || {experiments: []}
+    };
+    return jsonp_(callback, response);
+  } catch (err) {
+    return jsonp_(callback, {ok: false, error: String(err)});
+  }
 }
 
 function doPost(e) {
@@ -47,6 +55,7 @@ function writeState_(payload) {
 
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('스프레드시트에서 확장 프로그램 > Apps Script로 만든 스크립트가 아닙니다.');
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
   return sheet;
