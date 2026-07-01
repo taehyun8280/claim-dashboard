@@ -1334,7 +1334,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="./config.js?v=5371df8-2"></script>
+<script src="./config.js?v=51f1539-1"></script>
 <script>
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1421,9 +1421,14 @@ function buildGoogleSheetTestUrl(url) {
 }
 
 function configureGoogleSheetSync() {
-  if (normalizeGoogleSheetSyncUrl(SHEET_SYNC_DEFAULT_URL)) {
-    showToast('config.js에 설정된 구글 시트 연동을 사용 중입니다.');
-    testGoogleSheetSync(true);
+  const configuredUrl = normalizeGoogleSheetSyncUrl(SHEET_SYNC_DEFAULT_URL);
+  if (configuredUrl) {
+    localStorage.setItem(SHEET_SYNC_URL_KEY, configuredUrl);
+    sheetLastUpdatedAt = '';
+    localStorage.removeItem(SHEET_SYNC_TS_KEY);
+    setSheetSyncStatus('', '최신 데이터 확인 중');
+    startGoogleSheetSync();
+    pullGoogleSheetData(true);
     return;
   }
   const current = getGoogleSheetSyncUrl();
@@ -1452,20 +1457,19 @@ function configureGoogleSheetSync() {
 async function testGoogleSheetSync(showHelp) {
   try {
     setSheetSyncStatus('', '최신 데이터 확인 중');
-    const res = await sheetJsonp({action: 'ping'});
+    const res = await readSheetState();
     if (!res || !res.ok) throw new Error(res?.error || 'read failed');
     sheetSyncReady = true;
     setSheetSyncStatus('live', '실시간 동기화 중');
-    showToast('구글 시트 연동 테스트 성공');
-    await pullGoogleSheetData(false);
+    showToast('구글 시트 연동 확인 완료');
     return true;
   } catch (e) {
     console.error(e);
     sheetSyncReady = false;
-    setSheetSyncStatus('error', '동기화 확인 필요');
+    setSheetSyncStatus('error', `동기화 실패: ${e.message}`);
     const testUrl = buildGoogleSheetTestUrl(getGoogleSheetSyncUrl());
     if (showHelp) {
-      prompt('연동 테스트가 실패했습니다. 아래 URL을 새 탭에서 열었을 때 test({"ok":true,"message":"pong"})가 보여야 합니다.', testUrl);
+      prompt('연동 테스트가 실패했습니다. 아래 URL을 새 탭에서 열었을 때 test({...})가 보여야 합니다.', testUrl);
     }
     showToast(`구글 시트 연동 실패: ${e.message}`);
     return false;
