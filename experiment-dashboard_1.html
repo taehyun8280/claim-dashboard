@@ -1485,15 +1485,37 @@ async function loadFirebaseSdk() {
 function getRealtimeConfig() {
   try {
     const raw = localStorage.getItem(REALTIME_SYNC_CONFIG_KEY) || '';
-    return raw ? JSON.parse(raw) : null;
+    return raw ? parseRealtimeConfig(raw) : null;
   } catch (e) {
     return null;
   }
 }
 
+function parseRealtimeConfig(raw) {
+  const text = String(raw || '').trim();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      return Function(`"use strict"; return (${text.slice(start, end + 1)});`)();
+    }
+    throw e;
+  }
+}
+
+function validateRealtimeConfig(config) {
+  if (!config || typeof config !== 'object') throw new Error('Firebase 설정값을 읽을 수 없습니다.');
+  if (!config.apiKey) throw new Error('apiKey가 없습니다.');
+  if (!config.databaseURL) throw new Error('databaseURL이 없습니다. Firebase Realtime Database를 먼저 생성해야 합니다.');
+  if (!config.projectId) throw new Error('projectId가 없습니다.');
+}
+
 async function configureRealtimeSync() {
   const current = localStorage.getItem(REALTIME_SYNC_CONFIG_KEY) || '';
-  const input = prompt('Firebase 설정값(JSON)을 붙여넣으세요. 비우면 실시간 연동을 해제합니다.', current);
+  const input = prompt('Firebase 설정값을 붙여넣으세요. const firebaseConfig = {...}; 형태도 가능합니다. 비우면 실시간 연동을 해제합니다.', current);
   if (input === null) return;
   const trimmed = input.trim();
   if (!trimmed) {
@@ -1505,9 +1527,9 @@ async function configureRealtimeSync() {
     return;
   }
   try {
-    JSON.parse(trimmed);
+    validateRealtimeConfig(parseRealtimeConfig(trimmed));
   } catch (e) {
-    showToast('Firebase 설정값 JSON 형식이 올바르지 않습니다.');
+    showToast(`Firebase 설정값 오류: ${e.message}`);
     return;
   }
   localStorage.setItem(REALTIME_SYNC_CONFIG_KEY, trimmed);
@@ -1518,11 +1540,12 @@ async function startRealtimeSync(showMessage) {
   const config = getRealtimeConfig();
   if (!config) return;
   try {
+    validateRealtimeConfig(config);
     await loadFirebaseSdk();
     const appName = 'experiment-dashboard-sync';
     const app = window.firebase.apps.find(app => app.name === appName)
       || window.firebase.initializeApp(config, appName);
-    realtimeDbRef = app.database().ref(REALTIME_SYNC_PATH);
+    realtimeDbRef = window.firebase.database(app).ref(REALTIME_SYNC_PATH);
     realtimeDbRef.off();
     realtimeDbRef.on('value', snap => {
       const value = snap.val();
