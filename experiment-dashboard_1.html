@@ -1334,7 +1334,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="./config.js?v=9567626"></script>
+<script src="./config.js?v=5371df8-2"></script>
 <script>
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1491,7 +1491,12 @@ function sheetJsonp(params) {
     const script = document.createElement('script');
     const query = new URLSearchParams({...params, callback, _: Date.now()});
     const sep = url.includes('?') ? '&' : '?';
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('응답 시간 초과'));
+    }, 12000);
     const cleanup = () => {
+      clearTimeout(timeout);
       delete window[callback];
       script.remove();
     };
@@ -1508,6 +1513,10 @@ function sheetJsonp(params) {
   });
 }
 
+function readSheetState() {
+  return sheetJsonp({});
+}
+
 async function sheetPost(payload) {
   const url = getGoogleSheetSyncUrl();
   if (!url) throw new Error('sync url missing');
@@ -1521,9 +1530,12 @@ async function sheetPost(payload) {
 
 async function pullGoogleSheetData(showMessage) {
   const url = getGoogleSheetSyncUrl();
-  if (!url) return;
+  if (!url) {
+    setSheetSyncStatus('error', 'config.js 주소 없음');
+    return;
+  }
   try {
-    const res = await sheetJsonp({action: 'read'});
+    const res = await readSheetState();
     if (!res || !res.ok) throw new Error(res?.error || 'read failed');
     sheetSyncReady = true;
     setSheetSyncStatus('live', '실시간 동기화 중');
@@ -1550,7 +1562,7 @@ async function pullGoogleSheetData(showMessage) {
   } catch (e) {
     isApplyingRemoteData = false;
     sheetSyncReady = false;
-    setSheetSyncStatus('error', '동기화 확인 필요');
+    setSheetSyncStatus('error', `동기화 실패: ${e.message}`);
     console.error(e);
     if (showMessage) showToast(`구글 시트 데이터를 불러오지 못했습니다: ${e.message}`);
   }
