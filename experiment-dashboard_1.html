@@ -1373,7 +1373,24 @@ function getGoogleSheetSyncUrl() {
 }
 
 function normalizeGoogleSheetSyncUrl(url) {
-  return String(url || '').trim().replace(/\/dev(\?|$)/, '/exec$1');
+  const raw = String(url || '').trim();
+  if (!raw) return '';
+  try {
+    const parsed = new URL(raw);
+    if (parsed.hostname === 'script.google.com' && parsed.pathname.includes('/macros/s/')) {
+      const parts = parsed.pathname.split('/').filter(Boolean);
+      const scriptId = parts[2] || '';
+      if (scriptId) {
+        parsed.pathname = `/macros/s/${scriptId}/exec`;
+        return parsed.toString();
+      }
+    }
+  } catch (e) {
+    // Keep the original text fallback below for pasted URLs with minor formatting issues.
+  }
+  return raw
+    .replace(/\/dev(\?|$)/, '/exec$1')
+    .replace(/\/macros\/s\/([^/?#]+)([?#]|$)/, '/macros/s/$1/exec$2');
 }
 
 function initGoogleSheetSyncFromUrl() {
@@ -1436,7 +1453,7 @@ async function testGoogleSheetSync(showHelp) {
     setSheetSyncStatus('error', '동기화 확인 필요');
     const testUrl = buildGoogleSheetTestUrl(getGoogleSheetSyncUrl());
     if (showHelp) {
-      prompt('연동 테스트가 실패했습니다. 아래 URL을 새 탭에서 열었을 때 test({...})가 보여야 합니다.', testUrl);
+      prompt('연동 테스트가 실패했습니다. 아래 URL을 새 탭에서 열었을 때 test({"ok":true,"message":"pong"})가 보여야 합니다.', testUrl);
     }
     showToast(`구글 시트 연동 실패: ${e.message}`);
     return false;
