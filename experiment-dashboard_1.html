@@ -171,6 +171,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--text2);
     font-size: 13px;
     font-weight: 700;
     font-family: 'Noto Sans KR', sans-serif;
@@ -994,6 +995,9 @@
   <img id="img-modal-img" src="" alt="">
 </div>
 
+<!-- ─── DETAIL MODAL ─── -->
+<div class="modal-bg" id="detail-modal-bg" style="display:flex;align-items:center;justify-content:center;" onclick="if(event.target===this)this.classList.remove('open')"></div>
+
 <!-- ─── ADD MODAL ─── -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
@@ -1154,9 +1158,6 @@
         <input class="field-input" id="cf-sample" placeholder="시료명, 시료 번호, 수량 등">
       </div>
       <div>
-        <div class="field-label">시험 조건 (온도/습도)</div>
-        <input class="field-input" id="cf-cond" placeholder="예) 23±2°C / 50±5%RH">
-      </div>
       <div>
         <div class="field-label">시험 기간</div>
         <div style="display:flex;gap:6px;align-items:center;">
@@ -1173,19 +1174,22 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
       <div style="display:flex;align-items:center;gap:10px;">
+        <label style="font-size:12px;color:var(--text2);font-weight:600;">시험 칸
+          <select id="item-row-select" onchange="setItemRowCount(this.value)" style="margin-left:4px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+          </select>
+        </label>
         <label style="font-size:12px;color:var(--text2);font-weight:600;">결과 칸
           <select id="result-col-select" onchange="setSplitCount(this.value)" style="margin-left:4px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
-            <option value="1">1개</option>
-            <option value="2">2개</option>
-            <option value="3">3개</option>
-            <option value="4">4개</option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
           </select>
         </label>
         <label style="font-size:12px;color:var(--text2);font-weight:600;">사진 칸
           <select id="photo-col-select" onchange="setPhotoCount(this.value)" style="margin-left:4px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
-            <option value="1">1개</option>
-            <option value="2">2개</option>
-            <option value="3">3개</option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
           </select>
         </label>
         <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
@@ -1286,6 +1290,7 @@ let complexTableData = [];
 let complexColIdx = {};
 let splitResultCount = 1;
 let photoColCount = 1;
+let itemRowCount = 1;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1407,11 +1412,11 @@ function addExperiment() {
 
 function moveStatus(id, status) {
   const e = experiments.find(x=>x.id===id);
-  if (e) { e.status = status; render(); showToast(`${id} → ${status} 처리되었습니다.`); }
+  if (e) { e.status = status; fbSaveExperiments(); render(); showToast(`${id} → ${status} 처리되었습니다.`); }
 }
 function deleteExp(id) {
   experiments = experiments.filter(x=>x.id!==id);
-  render();
+  fbSaveExperiments(); render();
   showToast('삭제되었습니다.');
 }
 
@@ -1435,7 +1440,7 @@ function addResultRow() {
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
   tr.innerHTML = `
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;">${rc}</td>
-    <td><textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea></td>
+    <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
     <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
     <td data-result-cell style="text-align:center;vertical-align:middle;" colspan="${splitResultCount > 1 ? splitResultCount : 1}">${splitResultCount > 1
@@ -1569,8 +1574,7 @@ function saveCert() {
     signer: document.getElementById('cf-signer').value,
     note: document.getElementById('cf-note').value,
     pf: pfState,
-    splitResultCount,
-    photoColCount,
+    splitResultCount, photoColCount, itemRowCount,
     splitLabels: splitResultCount > 1 ? Array.from({length: splitResultCount}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || '') : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
@@ -1659,6 +1663,7 @@ function loadCert(no) {
   } else {
     resetToSimpleTable();
     if (c.photoColCount && c.photoColCount > 1) setPhotoCount(c.photoColCount);
+    if (c.itemRowCount && c.itemRowCount > 1) setItemRowCount(c.itemRowCount);
     const loadCount = c.splitResultCount || (c.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -1706,7 +1711,7 @@ function deleteCert(no) {
 }
 
 function clearCertForm() {
-  ['cf-no','cf-title','cf-client','cf-requester','cf-person','cf-sample','cf-cond','cf-signer','cf-note'].forEach(id=>document.getElementById(id).value='');
+  ['cf-no','cf-title','cf-client','cf-requester','cf-person','cf-sample','cf-signer','cf-note'].forEach(id=>document.getElementById(id).value='');
   clearMultiCombo('cf-item'); clearMultiCombo('cf-spec');
   ['cf-date','cf-start','cf-end'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('result-tbody').innerHTML='';
@@ -2023,10 +2028,10 @@ function resetToSimpleTable() {
   complexMode = false;
   complexTableData = [];
   complexColIdx = {};
-  splitResultCount = 1;
-  photoColCount = 1;
+  splitResultCount = 1; photoColCount = 1; itemRowCount = 1;
   const rcs = document.getElementById('result-col-select'); if (rcs) rcs.value = '1';
   const pcs = document.getElementById('photo-col-select'); if (pcs) pcs.value = '1';
+  const irs = document.getElementById('item-row-select'); if (irs) irs.value = '1';
   document.getElementById('result-thead').innerHTML = `
     <tr>
       <th style="width:40px;">No</th>
@@ -2038,6 +2043,51 @@ function resetToSimpleTable() {
       <th>비고</th>
       <th style="width:30px;"></th>
     </tr>`;
+}
+
+function setItemRowCount(n) {
+  n = parseInt(n) || 1;
+  itemRowCount = n;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  document.querySelectorAll('#result-tbody tr').forEach(tr => {
+    const itemTd = tr.querySelector('td:nth-child(2)');
+    if (!itemTd) return;
+    const prev = Array.from(itemTd.querySelectorAll('textarea')).map(t => t.value);
+    itemTd.style.padding = '0';
+    if (n > 1) {
+      itemTd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`;
+    } else {
+      itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명">${prev[0]||''}</textarea>`;
+    }
+  });
+  const sel = document.getElementById('item-row-select'); if (sel) sel.value = String(n);
+}
+
+function openDetailModal(id) {
+  const e = experiments.find(x => x.id === id);
+  if (!e) return;
+  const statusColor = e.status==='접수'?'#3b82f6':e.status==='진행'?'#f59e0b':'#00b890';
+  document.getElementById('detail-modal-bg').innerHTML = `
+    <div style="background:var(--surface);border-radius:14px;padding:28px 32px;min-width:340px;max-width:500px;width:90vw;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;">
+      <button onclick="document.getElementById('detail-modal-bg').classList.remove('open')" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);">✕</button>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:6px;">EXPERIMENT DETAIL</div>
+      <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;">${e.name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:13px;">
+        <div><span style="color:var(--text3);">ID</span><br><b>${e.id}</b></div>
+        <div><span style="color:var(--text3);">상태</span><br><b style="color:${statusColor};">${e.status}</b></div>
+        <div><span style="color:var(--text3);">의뢰 기관</span><br><b>${e.client||'—'}</b></div>
+        <div><span style="color:var(--text3);">담당자</span><br><b>${e.person||'—'}</b></div>
+        <div><span style="color:var(--text3);">접수일</span><br><b>${e.date||'—'}</b></div>
+        <div><span style="color:var(--text3);">우선순위</span><br><b>${e.priority||'—'}</b></div>
+      </div>
+      ${e.note?`<div style="margin-top:14px;font-size:13px;"><span style="color:var(--text3);">비고</span><br><span style="white-space:pre-wrap;">${e.note}</span></div>`:''}
+      <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;">
+        ${e.status!=='진행'?`<button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="moveStatus('${e.id}','진행');document.getElementById('detail-modal-bg').classList.remove('open')">→ 진행</button>`:''}
+        ${e.status!=='완료'?`<button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="moveStatus('${e.id}','완료');document.getElementById('detail-modal-bg').classList.remove('open')">→ 완료</button>`:''}
+        <button class="btn btn-danger" style="font-size:12px;padding:5px 14px;" onclick="deleteExp('${e.id}');document.getElementById('detail-modal-bg').classList.remove('open')">삭제</button>
+      </div>
+    </div>`;
+  document.getElementById('detail-modal-bg').classList.add('open');
 }
 
 function makeImgCell(rc, pi) {
