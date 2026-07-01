@@ -1334,7 +1334,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="./config.js?v=9f3d5ad-bridge"></script>
+<script src="./config.js?v=b112a74-jsonp"></script>
 <script>
 // ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1431,7 +1431,6 @@ function configureGoogleSheetSync() {
     sheetLastUpdatedAt = '';
     localStorage.removeItem(SHEET_SYNC_TS_KEY);
     setSheetSyncStatus('', '최신 데이터 확인 중');
-    resetSheetBridge();
     startGoogleSheetSync();
     pullGoogleSheetData(true);
     return;
@@ -1455,7 +1454,6 @@ function configureGoogleSheetSync() {
   localStorage.removeItem(SHEET_SYNC_TS_KEY);
   setSheetSyncStatus('', '최신 데이터 확인 중');
   showToast('구글 시트 연동 URL을 저장했습니다.');
-  resetSheetBridge();
   startGoogleSheetSync();
   testGoogleSheetSync(true);
 }
@@ -1603,12 +1601,18 @@ async function sheetBridgeCall(type, payload) {
 }
 
 async function readSheetState() {
-  const state = await sheetBridgeCall('read');
-  return {ok: true, updatedAt: state.updatedAt || '', data: state.data || {experiments: []}};
+  return sheetJsonp({});
 }
 
 async function sheetPost(payload) {
-  await sheetBridgeCall('write', payload);
+  const url = getGoogleSheetSyncUrl();
+  if (!url) throw new Error('sync url missing');
+  await fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
 }
 
 async function pullGoogleSheetData(showMessage) {
@@ -1675,7 +1679,7 @@ async function pushGoogleSheetData() {
     setSheetSyncStatus('live', '실시간 동기화 중');
   } catch (e) {
     sheetSyncReady = false;
-    setSheetSyncStatus('error', '동기화 확인 필요');
+    setSheetSyncStatus('error', `저장 실패: ${e.message}`);
     showToast('구글 시트 저장에 실패했습니다.');
   }
 }
@@ -1816,7 +1820,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCertList();
   mcInit('cf-item');
   mcInit('cf-spec');
-  initSheetBridge();
   startGoogleSheetSync();
   pullGoogleSheetData(false);
 });
