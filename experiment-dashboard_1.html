@@ -842,13 +842,6 @@
         엑셀 데이터 가져오기
       </button>
       <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
-      <button class="hero-btn hero-btn-excel" onclick="copyExperimentShareLink()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
-          <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L11 4.93"/>
-          <path d="M14 11a5 5 0 0 0-7.07 0L4.81 13.12a5 5 0 0 0 7.07 7.07L13 19.07"/>
-        </svg>
-        시험 데이터 공유
-      </button>
       <button class="hero-btn hero-btn-excel" onclick="configureGoogleSheetSync()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
           <path d="M3 3h18v18H3z"/>
@@ -1319,54 +1312,6 @@ let sheetSyncTimer = null;
 let sheetPushTimer = null;
 let sheetLastUpdatedAt = localStorage.getItem(SHEET_SYNC_TS_KEY) || '';
 
-function encodeSharePayload(payload) {
-  const json = JSON.stringify(payload);
-  const bytes = new TextEncoder().encode(json);
-  let binary = '';
-  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
-  return btoa(binary);
-}
-
-function decodeSharePayload(encoded) {
-  const binary = atob(encoded);
-  const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-
-function importSharedDataFromUrl() {
-  const hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
-  const shared = hash.get('shared');
-  if (!shared) return false;
-  try {
-    const payload = decodeSharePayload(shared);
-    if (Array.isArray(payload.experiments)) {
-      experiments = payload.experiments;
-      localStorage.setItem('exp_data', JSON.stringify(experiments));
-      showToast('공유된 시험 데이터를 불러왔습니다.');
-      return true;
-    }
-  } catch (e) {
-    showToast('공유 데이터를 불러오지 못했습니다.');
-  }
-  return false;
-}
-
-async function copyExperimentShareLink() {
-  const payload = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    experiments
-  };
-  const shared = encodeSharePayload(payload);
-  const url = `${location.origin}${location.pathname}${location.search}#shared=${encodeURIComponent(shared)}`;
-  try {
-    await navigator.clipboard.writeText(url);
-    showToast('시험 데이터 공유 링크를 복사했습니다.');
-  } catch (e) {
-    prompt('아래 공유 링크를 복사하세요.', url);
-  }
-}
-
 function getGoogleSheetSyncUrl() {
   return (localStorage.getItem(SHEET_SYNC_URL_KEY) || '').trim();
 }
@@ -1479,7 +1424,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('m-date').value = today;
   document.getElementById('nowDate').textContent =
     new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-  importSharedDataFromUrl();
   addResultRow(); addResultRow(); addResultRow();
   render();
   renderCertList();
