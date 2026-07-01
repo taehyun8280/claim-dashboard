@@ -1316,11 +1316,15 @@ function getGoogleSheetSyncUrl() {
   return (localStorage.getItem(SHEET_SYNC_URL_KEY) || '').trim();
 }
 
+function normalizeGoogleSheetSyncUrl(url) {
+  return String(url || '').trim().replace(/\/dev(\?|$)/, '/exec$1');
+}
+
 function configureGoogleSheetSync() {
   const current = getGoogleSheetSyncUrl();
   const url = prompt('Google Apps Script 웹앱 URL을 붙여넣으세요. 비우면 연동을 해제합니다.', current);
   if (url === null) return;
-  const next = url.trim();
+  const next = normalizeGoogleSheetSyncUrl(url);
   if (!next) {
     localStorage.removeItem(SHEET_SYNC_URL_KEY);
     if (sheetSyncTimer) clearInterval(sheetSyncTimer);
@@ -1358,7 +1362,7 @@ function sheetJsonp(params) {
     };
     script.onerror = () => {
       cleanup();
-      reject(new Error('sync read failed'));
+      reject(new Error('웹앱 URL을 불러오지 못했습니다. Apps Script 웹앱 URL을 새 탭에서 열었을 때 test({...}) 형태가 보이는지 확인하세요.'));
     };
     script.src = `${url}${sep}${query.toString()}`;
     document.body.appendChild(script);
