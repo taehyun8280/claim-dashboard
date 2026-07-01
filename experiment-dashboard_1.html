@@ -8,17 +8,17 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
 
   :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2230;
-    --border: #2a3444;
-    --accent: #00c8a0;
+    --bg: #eef2f7;
+    --surface: #ffffff;
+    --surface2: #f4f7fa;
+    --border: #dde3ec;
+    --accent: #00b890;
     --accent2: #3b82f6;
     --accent3: #f59e0b;
     --danger: #ef4444;
-    --text: #e6edf3;
-    --text2: #8b949e;
-    --text3: #6e7681;
+    --text: #1a2332;
+    --text2: #526070;
+    --text3: #8899aa;
     --status-wait: #3b82f6;
     --status-prog: #f59e0b;
     --status-done: #00c8a0;
@@ -90,7 +90,7 @@
 
   /* ─── HERO HEADER BANNER ─── */
   .hero-header {
-    background: linear-gradient(135deg, #0d1b2e 0%, #0f2340 40%, #0a1628 100%);
+    background: linear-gradient(135deg, #e8f8f3 0%, #ddf0fc 40%, #e6f7f2 100%);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -197,7 +197,7 @@
   }
   .hero-btn-cert {
     background: var(--accent);
-    color: #0d1117;
+    color: #fff;
   }
   .hero-btn-cert:hover {
     filter: brightness(1.1);
@@ -233,15 +233,15 @@
     position: relative;
   }
   .hero-stat-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(0,0,0,0.08);
     border-radius: 10px;
     padding: 16px 20px;
     backdrop-filter: blur(4px);
   }
   .hero-stat-card:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.95);
+    border-color: rgba(0,0,0,0.14);
   }
   .card-label {
     color: var(--text2);
@@ -504,7 +504,7 @@
     vertical-align: middle;
   }
   .list-table tr:last-child td { border-bottom: none; }
-  .list-table tr:hover td { background: rgba(255,255,255,.02); cursor: pointer; }
+  .list-table tr:hover td { background: rgba(0,0,0,.02); cursor: pointer; }
 
   .status-chip {
     display: inline-flex;
@@ -604,7 +604,7 @@
   }
   .btn-primary {
     background: var(--accent);
-    color: #0d1117;
+    color: #fff;
     border-radius: 22px;
   }
   .btn-primary:hover { filter: brightness(1.1); }
@@ -676,7 +676,7 @@
     border-radius: 6px;
     transition: all .15s;
   }
-  .cert-panel-close:hover { color: var(--text); background: rgba(255,255,255,.06); }
+  .cert-panel-close:hover { color: var(--text); background: rgba(0,0,0,.06); }
   .cert-panel-body {
     flex: 1;
     overflow-y: auto;
@@ -815,7 +815,7 @@
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
-      <button class="hero-btn" style="background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.15);" onclick="triggerExcelImport()">
+      <button class="hero-btn" style="background:rgba(0,0,0,0.06);color:var(--text);border:1px solid rgba(0,0,0,0.1);" onclick="triggerExcelImport()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
@@ -1172,7 +1172,24 @@
     <!-- 시험 결과 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
-      <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="font-size:12px;color:var(--text2);font-weight:600;">결과 칸
+          <select id="result-col-select" onchange="setSplitCount(this.value)" style="margin-left:4px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
+            <option value="1">1개</option>
+            <option value="2">2개</option>
+            <option value="3">3개</option>
+            <option value="4">4개</option>
+          </select>
+        </label>
+        <label style="font-size:12px;color:var(--text2);font-weight:600;">사진 칸
+          <select id="photo-col-select" onchange="setPhotoCount(this.value)" style="margin-left:4px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
+            <option value="1">1개</option>
+            <option value="2">2개</option>
+            <option value="3">3개</option>
+          </select>
+        </label>
+        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px;" onclick="addResultRow()">+ 행 추가</button>
+      </div>
     </div>
     <div class="result-table-wrap">
       <table class="result-table" id="result-table">
@@ -1268,6 +1285,7 @@ let complexMode = false;
 let complexTableData = [];
 let complexColIdx = {};
 let splitResultCount = 1;
+let photoColCount = 1;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1424,13 +1442,13 @@ function addResultRow() {
       ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
       : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
     }</td>
-    <td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
-      <div class="img-drop" data-row="${rc}" tabindex="0"
+    ${Array.from({length:photoColCount},(_,pi)=>`<td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
+      <div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
         style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
         <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
         <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
       </div>
-    </td>
+    </td>`).join('')}
     <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
     <td data-no-cap style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
@@ -1552,6 +1570,7 @@ function saveCert() {
     note: document.getElementById('cf-note').value,
     pf: pfState,
     splitResultCount,
+    photoColCount,
     splitLabels: splitResultCount > 1 ? Array.from({length: splitResultCount}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || '') : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
@@ -1639,6 +1658,7 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
+    if (c.photoColCount && c.photoColCount > 1) setPhotoCount(c.photoColCount);
     const loadCount = c.splitResultCount || (c.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -2004,6 +2024,9 @@ function resetToSimpleTable() {
   complexTableData = [];
   complexColIdx = {};
   splitResultCount = 1;
+  photoColCount = 1;
+  const rcs = document.getElementById('result-col-select'); if (rcs) rcs.value = '1';
+  const pcs = document.getElementById('photo-col-select'); if (pcs) pcs.value = '1';
   document.getElementById('result-thead').innerHTML = `
     <tr>
       <th style="width:40px;">No</th>
@@ -2015,6 +2038,49 @@ function resetToSimpleTable() {
       <th>비고</th>
       <th style="width:30px;"></th>
     </tr>`;
+}
+
+function makeImgCell(rc, pi) {
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  const td = document.createElement('td');
+  td.className = 'img-cell';
+  td.style.cssText = 'width:180px;min-width:160px;padding:6px;';
+  td.innerHTML = `<div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
+    style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
+    <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
+  </div>`;
+  return td;
+}
+
+function setPhotoCount(n) {
+  n = parseInt(n) || 1;
+  photoColCount = n;
+  // 헤더 시험사진 th colspan 업데이트
+  const thead = document.getElementById('result-thead');
+  thead.querySelectorAll('th').forEach(th => {
+    if (th.textContent.trim().startsWith('시험사진')) {
+      th.colSpan = n;
+      th.style.width = n === 1 ? '180px' : '';
+    }
+  });
+  // 기존 행 photo 칸 동기화
+  document.querySelectorAll('#result-tbody tr').forEach(tr => {
+    const imgCells = Array.from(tr.querySelectorAll('td.img-cell'));
+    const noteCell = tr.querySelector('[data-field="note"]')?.closest('td');
+    const delCell = tr.querySelector('[data-no-cap]');
+    const rc = tr.id?.replace('row-','') || '';
+    if (imgCells.length < n) {
+      const ref = noteCell || delCell;
+      for (let i = imgCells.length; i < n; i++) {
+        tr.insertBefore(makeImgCell(rc, i), ref);
+      }
+    } else if (imgCells.length > n) {
+      for (let i = imgCells.length - 1; i >= n; i--) imgCells[i].remove();
+    }
+  });
+  const sel = document.getElementById('photo-col-select');
+  if (sel) sel.value = String(n);
 }
 
 function splitSelectHTML(current) {
@@ -2030,6 +2096,7 @@ function setSplitCount(n) {
   if (complexMode) return;
   n = parseInt(n) || 1;
   splitResultCount = n;
+  const rcs = document.getElementById('result-col-select'); if (rcs) rcs.value = String(n);
   const thead = document.getElementById('result-thead');
   const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
   if (n > 1) {
