@@ -363,7 +363,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
           <tr>
             <th style="width:72px">구분</th>
             <th>금일 품목</th><th>금일 수량</th>
-            <th>7월 누적품목</th><th>7월 누적수량</th>
+            <th id="in_lbl_month_item">7월 누적품목</th><th id="in_lbl_month_qty">7월 누적수량</th>
             <th>26년 누적품목</th><th>26년 누적수량</th>
           </tr>
         </thead>
@@ -509,17 +509,24 @@ function delAttachRow(){
 }
 const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
-const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV7';
+const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV8';
 
 (function(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
-  document.getElementById('in_date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  document.getElementById('in_lbl_month_val') || (window._lbl_month = `${d.getMonth()+1}월 누적`);
-  window._lbl_year = `${String(d.getFullYear()).slice(2)}년 누적`;
-  document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+  const monthNum=d.getMonth()+1;
+  document.getElementById('in_date').value=`${d.getFullYear()}-${pad(monthNum)}-${pad(d.getDate())}`;
+  window._lbl_month=`${monthNum}월 누적`;
+  window._lbl_year=`${String(d.getFullYear()).slice(2)}년 누적`;
+  window._current_month_key=d.getFullYear()*100+monthNum;
+  document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${monthNum}월 ${d.getDate()}일`;
+  document.getElementById('pv_lbl_month').textContent=`${monthNum}월 누적`;
+  const m1=document.getElementById('in_lbl_month_item');
+  const m2=document.getElementById('in_lbl_month_qty');
+  if(m1) m1.textContent=`${monthNum}월 누적품목`;
+  if(m2) m2.textContent=`${monthNum}월 누적수량`;
   const todayLabel=document.getElementById('kpi_today_lbl');
-  if(todayLabel) todayLabel.textContent=`금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
+  if(todayLabel) todayLabel.textContent=`금일 (${monthNum}월 ${d.getDate()}일)`;
   renderAttach();
 })();
 
@@ -542,18 +549,26 @@ function saveInspectionState(){
   const rows=[0,1,2].map(i=>({
     ti:0,tq:0,
     mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq'),
-    savedTi:0,
-    savedTq:0
+    savedTi:0,savedTq:0
   }));
-  localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(rows));
+  localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify({month:window._current_month_key,rows}));
 }
 function restoreInspectionState(){
-  let rows=[];
-  try{rows=JSON.parse(localStorage.getItem(INSPECTION_STORAGE_KEY)||'[]');}catch(e){}
+  let data={};
+  try{data=JSON.parse(localStorage.getItem(INSPECTION_STORAGE_KEY)||'{}');}catch(e){}
+  const rows=Array.isArray(data)?data:(data.rows||[]);
+  const storedMonth=data.month||0;
+  const monthChanged=storedMonth!==window._current_month_key;
   [0,1,2].forEach(i=>{
     const row=rows[i]||{};
-    // 누적값만 복원 (mi, mq, yi, yq)
-    ['mi','mq','yi','yq'].forEach(f=>{
+    // 월이 바뀌면 mi/mq는 0으로 초기화, yi/yq만 복원
+    if(!monthChanged){
+      ['mi','mq'].forEach(f=>{
+        const el=document.getElementById(`s${i}_${f}`);
+        if(el&&Number.isFinite(Number(row[f]))) el.value=Number(row[f]);
+      });
+    }
+    ['yi','yq'].forEach(f=>{
       const el=document.getElementById(`s${i}_${f}`);
       if(el&&Number.isFinite(Number(row[f]))) el.value=Number(row[f]);
     });
