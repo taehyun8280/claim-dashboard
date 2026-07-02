@@ -872,43 +872,6 @@
 
 <div class="wrap">
 
-  <!-- FLOW -->
-  <div class="flow-section">
-    <div class="section-eyebrow">SYSTEM FLOW</div>
-    <div class="section-title">시험 운영 흐름</div>
-    <div class="flow-steps">
-      <div class="step">
-        <div class="step-num">STEP 01</div>
-        <div class="step-name">시험 접수</div>
-        <div class="step-desc">의뢰서 등록</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 02</div>
-        <div class="step-name">시료 확인</div>
-        <div class="step-desc">시료 식별·상태 검토</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 03</div>
-        <div class="step-name">시험 진행</div>
-        <div class="step-desc">측정 및 데이터 수집</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 04</div>
-        <div class="step-name">결과 검토</div>
-        <div class="step-desc">판정·서명</div>
-      </div>
-      <div class="step-arrow">›</div>
-      <div class="step">
-        <div class="step-num">STEP 05</div>
-        <div class="step-name">성적서 발행</div>
-        <div class="step-desc">출력·보관</div>
-      </div>
-    </div>
-  </div>
-
   <!-- KANBAN -->
   <div class="kanban-wrap">
     <div class="kanban-col">
@@ -946,7 +909,10 @@
           <div class="status-dot dot-done"></div>
           시험 완료
         </div>
-        <div class="kanban-count" id="k-cnt-done">0</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="kanban-count" id="k-cnt-done">0</div>
+          <input id="done-search" placeholder="🔍 검색..." oninput="render()" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);width:100px;outline:none;">
+        </div>
       </div>
       <div class="kanban-body" id="col-done">
         <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료된 시험 없음</p>
@@ -1016,8 +982,8 @@
       </div>
       <div>
         <div class="field-label">의뢰 기관</div>
-        <select class="field-select" id="m-client">
-          <option value="">선택</option>
+        <input class="field-input" id="m-client" list="client-list" placeholder="선택 또는 직접 입력" autocomplete="off">
+        <datalist id="client-list">
           <option>일룸개발팀</option>
           <option>일룸 품질관리팀</option>
           <option>포트폴리오구축디자인팀</option>
@@ -1028,7 +994,7 @@
           <option>KCL(사외시험)</option>
           <option>경기가구인증센터(사외시험)</option>
           <option>KOTITI(사외시험)</option>
-        </select>
+        </datalist>
       </div>
       <div>
         <div class="field-label">담당자</div>
@@ -1102,19 +1068,7 @@
       </div>
       <div>
         <div class="field-label">시험 의뢰 기관</div>
-        <select class="field-select" id="cf-client">
-          <option value="">선택</option>
-          <option>일룸개발팀</option>
-          <option>일룸 품질관리팀</option>
-          <option>포트폴리오구축디자인팀</option>
-          <option>포트폴리오구축개발팀</option>
-          <option>LDK디자인팀</option>
-          <option>제품경쟁력강화팀</option>
-          <option>충주 구매팀</option>
-          <option>KCL(사외시험)</option>
-          <option>경기가구인증센터(사외시험)</option>
-          <option>KOTITI(사외시험)</option>
-        </select>
+        <input class="field-input" id="cf-client" list="client-list" placeholder="선택 또는 직접 입력" autocomplete="off">
       </div>
       <div>
         <div class="field-label">의뢰자</div>
@@ -1335,7 +1289,9 @@ function render() {
 
   renderCol('col-wait', wait, '접수', true);
   renderCol('col-prog', prog, '진행', false);
-  renderCol('col-done', done, '완료', false);
+  const doneQ = (document.getElementById('done-search')?.value||'').trim().toLowerCase();
+  const doneFilt = doneQ ? done.filter(e=>(e.name||'').toLowerCase().includes(doneQ)||(e.client||'').toLowerCase().includes(doneQ)||(e.person||'').toLowerCase().includes(doneQ)) : done;
+  renderCol('col-done', doneFilt, '완료', false);
 
   save();
 }
@@ -2131,26 +2087,74 @@ function openDetailModal(id) {
   if (!e) return;
   const statusColor = e.status==='접수'?'#3b82f6':e.status==='진행'?'#f59e0b':'#00b890';
   document.getElementById('detail-modal-bg').innerHTML = `
-    <div style="background:var(--surface);border-radius:14px;padding:28px 32px;min-width:340px;max-width:500px;width:90vw;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;">
+    <div style="background:var(--surface);border-radius:14px;padding:28px 32px;min-width:360px;max-width:520px;width:90vw;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;">
       <button onclick="document.getElementById('detail-modal-bg').classList.remove('open')" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);">✕</button>
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:6px;">EXPERIMENT DETAIL</div>
-      <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:16px;">${e.name}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:13px;">
-        <div><span style="color:var(--text3);">ID</span><br><b>${e.id}</b></div>
-        <div><span style="color:var(--text3);">상태</span><br><b style="color:${statusColor};">${e.status}</b></div>
-        <div><span style="color:var(--text3);">의뢰 기관</span><br><b>${e.client||'—'}</b></div>
-        <div><span style="color:var(--text3);">담당자</span><br><b>${e.person||'—'}</b></div>
-        <div><span style="color:var(--text3);">접수일</span><br><b>${e.date||'—'}</b></div>
-        <div><span style="color:var(--text3);">우선순위</span><br><b>${e.priority||'—'}</b></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:4px;">EXPERIMENT DETAIL</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">${e.id} &nbsp;·&nbsp; <span style="color:${statusColor};font-weight:700;">${e.status}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:14px;">
+        <div style="grid-column:1/-1;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">시험명</div>
+          <input id="det-name" value="${(e.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">의뢰 기관</div>
+          <input id="det-client" value="${(e.client||'').replace(/"/g,'&quot;')}" list="client-list" autocomplete="off" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">담당자</div>
+          <select id="det-person" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+            <option value="">선택</option>
+            <option value="박태현"${e.person==='박태현'?' selected':''}>박태현</option>
+            <option value="박동현"${e.person==='박동현'?' selected':''}>박동현</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">접수일</div>
+          <input id="det-date" type="date" value="${e.date||''}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">우선순위</div>
+          <select id="det-priority" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+            <option value="상"${e.priority==='상'?' selected':''}>상 (긴급)</option>
+            <option value="중"${e.priority==='중'?' selected':''}>중 (보통)</option>
+            <option value="하"${e.priority==='하'?' selected':''}>하 (여유)</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">상태</div>
+          <select id="det-status" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
+            <option value="접수"${e.status==='접수'?' selected':''}>접수</option>
+            <option value="진행"${e.status==='진행'?' selected':''}>진행 중</option>
+            <option value="완료"${e.status==='완료'?' selected':''}>완료</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">비고</div>
+          <textarea id="det-note" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;min-height:56px;resize:vertical;font-family:inherit;">${e.note||''}</textarea>
+        </div>
       </div>
-      ${e.note?`<div style="margin-top:14px;font-size:13px;"><span style="color:var(--text3);">비고</span><br><span style="white-space:pre-wrap;">${e.note}</span></div>`:''}
-      <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;">
-        ${e.status!=='진행'?`<button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="moveStatus('${e.id}','진행');document.getElementById('detail-modal-bg').classList.remove('open')">→ 진행</button>`:''}
-        ${e.status!=='완료'?`<button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="moveStatus('${e.id}','완료');document.getElementById('detail-modal-bg').classList.remove('open')">→ 완료</button>`:''}
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
         <button class="btn btn-danger" style="font-size:12px;padding:5px 14px;" onclick="deleteExp('${e.id}');document.getElementById('detail-modal-bg').classList.remove('open')">삭제</button>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="document.getElementById('detail-modal-bg').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;" onclick="saveExpDetail('${e.id}')">저장</button>
       </div>
     </div>`;
   document.getElementById('detail-modal-bg').classList.add('open');
+}
+function saveExpDetail(id) {
+  const e = experiments.find(x => x.id === id);
+  if (!e) return;
+  e.name = document.getElementById('det-name').value.trim();
+  e.client = document.getElementById('det-client').value.trim();
+  e.person = document.getElementById('det-person').value;
+  e.date = document.getElementById('det-date').value;
+  e.priority = document.getElementById('det-priority').value;
+  e.status = document.getElementById('det-status').value;
+  e.note = document.getElementById('det-note').value;
+  fbSaveExperiments();
+  render();
+  document.getElementById('detail-modal-bg').classList.remove('open');
+  showToast('저장되었습니다.');
 }
 
 function makeImgCell(rc, pi) {
