@@ -926,6 +926,7 @@ function resetAll(){
 function liveSync(){
   // 보고서 미리보기 탭이 아니어도 항상 동기화
   applyAll_silent();
+  saveInspectionState();
   setSyncStatus(true);
 }
 function applyAll_silent(){
