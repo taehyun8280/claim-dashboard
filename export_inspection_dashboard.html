@@ -246,7 +246,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <tr>
           <th rowspan="2" style="width:80px">구분</th>
           <th colspan="2" id="pv_lbl_today">금일</th>
-          <th colspan="2" id="pv_lbl_month">6월 누적</th>
+          <th colspan="2" id="pv_lbl_month">7월 누적</th>
           <th colspan="2">26년 누적</th>
         </tr>
         <tr>
@@ -363,7 +363,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
           <tr>
             <th style="width:72px">구분</th>
             <th>금일 품목</th><th>금일 수량</th>
-            <th>6월 누적품목</th><th>6월 누적수량</th>
+            <th>7월 누적품목</th><th>7월 누적수량</th>
             <th>26년 누적품목</th><th>26년 누적수량</th>
           </tr>
         </thead>
@@ -372,8 +372,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
             <td class="inp-t-name">충주1</td>
             <td><input type="number" id="s0_ti" value="0" min="0" oninput="calcS()"></td>
             <td><input type="number" id="s0_tq" value="0" min="0" oninput="calcS()"></td>
-            <td><input type="number" id="s0_mi" value="66" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s0_mq" value="1067" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mi" value="0" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s0_mq" value="0" readonly tabindex="-1" class="fixed-value"></td>
             <td><input type="number" id="s0_yi" value="276" readonly tabindex="-1" class="fixed-value"></td>
             <td><input type="number" id="s0_yq" value="4357" readonly tabindex="-1" class="fixed-value"></td>
           </tr>
@@ -381,8 +381,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
             <td class="inp-t-name">충주2</td>
             <td><input type="number" id="s1_ti" value="0" min="0" oninput="calcS()"></td>
             <td><input type="number" id="s1_tq" value="0" min="0" oninput="calcS()"></td>
-            <td><input type="number" id="s1_mi" value="14" readonly tabindex="-1" class="fixed-value"></td>
-            <td><input type="number" id="s1_mq" value="79" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s1_mi" value="0" readonly tabindex="-1" class="fixed-value"></td>
+            <td><input type="number" id="s1_mq" value="0" readonly tabindex="-1" class="fixed-value"></td>
             <td><input type="number" id="s1_yi" value="71" readonly tabindex="-1" class="fixed-value"></td>
             <td><input type="number" id="s1_yq" value="288" readonly tabindex="-1" class="fixed-value"></td>
           </tr>
@@ -509,7 +509,7 @@ function delAttachRow(){
 }
 const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
-const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV6';
+const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV7';
 
 (function(){
   const d=new Date();
