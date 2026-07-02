@@ -1438,12 +1438,24 @@ function addResultRow() {
   tr.id = 'row-' + rowCount;
   const rc = rowCount;
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  const selStyle = 'font-size:9px;padding:1px 2px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text2);max-width:38px;';
+  const opts = n => Array.from({length:6},(_,i)=>`<option value="${i+1}"${i+1===n?' selected':''}>${i+1}개</option>`).join('');
   tr.innerHTML = `
-    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;">${rc}</td>
+    <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;vertical-align:top;padding:6px 4px;">
+      <div style="margin-bottom:5px;">${rc}</div>
+      <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+        <div style="font-size:8px;color:var(--text3);line-height:1;">시</div>
+        <select data-no-cap style="${selStyle}" onchange="setRowItemCount('row-${rc}',this.value)">${opts(itemRowCount)}</select>
+        <div style="font-size:8px;color:var(--text3);line-height:1;">결</div>
+        <select data-no-cap style="${selStyle}" onchange="setRowSplitCount('row-${rc}',this.value)">${opts(splitResultCount)}</select>
+        <div style="font-size:8px;color:var(--text3);line-height:1;">사</div>
+        <select data-no-cap style="${selStyle}" onchange="setRowPhotoCount('row-${rc}',this.value)">${opts(photoColCount)}</select>
+      </div>
+    </td>
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
     <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
     <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
-    <td data-result-cell style="text-align:center;vertical-align:middle;" colspan="${splitResultCount > 1 ? splitResultCount : 1}">${splitResultCount > 1
+    <td data-result-cell style="text-align:center;vertical-align:middle;padding:0;">${splitResultCount > 1
       ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
       : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
     }</td>
@@ -2061,6 +2073,57 @@ function setItemRowCount(n) {
     }
   });
   const sel = document.getElementById('item-row-select'); if (sel) sel.value = String(n);
+}
+
+function setRowItemCount(rowId, n) {
+  n = parseInt(n) || 1;
+  const tr = document.getElementById(rowId);
+  if (!tr) return;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  const itemTd = tr.cells[1];
+  const prev = Array.from(itemTd.querySelectorAll('textarea')).map(t => t.value);
+  itemTd.style.padding = '0';
+  if (n > 1) {
+    itemTd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`;
+  } else {
+    itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명">${prev[0]||''}</textarea>`;
+  }
+}
+
+function setRowSplitCount(rowId, n) {
+  n = parseInt(n) || 1;
+  const tr = document.getElementById(rowId);
+  if (!tr) return;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  const td = tr.querySelector('td[data-result-cell]');
+  if (!td) return;
+  const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+  td.style.padding = '0';
+  if (n > 1) {
+    td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
+  } else {
+    td.innerHTML = `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;">${prev[0]||''}</textarea>`;
+  }
+}
+
+function setRowPhotoCount(rowId, n) {
+  n = parseInt(n) || 1;
+  const tr = document.getElementById(rowId);
+  if (!tr) return;
+  const rc = rowId.replace('row-', '');
+  const imgCells = () => Array.from(tr.querySelectorAll('td.img-cell'));
+  const noteCell = tr.querySelector('[data-field="note"]')?.closest('td');
+  const delCell = tr.querySelector('[data-no-cap]');
+  const ref = noteCell || delCell;
+  while (imgCells().length < n) {
+    const newTd = makeImgCell(rc, imgCells().length);
+    tr.insertBefore(newTd, ref);
+    const drop = newTd.querySelector('.img-drop');
+    drop.addEventListener('paste', e => handleImgPaste(e, drop));
+    drop.addEventListener('click', () => drop.focus());
+    drop.addEventListener('keydown', e => { if (e.key==='Delete'||e.key==='Backspace') clearImg(drop); });
+  }
+  while (imgCells().length > n) imgCells()[imgCells().length-1].remove();
 }
 
 function openDetailModal(id) {
