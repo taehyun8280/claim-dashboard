@@ -71,8 +71,13 @@
     color:var(--text);font-size:13px;padding:2px 0;
   }
   .mc-arrow {
-    position:absolute;right:8px;top:50%;transform:translateY(-50%);
-    background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:0;
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;padding:0;width:12px;height:8px;
+  }
+  .mc-arrow::after {
+    content:'';display:block;width:12px;height:8px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238899aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C%2Fsvg%3E");
+    background-repeat:no-repeat;background-position:center;
   }
   .mc-dropdown {
     display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
@@ -852,13 +857,6 @@
         </svg>
         시험 성적서 작성
       </button>
-      <button class="hero-btn hero-btn-recv" onclick="openModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 11l3 3L22 4"/>
-          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-        </svg>
-        시험 접수
-      </button>
     </div>
   </div>
   <!-- STATS inside banner -->
@@ -1105,7 +1103,7 @@
             <span class="mc-tags" id="mc-cf-item-tags"></span>
             <input class="mc-input" id="cf-item-input" placeholder="선택 또는 직접 입력..." oninput="mcFilter('cf-item',this.value)" onkeydown="mcInputKey('cf-item',event)">
           </div>
-          <button class="mc-arrow" onclick="mcToggle('cf-item',event)">▾</button>
+          <button class="mc-arrow" onclick="mcToggle('cf-item',event)"></button>
           <div class="mc-dropdown" id="mc-cf-item-dd"></div>
           <input type="hidden" id="cf-item">
         </div>
@@ -1117,7 +1115,7 @@
             <span class="mc-tags" id="mc-cf-spec-tags"></span>
             <input class="mc-input" id="cf-spec-input" placeholder="선택 또는 직접 입력..." oninput="mcFilter('cf-spec',this.value)" onkeydown="mcInputKey('cf-spec',event)">
           </div>
-          <button class="mc-arrow" onclick="mcToggle('cf-spec',event)">▾</button>
+          <button class="mc-arrow" onclick="mcToggle('cf-spec',event)"></button>
           <div class="mc-dropdown" id="mc-cf-spec-dd"></div>
           <input type="hidden" id="cf-spec">
         </div>
@@ -1490,7 +1488,9 @@ function delRow(id) {
 
 function renumberRows() {
   document.querySelectorAll('#result-tbody tr').forEach((tr, i) => {
-    tr.cells[0].textContent = i + 1;
+    const numDiv = tr.cells[0].querySelector('div');
+    if (numDiv) numDiv.textContent = i + 1;
+    else tr.cells[0].firstChild && (tr.cells[0].firstChild.textContent = i + 1);
   });
 }
 
