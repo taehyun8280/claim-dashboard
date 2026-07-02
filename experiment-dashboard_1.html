@@ -1142,20 +1142,20 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:10px;color:var(--text3);">신규행 기본값 — 시험칸
-          <select id="item-row-select" onchange="itemRowCount=parseInt(this.value)||1" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
+        <span style="font-size:10px;color:var(--text3);">시험칸
+          <select id="item-row-select" onchange="setItemRowCount(this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
             <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
             <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
           </select>
         </span>
         <span style="font-size:10px;color:var(--text3);">결과칸
-          <select id="result-col-select" onchange="splitResultCount=parseInt(this.value)||1" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
+          <select id="result-col-select" onchange="setSplitCount(this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
             <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
             <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
           </select>
         </span>
         <span style="font-size:10px;color:var(--text3);">사진칸
-          <select id="photo-col-select" onchange="photoColCount=parseInt(this.value)||1" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
+          <select id="photo-col-select" onchange="setPhotoCount(this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
             <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
             <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
           </select>
@@ -1407,21 +1407,6 @@ function addResultRow() {
   tr.id = 'row-' + rowCount;
   const rc = rowCount;
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
-  const selStyle = 'font-size:9px;padding:1px 3px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text2);';
-  const opts = n => Array.from({length:6},(_,i)=>`<option value="${i+1}"${i+1===n?' selected':''}>${i+1}개</option>`).join('');
-  // 컨트롤 행 삽입 (캡처 시 숨김)
-  const ctrlTr = document.createElement('tr');
-  ctrlTr.id = 'ctrl-' + rc;
-  ctrlTr.setAttribute('data-ctrl-row','');
-  ctrlTr.innerHTML = `<td colspan="20" data-no-cap style="padding:3px 8px;border-bottom:none;background:var(--surface2);">
-    <span style="font-size:9px;color:var(--text3);display:flex;align-items:center;gap:6px;">
-      <span style="color:var(--text3);font-weight:600;">No.${rc}</span>
-      <span>시험칸</span><select style="${selStyle}" onchange="setRowItemCount('row-${rc}',this.value)">${opts(itemRowCount)}</select>
-      <span>결과칸</span><select style="${selStyle}" onchange="setRowSplitCount('row-${rc}',this.value)">${opts(splitResultCount)}</select>
-      <span>사진칸</span><select style="${selStyle}" onchange="setRowPhotoCount('row-${rc}',this.value)">${opts(photoColCount)}</select>
-    </span>
-  </td>`;
-  tbody.appendChild(ctrlTr);
   tr.innerHTML = `
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;vertical-align:middle;">${rc}</td>
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
@@ -1486,28 +1471,12 @@ document.addEventListener('paste', e => {
 
 function delRow(id) {
   const el = document.getElementById(id);
-  if (el) {
-    const rc = id.replace('row-','');
-    const ctrl = document.getElementById('ctrl-' + rc);
-    if (ctrl) ctrl.remove();
-    el.remove();
-    renumberRows();
-  }
+  if (el) { el.remove(); renumberRows(); }
 }
 
 function renumberRows() {
-  let n = 0;
-  document.querySelectorAll('#result-tbody tr').forEach(tr => {
-    if (tr.hasAttribute('data-ctrl-row')) return; // 컨트롤 행 스킵
-    n++;
-    tr.cells[0].textContent = n;
-    // 컨트롤 행 번호도 업데이트
-    const rc = tr.id.replace('row-','');
-    const ctrl = document.getElementById('ctrl-' + rc);
-    if (ctrl) {
-      const lbl = ctrl.querySelector('span[style*="font-weight"]');
-      if (lbl) lbl.textContent = 'No.' + n;
-    }
+  document.querySelectorAll('#result-tbody tr').forEach((tr, i) => {
+    if (tr.cells[0]) tr.cells[0].textContent = i + 1;
   });
 }
 
@@ -2379,8 +2348,7 @@ async function copyCertImage(btn) {
         padding: 10px 6px !important; border: 1.5px solid #ccc !important;
         word-break: keep-all !important; white-space: normal !important; overflow: visible !important;
       }
-      .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; padding:0 !important; border:0 !important; overflow:hidden !important; }
-      .result-table-wrap tr[data-ctrl-row] { display: none !important; }
+      .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; min-width:0 !important; padding:0 !important; border:0 !important; overflow:hidden !important; }
       .result-table-wrap #split-btn { display: none !important; }
       .result-table-wrap .__cap-text {
         font-size: 17px !important; color: #111 !important; background: transparent !important;
