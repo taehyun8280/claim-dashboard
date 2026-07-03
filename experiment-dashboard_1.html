@@ -1595,10 +1595,11 @@ function setPF(v) {
 function saveCert() {
   try {
   // auto-generate no if empty
-  let no = document.getElementById('cf-no').value.trim();
+  const noEl = document.getElementById('cf-no');
+  let no = noEl?.value?.trim() || '';
   if (!no) {
     no = 'CERT-' + Date.now();
-    document.getElementById('cf-no').value = no;
+    if (noEl) noEl.value = no;
   }
 
   // 이미지 수집 (복잡/단순 공통)
@@ -1663,7 +1664,7 @@ function saveCert() {
   renderCertList();
   } catch(e) {
     console.error('saveCert 오류:', e);
-    showToast('저장 오류: ' + e.message);
+    showToast('저장 오류: ' + (e.message||e) + ' — ' + (e.stack||'').split('\n')[1]);
   }
 }
 
@@ -1689,7 +1690,12 @@ function renderCertList(filter='') {
     const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
     const titleDisplay = c.title || c.no || '—';
     const imgCellDbl = imgRows.length
-      ? imgRows.map(r => `<img src="${r.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal('${r.img}')">`).join('')
+      ? imgRows.map((r, ri) => {
+          const key = (c.no||'') + '_' + ri;
+          window.__certImgCache = window.__certImgCache || {};
+          window.__certImgCache[key] = r.img;
+          return `<img src="${r.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal(window.__certImgCache['${key}'])">`;
+        }).join('')
       : '—';
     return `<tr>
       <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;white-space:nowrap;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
