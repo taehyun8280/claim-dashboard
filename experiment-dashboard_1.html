@@ -1780,17 +1780,8 @@ function renderCertList(filter='') {
       : c.pf === 'fail' ? '부적합'
       : (rows.map(r => r.result||r.result1||'').filter(Boolean).join('<br>') || '—');
 
-    const imgRows = rows.filter(r => r.img);
     const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
     const titleDisplay = c.title || c.no || '—';
-    const imgCellDbl = imgRows.length
-      ? imgRows.map((r, ri) => {
-          const key = (c.no||'') + '_' + ri;
-          window.__certImgCache = window.__certImgCache || {};
-          window.__certImgCache[key] = r.img;
-          return `<img src="${r.img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal(window.__certImgCache['${key}'])">`;
-        }).join('')
-      : '—';
     return `<tr>
       <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;white-space:nowrap;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
       <td style="white-space:nowrap;">${c.client||'—'}</td>
@@ -1799,11 +1790,28 @@ function renderCertList(filter='') {
       <td style="white-space:nowrap;">${c.start||'—'} ~ ${c.end||'—'}</td>
       <td style="white-space:nowrap;">${c.person||'—'}</td>
       <td style="max-width:100px;line-height:1.6;">${resultText}</td>
-      <td style="text-align:center;">${imgCellDbl}</td>
+      <td style="text-align:center;" id="cert-img-cell-${c.no}"><span style="color:var(--text3)">—</span></td>
       <td style="max-width:160px;line-height:1.6;">${noteText}</td>
       <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">삭제</button></td>
     </tr>`;
   }).join('');
+
+  // IDB에서 각 성적서의 사진 비동기 로드 후 셀 업데이트
+  list.forEach(c => {
+    const rowCount = (c.rows || []).length || 20;
+    const cell = document.getElementById('cert-img-cell-' + c.no);
+    if (!cell) return;
+    const promises = Array.from({length: rowCount}, (_, i) => idbGet(c.no + '_' + i));
+    Promise.all(promises).then(imgs => {
+      const found = imgs.filter(Boolean);
+      if (!found.length) return;
+      window.__listImgCache = window.__listImgCache || {};
+      found.forEach((img, i) => { window.__listImgCache[c.no + '_' + i] = img; });
+      cell.innerHTML = found.map((img, i) =>
+        `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal(window.__listImgCache['${c.no}_${i}'])">`
+      ).join('');
+    });
+  });
 }
 
 function loadCert(no) {
