@@ -1260,7 +1260,13 @@ function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
-function fbSaveCertificates() {
+function fbSaveCertificates(allowEmpty = false) {
+  // 빈 배열 실수 저장 방지 (deleteCert에서만 allowEmpty=true로 호출)
+  if (!allowEmpty && certificates.length === 0) {
+    console.warn('fbSaveCertificates: certificates 비어있어 저장 건너뜀');
+    return;
+  }
+
   // 이미지를 cert_images에 별도 저장 (no → [img0, img1, ...])
   const imgStore = {};
   certificates.forEach(c => {
@@ -1323,7 +1329,17 @@ document.addEventListener('DOMContentLoaded', () => {
   fbDb.ref('certificates').on('value', snapshot => {
     try {
       const val = snapshot.val();
-      const fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+      let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+      // Firebase 비어있으면 localStorage 백업으로 복구
+      if (fromFb.length === 0) {
+        try {
+          const backup = JSON.parse(localStorage.getItem('cert_data') || '[]');
+          if (backup.length > 0) {
+            fromFb = backup;
+            fbDb.ref('certificates').set(backup.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));
+          }
+        } catch(e) {}
+      }
       // 로컬에 저장된 이미지 복원 (Firebase에는 이미지 미포함)
       let imgStore = {};
       try { imgStore = JSON.parse(localStorage.getItem('cert_images') || '{}'); } catch(e) {}
@@ -1794,7 +1810,7 @@ function loadCert(no) {
 
 function deleteCert(no) {
   certificates = certificates.filter(c=>c.no!==no);
-  fbSaveCertificates();
+  fbSaveCertificates(true); // allowEmpty=true: 마지막 항목 삭제 허용
   renderCertList();
   showToast('삭제되었습니다.');
 }
