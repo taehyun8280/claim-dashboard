@@ -1260,34 +1260,61 @@ function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
-function saveCertImages(cert) {
-  // 이미지를 행별 개별 키에 저장 (cert_img_{no}_{idx})
-  (cert.rows||[]).forEach((r, i) => {
-    const key = 'cert_img_' + cert.no + '_' + i;
-    if (r.img) {
-      try { localStorage.setItem(key, r.img); } catch(e) { console.warn('이미지 저장 실패 행', i, e); }
-    } else {
-      try { localStorage.removeItem(key); } catch(e) {}
-    }
-  });
+// ── IndexedDB: 이미지 전용 저장소 (용량 제한 없음) ──
+let _idb = null;
+const _idbReady = new Promise((resolve, reject) => {
+  const req = indexedDB.open('cert-images-db', 1);
+  req.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
+  req.onsuccess = e => { _idb = e.target.result; resolve(); };
+  req.onerror = e => { console.error('IDB 열기 실패', e); reject(e); };
+});
+
+function idbPut(key, val) {
+  return _idbReady.then(() => new Promise((resolve, reject) => {
+    const tx = _idb.transaction('imgs', 'readwrite');
+    tx.objectStore('imgs').put(val, key);
+    tx.oncomplete = resolve;
+    tx.onerror = e => reject(e.target.error);
+  }));
 }
 
-function loadCertImages(cert) {
-  // 행별 개별 키에서 이미지 복원
-  return {
-    ...cert,
-    rows: (cert.rows||[]).map((r, i) => ({
-      ...r,
-      img: r.img || localStorage.getItem('cert_img_' + cert.no + '_' + i) || ''
-    }))
-  };
+function idbGet(key) {
+  return _idbReady.then(() => new Promise(resolve => {
+    const tx = _idb.transaction('imgs', 'readonly');
+    const req = tx.objectStore('imgs').get(key);
+    req.onsuccess = () => resolve(req.result || '');
+    req.onerror = () => resolve('');
+  }));
 }
 
-function deleteCertImages(no, rowCount) {
-  // 삭제 시 개별 이미지 키도 정리
-  for (let i = 0; i < (rowCount || 20); i++) {
-    try { localStorage.removeItem('cert_img_' + no + '_' + i); } catch(e) {}
-  }
+function idbDel(key) {
+  return _idbReady.then(() => new Promise(resolve => {
+    const tx = _idb.transaction('imgs', 'readwrite');
+    tx.objectStore('imgs').delete(key);
+    tx.oncomplete = resolve;
+    tx.onerror = resolve;
+  }));
+}
+
+// cert의 모든 이미지를 IDB에 저장
+async function idbSaveCertImgs(no, rows) {
+  await Promise.all((rows||[]).map((r, i) => {
+    const key = no + '_' + i;
+    return r.img ? idbPut(key, r.img) : idbDel(key);
+  }));
+}
+
+// cert의 모든 이미지를 IDB에서 읽어 rows에 합치기
+async function idbLoadCertImgs(no, rows) {
+  const imgs = await Promise.all((rows||[]).map((r, i) =>
+    r.img ? Promise.resolve(r.img) : idbGet(no + '_' + i)
+  ));
+  return (rows||[]).map((r, i) => ({ ...r, img: imgs[i] || '' }));
+}
+
+// cert 이미지 IDB에서 삭제
+function idbDeleteCertImgs(no, rowCount) {
+  for (let i = 0; i < (rowCount || 20); i++) idbDel(no + '_' + i);
 }
 
 function fbSaveCertificates(allowEmpty = false) {
@@ -1295,30 +1322,12 @@ function fbSaveCertificates(allowEmpty = false) {
     console.warn('fbSaveCertificates: certificates 비어있어 저장 건너뜀');
     return;
   }
-
-  // 경로 1) 행별 개별 localStorage 키 (cert_img_{no}_{i})
-  certificates.forEach(c => saveCertImages(c));
-
-  // 경로 2) cert_data에 이미지 포함 전체 저장 시도 → 실패 시 슬림 저장
-  try {
-    localStorage.setItem('cert_data', JSON.stringify(certificates));
-  } catch(e) {
-    // 용량 초과 시 슬림 저장 (이미지는 경로1에 있으므로 안전)
-    const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
-    try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e2) {
-      console.warn('cert_data 저장 실패:', e2);
-    }
-  }
-
-  // 경로 3) Firebase (이미지 제외)
-  const certForFb = certificates.map(c => ({
-    ...c, rows: (c.rows||[]).map(r => ({...r, img: ''}))
-  }));
-  fbDb.ref('certificates').set(certForFb)
-    .catch(err => {
-      console.error('Firebase 저장 오류:', err);
-      showToast('Firebase 저장 실패: ' + err.message);
-    });
+  // cert_data: 이미지 제외 슬림 버전만 localStorage에 저장
+  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+  try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
+  // Firebase에도 슬림 버전
+  fbDb.ref('certificates').set(slim)
+    .catch(err => { console.error('Firebase 저장 오류:', err); showToast('Firebase 저장 실패: ' + err.message); });
 }
 
 // ─── STATE ───
@@ -1357,45 +1366,19 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const val = snapshot.val();
       let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-
-      // cert_data에서 이미지 포함 버전 읽기 (경로2 복원)
       let localCerts = [];
       try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
-      const localMap = {};
-      localCerts.forEach(c => { if (c && c.no) localMap[c.no] = c; });
-
       if (fromFb.length === 0 && localCerts.length > 0) {
         fromFb = localCerts;
-        try {
-          fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));
-        } catch(e) {}
+        try { fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));} catch(e){}
       }
-
-      // 3가지 경로에서 이미지 병합: cert_data(경로2) > 개별키(경로1) > 없음
-      certificates = fromFb.map(c => {
-        try {
-          const rows = (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{}));
-          const local = localMap[c.no];
-          return {
-            ...c,
-            rows: rows.map((r, i) => ({
-              ...r,
-              img: r.img ||
-                   (local && local.rows && local.rows[i] && local.rows[i].img) ||
-                   localStorage.getItem('cert_img_' + c.no + '_' + i) ||
-                   ''
-            }))
-          };
-        } catch(e) { return c; }
-      });
-
-      // cert_data 저장 (이미지 포함 시도 → 실패 시 슬림)
-      try {
-        localStorage.setItem('cert_data', JSON.stringify(certificates));
-      } catch(e) {
-        const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
-        try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e2) {}
-      }
+      // 구조만 저장 (이미지는 IDB에 별도 보관)
+      certificates = fromFb.map(c => ({
+        ...c,
+        rows: (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{})).map(r=>({...r,img:''}))
+      }));
+      const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
+      try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
       renderCertList();
     } catch(e) { console.error('cert listener error:', e); }
   });
@@ -1761,11 +1744,23 @@ function saveCert() {
   };
 
   const idx = certificates.findIndex(c=>c.no===no);
-  if (idx>=0) { certificates[idx]=cert; showToast('성적서가 수정되었습니다.'); }
-  else { certificates.push(cert); showToast('성적서가 저장되었습니다.'); }
+  const isNew = idx < 0;
 
-  fbSaveCertificates();
-  renderCertList();
+  // IDB에 이미지 저장 (비동기, 완료 후 토스트)
+  idbSaveCertImgs(no, rows).then(() => {
+    // 이미지 제거한 슬림 버전을 certificates에 보관
+    const slimRows = rows.map(r => ({...r, img: ''}));
+    const slimCert = {...cert, rows: slimRows};
+    if (idx >= 0) certificates[idx] = slimCert;
+    else certificates.push(slimCert);
+
+    fbSaveCertificates();
+    renderCertList();
+    showToast(isNew ? `성적서가 저장되었습니다. (사진 ${rows.filter(r=>r.img).length}장)` : `성적서가 수정되었습니다. (사진 ${rows.filter(r=>r.img).length}장)`);
+  }).catch(e => {
+    showToast('이미지 저장 오류: ' + e.message);
+  });
+
   } catch(e) {
     console.error('saveCert 오류:', e);
     showToast('저장 오류: ' + (e.message||e) + ' — ' + (e.stack||'').split('\n')[1]);
@@ -1819,59 +1814,61 @@ function renderCertList(filter='') {
 function loadCert(no) {
   const raw = certificates.find(x=>x.no===no);
   if (!raw) return;
-  const c = loadCertImages(raw);
-  document.getElementById('cf-no').value = c.no;
-  document.getElementById('cf-title').value = c.title||'';
-  document.getElementById('cf-date').value = c.date||'';
-  document.getElementById('cf-client').value = c.client||'';
-  document.getElementById('cf-requester').value = c.requester||'';
-  document.getElementById('cf-person').value = c.person||'';
-  setMultiComboValue('cf-item', c.item||'');
-  setMultiComboValue('cf-spec', c.spec||'');
-  document.getElementById('cf-sample').value = c.sample||'';
-  document.getElementById('cf-cond').value = c.cond||'';
-  document.getElementById('cf-start').value = c.start||'';
-  document.getElementById('cf-end').value = c.end||'';
-  document.getElementById('cf-signer').value = c.signer||'';
-  document.getElementById('cf-note').value = c.note||'';
-  setPF(c.pf||'');
+
+  // 폼 필드 채우기
+  document.getElementById('cf-no').value = raw.no;
+  document.getElementById('cf-title').value = raw.title||'';
+  document.getElementById('cf-date').value = raw.date||'';
+  document.getElementById('cf-client').value = raw.client||'';
+  document.getElementById('cf-requester').value = raw.requester||'';
+  document.getElementById('cf-person').value = raw.person||'';
+  setMultiComboValue('cf-item', raw.item||'');
+  setMultiComboValue('cf-spec', raw.spec||'');
+  document.getElementById('cf-sample').value = raw.sample||'';
+  document.getElementById('cf-cond').value = raw.cond||'';
+  document.getElementById('cf-start').value = raw.start||'';
+  document.getElementById('cf-end').value = raw.end||'';
+  document.getElementById('cf-signer').value = raw.signer||'';
+  document.getElementById('cf-note').value = raw.note||'';
+  setPF(raw.pf||'');
 
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
 
-  if (c.complexMode && c.complexTableData && c.complexColIdx) {
-    renderComplexTable(c.complexTableData, c.complexColIdx);
-    // 저장된 이미지 복원
+  const renderRows = raw.rows || [];
+
+  if (raw.complexMode && raw.complexTableData && raw.complexColIdx) {
+    renderComplexTable(raw.complexTableData, raw.complexColIdx);
+    // IDB에서 이미지 로드 후 복원
     const drops = document.querySelectorAll('#result-tbody .img-drop');
-    (c.rows||[]).forEach((r, i) => {
-      if (r.img && drops[i]) {
-        drops[i].innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
-          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
-      }
+    renderRows.forEach((r, i) => {
+      idbGet(no + '_' + i).then(img => {
+        if (img && drops[i]) setImgDrop(drops[i], img);
+      });
     });
   } else {
     resetToSimpleTable();
-    if (c.photoColCount && c.photoColCount > 1) setPhotoCount(c.photoColCount);
-    if (c.itemRowCount && c.itemRowCount > 1) setItemRowCount(c.itemRowCount);
-    const loadCount = c.splitResultCount || (c.splitResultMode ? 2 : 1);
+    if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
+    if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
+    const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
-      if (c.splitLabels) {
-        c.splitLabels.forEach((lv, i) => {
+      if (raw.splitLabels) {
+        raw.splitLabels.forEach((lv, i) => {
           const el = document.getElementById(`result-label${i+1}`);
           if (el) el.value = lv;
         });
       }
     }
-    (c.rows||[]).forEach(r => {
+    renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
       tr.querySelector('[data-field="item"]').value = r.item||'';
       tr.querySelector('[data-field="spec"]').value = r.spec||'';
       if (tr.querySelector('[data-field="cond"]')) tr.querySelector('[data-field="cond"]').value = r.cond||'';
       const savedResults = r.results || [r.result||'', r.result2||''];
-      savedResults.forEach((rv, i) => {
-        const key = splitResultCount > 1 ? `result${i+1}` : 'result';
+      savedResults.forEach((rv, ri) => {
+        const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
         const el = tr.querySelector(`[data-field="${key}"]`);
         if (el) el.value = rv;
       });
@@ -1880,9 +1877,12 @@ function loadCert(no) {
         if (el) el.value = r.result || '';
       }
       tr.querySelector('[data-field="note"]').value = r.note||'';
-      if (r.img) {
-        const drop = tr.querySelector('.img-drop');
-        if (drop) setImgDrop(drop, r.img); // _imgMap에도 등록
+      // IDB에서 이미지 비동기 로드
+      const drop = tr.querySelector('.img-drop');
+      if (drop) {
+        idbGet(no + '_' + i).then(img => {
+          if (img) setImgDrop(drop, img);
+        });
       }
     });
   }
@@ -1893,9 +1893,9 @@ function loadCert(no) {
 
 function deleteCert(no) {
   const target = certificates.find(c=>c.no===no);
-  deleteCertImages(no, target ? (target.rows||[]).length : 20);
+  idbDeleteCertImgs(no, target ? (target.rows||[]).length : 20);
   certificates = certificates.filter(c=>c.no!==no);
-  fbSaveCertificates(true); // allowEmpty=true: 마지막 항목 삭제 허용
+  fbSaveCertificates(true);
   renderCertList();
   showToast('삭제되었습니다.');
 }
