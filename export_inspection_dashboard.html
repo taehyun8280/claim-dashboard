@@ -931,12 +931,11 @@ function resetAll(){
   calcC();
 }
 
-// 실시간 동기화
+// 실시간 동기화 (로컬 저장만 - GitHub 저장은 버튼 클릭 시)
 function liveSync(){
-  // 보고서 미리보기 탭이 아니어도 항상 동기화
   applyAll_silent();
-  saveInspectionState();
-  setSyncStatus(true);
+  const data=buildStateData();
+  localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(data));
 }
 function applyAll_silent(){
   // switchTab 없이 applyAll 내용만 실행
