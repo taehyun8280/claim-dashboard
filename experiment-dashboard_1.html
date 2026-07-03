@@ -1246,8 +1246,26 @@ function fbSaveExperiments() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
 function fbSaveCertificates() {
-  fbDb.ref('certificates').set(certificates);
-  localStorage.setItem('cert_data', JSON.stringify(certificates));
+  // 이미지 제외 버전으로 Firebase 저장 (용량 초과 방지)
+  const certForFb = certificates.map(c => ({
+    ...c,
+    rows: (c.rows||[]).map(r => ({ ...r, img: '' }))
+  }));
+  fbDb.ref('certificates').set(certForFb)
+    .then(() => { /* success */ })
+    .catch(err => {
+      console.error('Firebase 저장 오류:', err);
+      showToast('Firebase 저장 실패: ' + err.message);
+    });
+  // 이미지 포함 전체는 localStorage에만 저장
+  try {
+    localStorage.setItem('cert_data', JSON.stringify(certificates));
+  } catch(e) {
+    // localStorage 용량 초과 시 이미지 제외 버전으로 저장
+    const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+    localStorage.setItem('cert_data', JSON.stringify(slim));
+    showToast('이미지가 너무 커서 로컬 저장에서 제외됩니다.', 'warn');
+  }
 }
 
 // ─── STATE ───
