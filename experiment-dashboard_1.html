@@ -1267,15 +1267,18 @@ function fbSaveCertificates(allowEmpty = false) {
     return;
   }
 
-  // 이미지를 cert_images에 별도 저장 (no → [img0, img1, ...])
-  const imgStore = {};
-  certificates.forEach(c => {
-    const imgs = (c.rows||[]).map(r => r.img || '');
-    if (imgs.some(i => i)) imgStore[c.no] = imgs;
-  });
-  try { localStorage.setItem('cert_images', JSON.stringify(imgStore)); } catch(e) {}
+  // 1) localStorage에 이미지 포함 전체 저장 (이미지 원본 보관)
+  try {
+    localStorage.setItem('cert_data', JSON.stringify(certificates));
+  } catch(e) {
+    // 용량 초과 시 이미지 제거 후 저장
+    try {
+      const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+      localStorage.setItem('cert_data', JSON.stringify(slim));
+    } catch(e2) {}
+  }
 
-  // Firebase에는 이미지 제외 버전 저장 (용량 초과 방지)
+  // 2) Firebase에는 이미지 제외 버전 저장
   const certForFb = certificates.map(c => ({
     ...c,
     rows: (c.rows||[]).map(r => ({ ...r, img: '' }))
@@ -1285,13 +1288,6 @@ function fbSaveCertificates(allowEmpty = false) {
       console.error('Firebase 저장 오류:', err);
       showToast('Firebase 저장 실패: ' + err.message);
     });
-
-  try {
-    localStorage.setItem('cert_data', JSON.stringify(certificates));
-  } catch(e) {
-    const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
-    localStorage.setItem('cert_data', JSON.stringify(slim));
-  }
 }
 
 // ─── STATE ───
@@ -1330,24 +1326,28 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const val = snapshot.val();
       let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+      // localStorage에서 이미지 포함 원본 로드
+      let localCerts = [];
+      try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
       // Firebase 비어있으면 localStorage 백업으로 복구
-      if (fromFb.length === 0) {
+      if (fromFb.length === 0 && localCerts.length > 0) {
+        fromFb = localCerts;
         try {
-          const backup = JSON.parse(localStorage.getItem('cert_data') || '[]');
-          if (backup.length > 0) {
-            fromFb = backup;
-            fbDb.ref('certificates').set(backup.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));
-          }
+          fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));
         } catch(e) {}
       }
-      // 로컬에 저장된 이미지 복원 (Firebase에는 이미지 미포함)
-      let imgStore = {};
-      try { imgStore = JSON.parse(localStorage.getItem('cert_images') || '{}'); } catch(e) {}
+      // Firebase 데이터에 localStorage 이미지 병합
+      const localMap = {};
+      localCerts.forEach(c => { localMap[c.no] = c; });
       certificates = fromFb.map(c => {
         try {
-          const imgs = imgStore[c.no];
-          if (!imgs) return c;
-          return { ...c, rows: (c.rows||[]).map((r, i) => ({ ...r, img: imgs[i] || r.img || '' })) };
+          const local = localMap[c.no];
+          if (!local) return c;
+          // 각 행별 이미지를 localStorage 원본에서 복원
+          return { ...c, rows: (c.rows||[]).map((r, i) => ({
+            ...r,
+            img: (local.rows && local.rows[i] && local.rows[i].img) || r.img || ''
+          })) };
         } catch(e) { return c; }
       });
       try { localStorage.setItem('cert_data', JSON.stringify(certificates)); } catch(e) {}
