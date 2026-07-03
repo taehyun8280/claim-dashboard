@@ -1512,11 +1512,11 @@ function addResultRow() {
   `;
   tbody.appendChild(tr);
 
-  // paste event on the img-drop div
-  const drop = tr.querySelector('.img-drop');
-  drop.addEventListener('paste', e => handleImgPaste(e, drop));
-  drop.addEventListener('click', () => drop.focus());
-  drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
+  // img-drop 이벤트: paste는 전역 리스너에서만 처리 (이중 호출 방지)
+  tr.querySelectorAll('.img-drop').forEach(drop => {
+    drop.addEventListener('click', () => drop.focus());
+    drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
+  });
 
   renumberRows();
 }
@@ -1545,18 +1545,27 @@ function setImgDrop(drop, dataUrl) {
 }
 
 function handleImgPaste(e, drop) {
+  if (drop._pasting) return; // 이중 호출 방지
   const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
   if (!items) return;
   for (const item of items) {
     if (item.type.startsWith('image/')) {
       e.preventDefault();
+      drop._pasting = true;
       const blob = item.getAsFile();
+      if (!blob) { drop._pasting = false; return; }
       const reader = new FileReader();
       reader.onload = ev => {
-        compressImage(ev.target.result, 1200, 1200, 0.75, compressed => {
+        const rawUrl = ev.target.result;
+        // 즉시 원본 이미지 표시 (사용자가 붙여넣기 성공 여부 즉시 확인)
+        setImgDrop(drop, rawUrl);
+        drop._pasting = false;
+        // 백그라운드에서 압축 후 교체 (저장 용량 절약)
+        compressImage(rawUrl, 1200, 1200, 0.75, compressed => {
           setImgDrop(drop, compressed);
         });
       };
+      reader.onerror = () => { drop._pasting = false; };
       reader.readAsDataURL(blob);
       break;
     }
@@ -1564,11 +1573,11 @@ function handleImgPaste(e, drop) {
 }
 
 function clearImg(drop) {
-  drop.innerHTML = `<span class="img-placeholder">📋 붙여넣기</span>
+  drop.innerHTML = `<span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
     <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
 
-// global paste: if cert panel open, try to paste into focused img-drop
+// 전역 paste: 포커스된 img-drop에 이미지 붙여넣기
 document.addEventListener('paste', e => {
   const focused = document.activeElement;
   if (focused && focused.classList.contains('img-drop')) {
