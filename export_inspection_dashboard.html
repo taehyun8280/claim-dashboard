@@ -175,8 +175,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 
   <div class="preview-topbar no-print">
     <button class="btn-img-copy" id="copyBtn" onclick="copyDashboard()">📋 대시보드 이미지 복사</button>
-    <div class="sync-pill" id="syncStatus"><span class="dot"></span><span id="syncText">데이터 불러오는 중</span></div>
-    <button onclick="toggleTokenCard()" style="background:#fff;border:1px solid #d1d5db;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;color:#555">🔑 동기화 설정</button>
+    <div class="sync-pill" id="syncStatus"><span class="dot"></span><span id="syncText">최신 데이터 확인 중</span></div>
   </div>
 
   <div class="report-paper">
@@ -311,23 +310,6 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 <!-- ══ 탭2: 데이터 입력 ══ -->
 <div class="panel" id="tab-input">
 <div class="inp-page">
-
-  <!-- GitHub 동기화 설정 -->
-  <div class="inp-card" id="gh_token_card" style="display:none">
-    <div class="inp-card-hd">🔑 GitHub 동기화 설정 <span style="font-weight:400;color:#6b7280">(컴퓨터마다 한 번만 설정)</span></div>
-    <div class="inp-card-bd">
-      <div class="inp-f">
-        <label>GitHub Personal Access Token</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="password" id="gh_token_input" placeholder="ghp_xxxxxxxxxxxx" style="flex:1;border:1px solid #e5e7eb;padding:5px 8px;font-size:12px;font-family:inherit;border-radius:4px;height:30px">
-          <button onclick="saveGHTokenFromInput()" class="apply-btn">저장</button>
-          <button onclick="clearGHToken()" class="reset-btn">토큰 삭제</button>
-        </div>
-        <span id="gh_token_status" style="font-size:11px;color:#16a34a;margin-top:4px"></span>
-        <span style="font-size:11px;color:#9ca3af;margin-top:2px">GitHub → Settings → Developer settings → Personal access tokens → public_repo 권한</span>
-      </div>
-    </div>
-  </div>
 
   <!-- 기본 정보 -->
   <div class="inp-card">
@@ -568,14 +550,15 @@ function saveInspectionState(){
   localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(data));
   const text=document.getElementById('syncText');
   const pill=document.getElementById('syncStatus');
-  if(text) text.textContent='GitHub 저장 중...';
-  pushGHState(data).then(ok=>{
+  ghPush(data).then(ok=>{
     if(ok){
       if(pill) pill.classList.add('synced');
-      if(text) text.textContent='GitHub 동기화됨';
+      if(text) text.textContent='동기화됨';
+    } else if(!GH_WRITE_TOKEN){
+      if(text) text.textContent='오프라인 (로컬 저장)';
     } else {
       if(pill) pill.classList.remove('synced');
-      if(text) text.textContent=getGHToken()?'GitHub 저장 실패':'토큰 미설정 (로컬만 저장)';
+      if(text) text.textContent='GitHub 저장 실패';
     }
   });
 }
@@ -1029,41 +1012,40 @@ document.addEventListener('change',function(e){
   if(inp.closest('#tab-input')) liveSync();
 });
 
-// ── GitHub 동기화 ──
+// ── GitHub 공유 동기화 ──
 const GH_REPO='wtiger988280/claim-dashboard';
 const GH_FILE='state.json';
-const GH_TOKEN_KEY='ghToken_claimDash';
-function getGHToken(){return localStorage.getItem(GH_TOKEN_KEY)||'';}
+const GH_WRITE_TOKEN=''; // GitHub PAT 토큰을 여기에 입력
 
-async function fetchGHState(){
+async function ghFetch(){
   try{
     const r=await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/${GH_FILE}?t=${Date.now()}`);
     return r.ok?await r.json():null;
   }catch(e){return null;}
 }
-async function pushGHState(data){
-  const token=getGHToken();
-  if(!token) return false;
+async function ghPush(data){
+  if(!GH_WRITE_TOKEN) return false;
   try{
     const infoR=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
-      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'}
+      headers:{'Authorization':`token ${GH_WRITE_TOKEN}`,'Accept':'application/vnd.github+json'}
     });
     let sha='';
     if(infoR.ok) sha=(await infoR.json()).sha;
-    const content=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-    const body={message:'sync',content};
-    if(sha) body.sha=sha;
+    const body={message:'sync',content:btoa(unescape(encodeURIComponent(JSON.stringify(data)))),sha};
+    if(!sha) delete body.sha;
     const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
       method:'PUT',
-      headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      headers:{'Authorization':`token ${GH_WRITE_TOKEN}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
       body:JSON.stringify(body)
     });
     return r.ok;
   }catch(e){return false;}
 }
 function buildStateData(){
-  const rows=[0,1,2].map(i=>({mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq')}));
-  return {month:window._current_month_key,rows};
+  return {
+    month:window._current_month_key,
+    rows:[0,1,2].map(i=>({mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq')}))
+  };
 }
 function applyStateData(data){
   if(!data||!Array.isArray(data.rows)) return;
@@ -1083,43 +1065,25 @@ function applyStateData(data){
   localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(data));
   calcS();applyAll_silent();
 }
-function saveGHTokenFromInput(){
-  const v=(document.getElementById('gh_token_input')?.value||'').trim();
-  if(!v) return;
-  localStorage.setItem(GH_TOKEN_KEY,v);
-  document.getElementById('gh_token_input').value='';
-  const st=document.getElementById('gh_token_status');
-  if(st) st.textContent='✅ 토큰 저장됨';
-  setTimeout(()=>{if(st)st.textContent='';},3000);
-}
-function clearGHToken(){
-  localStorage.removeItem(GH_TOKEN_KEY);
-  const st=document.getElementById('gh_token_status');
-  if(st) st.textContent='토큰 삭제됨';
-  setTimeout(()=>{if(st)st.textContent='';},2000);
-}
-function toggleTokenCard(){
-  const card=document.getElementById('gh_token_card');
-  if(card) card.style.display=card.style.display==='none'?'block':'none';
-}
 
 // 고정 누적값을 첫 화면의 합계와 보고서 미리보기에 즉시 반영한다.
 restoreInspectionState();
 calcS();
 applyAll_silent();
 
-// GitHub에서 최신 데이터 로드
-(async function initGHSync(){
+// GitHub에서 최신 데이터 로드 (페이지 열 때 항상 실행)
+(async function initSync(){
   const pill=document.getElementById('syncStatus');
   const text=document.getElementById('syncText');
-  const data=await fetchGHState();
+  if(text) text.textContent='데이터 불러오는 중...';
+  const data=await ghFetch();
   if(data){
     applyStateData(data);
-    if(pill) pill.classList.add('synced');
-    if(text) text.textContent='GitHub 동기화됨';
+    if(pill){pill.classList.add('synced');}
+    if(text) text.textContent='동기화됨';
   } else {
     if(pill) pill.classList.remove('synced');
-    if(text) text.textContent='로컬 데이터 (오프라인)';
+    if(text) text.textContent='오프라인 (로컬 데이터)';
   }
 })();
 
