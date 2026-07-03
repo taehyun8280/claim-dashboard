@@ -1170,6 +1170,7 @@
           </select>
         </span>
         <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;" onclick="addResultRow()">+ 행 추가</button>
+        <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;color:#e55;" onclick="deleteSelectedRow()">− 행 삭제</button>
       </div>
     </div>
     <div class="result-table-wrap">
@@ -1183,7 +1184,6 @@
             <th id="result-th" colspan="1">결과</th>
             <th style="width:180px;">시험사진</th>
             <th>비고</th>
-            <th data-no-cap style="width:30px;"></th>
           </tr>
         </thead>
         <tbody id="result-tbody"></tbody>
@@ -1426,7 +1426,6 @@ function addResultRow() {
       </div>
     </td>`).join('')}
     <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
-    <td data-no-cap style="text-align:center;"><button class="del-row-btn" onclick="delRow('row-${rc}')">✕</button></td>
   `;
   tbody.appendChild(tr);
 
@@ -1474,6 +1473,17 @@ document.addEventListener('paste', e => {
 function delRow(id) {
   const el = document.getElementById(id);
   if (el) { el.remove(); renumberRows(); }
+}
+
+function deleteSelectedRow() {
+  const rowId = document.getElementById('row-target-select')?.value;
+  if (!rowId || rowId === 'all') {
+    // 마지막 행 삭제
+    const rows = document.querySelectorAll('#result-tbody tr');
+    if (rows.length > 0) { rows[rows.length - 1].remove(); renumberRows(); }
+  } else {
+    delRow(rowId);
+  }
 }
 
 function renumberRows() {
@@ -2270,7 +2280,6 @@ function setSplitCount(n) {
         <th colspan="${n}" id="result-th">결과</th>
         <th rowspan="2" style="width:180px;">시험사진</th>
         <th rowspan="2">비고</th>
-        <th data-no-cap rowspan="2" style="width:30px;"></th>
       </tr>
       <tr>${labelThs}</tr>`;
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
@@ -2355,6 +2364,15 @@ async function copyCertImage(btn) {
       if (labelThs.length) splitRestores.push({ cleanup: () => labelThs.forEach(({el, orig}) => el.style.cssText = orig) });
     }
 
+    // ── 1a-2. 내용 없는 행 숨기기 ──
+    const hiddenRows = [];
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const hasContent = Array.from(tr.querySelectorAll('textarea, input[type="text"]'))
+        .some(el => el.value.trim() !== '') ||
+        tr.querySelector('.img-drop img') !== null;
+      if (!hasContent) { tr.style.display = 'none'; hiddenRows.push(tr); }
+    });
+
     // ── 1b. textarea/input을 전체 내용이 보이는 <div>로 교체 (th input 포함) ──
     const replaced = [];
     target.querySelectorAll('td textarea, td input, th input').forEach(el => {
@@ -2430,6 +2448,7 @@ async function copyCertImage(btn) {
 
     // ── 4. 복원 ──
     styleEl.remove();
+    hiddenRows.forEach(tr => { tr.style.display = ''; });
     replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
     splitRestores.forEach(item => {
       if (item.cleanup) { item.cleanup(); return; }
