@@ -1269,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('m-date').value = today;
   document.getElementById('nowDate').textContent =
     new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-  addResultRow(); addResultRow(); addResultRow();
+  for(let i=0;i<10;i++) addResultRow();
   mcInit('cf-item');
   mcInit('cf-spec');
 
@@ -1728,7 +1728,7 @@ function clearCertForm() {
   rowCount=0; pfState='';
   setPF('');
   resetToSimpleTable();
-  addResultRow(); addResultRow(); addResultRow();
+  for(let i=0;i<10;i++) addResultRow();
   showToast('초기화되었습니다.');
 }
 
@@ -2389,7 +2389,7 @@ async function copyCertImage(btn) {
         padding: 10px 6px !important; border: 1.5px solid #ccc !important;
         word-break: keep-all !important; white-space: normal !important; overflow: visible !important;
       }
-      .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; min-width:0 !important; padding:0 !important; border:0 !important; overflow:hidden !important; }
+      .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; min-width:0 !important; max-width:0 !important; padding:0 !important; margin:0 !important; border:0 !important; overflow:hidden !important; visibility:hidden !important; opacity:0 !important; }
       .result-table-wrap #split-btn { display: none !important; }
       .result-table-wrap .__cap-text {
         font-size: 17px !important; color: #111 !important; background: transparent !important;
