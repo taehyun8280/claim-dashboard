@@ -1148,6 +1148,20 @@
           </select>
         </span>
         <span style="color:var(--border);">|</span>
+        <span style="font-size:10px;color:var(--text3);">기준칸
+          <select id="spec-row-select" onchange="applyRowControl('spec',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
+          </select>
+        </span>
+        <span style="font-size:10px;color:var(--text3);">조건칸
+          <select id="cond-row-select" onchange="applyRowControl('cond',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
+          </select>
+        </span>
         <span style="font-size:10px;color:var(--text3);">시험칸
           <select id="item-row-select" onchange="applyRowControl('item',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
             <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
@@ -1280,6 +1294,8 @@ let complexColIdx = {};
 let splitResultCount = 1;
 let photoColCount = 1;
 let itemRowCount = 1;
+let specRowCount = 1;
+let condRowCount = 1;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1431,8 +1447,8 @@ function addResultRow() {
   tr.innerHTML = `
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;vertical-align:middle;">${rc}</td>
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
-    <td><textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea></td>
-    <td><textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea></td>
+    <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea>`}</td>
+    <td style="padding:0;">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
     <td data-result-cell style="text-align:center;vertical-align:middle;padding:0;">${splitResultCount > 1
       ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
       : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
@@ -1528,10 +1544,14 @@ function onRowTargetChange() {
   const tr = document.getElementById(rowId);
   if (!tr) return;
   const itemN = tr.querySelectorAll('td:nth-child(2) textarea').length || 1;
+  const specN = tr.querySelectorAll('td:nth-child(3) textarea').length || 1;
+  const condN = tr.querySelectorAll('td:nth-child(4) textarea').length || 1;
   const resultN = tr.querySelectorAll('td[data-result-cell] textarea').length || 1;
   const photoN = tr.querySelectorAll('td.img-cell').length || 1;
   const s = v => sel => { if(sel) [...sel.options].forEach(o => o.selected = o.value==v); };
   s(itemN)(document.getElementById('item-row-select'));
+  s(specN)(document.getElementById('spec-row-select'));
+  s(condN)(document.getElementById('cond-row-select'));
   s(resultN)(document.getElementById('result-col-select'));
   s(photoN)(document.getElementById('photo-col-select'));
 }
@@ -1541,10 +1561,14 @@ function applyRowControl(type, n) {
   const rowId = document.getElementById('row-target-select')?.value || 'all';
   if (rowId === 'all') {
     if (type === 'item') setItemRowCount(n);
+    else if (type === 'spec') setSpecRowCount(n);
+    else if (type === 'cond') setCondRowCount(n);
     else if (type === 'result') setSplitCount(n);
     else if (type === 'photo') setPhotoCount(n);
   } else {
     if (type === 'item') setRowItemCount(rowId, n);
+    else if (type === 'spec') setRowSpecCount(rowId, n);
+    else if (type === 'cond') setRowCondCount(rowId, n);
     else if (type === 'result') setRowSplitCount(rowId, n);
     else if (type === 'photo') setRowPhotoCount(rowId, n);
   }
@@ -1636,7 +1660,7 @@ function renderCertList(filter='') {
   const list = (filter
     ? certificates.filter(c => JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()))
     : [...certificates]
-  ).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  ).sort((a, b) => (b.savedAt || b.date || '').localeCompare(a.savedAt || a.date || ''));
 
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
@@ -2117,6 +2141,60 @@ function setRowItemCount(rowId, n) {
   } else {
     itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명">${prev[0]||''}</textarea>`;
   }
+}
+
+function setSpecRowCount(n) {
+  n = parseInt(n) || 1;
+  specRowCount = n;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  document.querySelectorAll('#result-tbody tr').forEach(tr => {
+    const td = tr.cells[2]; if (!td) return;
+    const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+    td.style.padding = '0';
+    td.innerHTML = n > 1
+      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+      : `<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용">${prev[0]||''}</textarea>`;
+  });
+  const sel = document.getElementById('spec-row-select'); if (sel) sel.value = String(n);
+}
+
+function setRowSpecCount(rowId, n) {
+  n = parseInt(n) || 1;
+  const tr = document.getElementById(rowId); if (!tr) return;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  const td = tr.cells[2]; if (!td) return;
+  const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+  td.style.padding = '0';
+  td.innerHTML = n > 1
+    ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+    : `<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용">${prev[0]||''}</textarea>`;
+}
+
+function setCondRowCount(n) {
+  n = parseInt(n) || 1;
+  condRowCount = n;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  document.querySelectorAll('#result-tbody tr').forEach(tr => {
+    const td = tr.cells[3]; if (!td) return;
+    const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+    td.style.padding = '0';
+    td.innerHTML = n > 1
+      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+      : `<textarea data-field="cond" style="${taStyle}" placeholder="조건">${prev[0]||''}</textarea>`;
+  });
+  const sel = document.getElementById('cond-row-select'); if (sel) sel.value = String(n);
+}
+
+function setRowCondCount(rowId, n) {
+  n = parseInt(n) || 1;
+  const tr = document.getElementById(rowId); if (!tr) return;
+  const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
+  const td = tr.cells[3]; if (!td) return;
+  const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+  td.style.padding = '0';
+  td.innerHTML = n > 1
+    ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+    : `<textarea data-field="cond" style="${taStyle}" placeholder="조건">${prev[0]||''}</textarea>`;
 }
 
 function setRowSplitCount(rowId, n) {
