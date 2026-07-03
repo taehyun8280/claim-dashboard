@@ -1260,6 +1260,36 @@ function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
+function saveCertImages(cert) {
+  // 이미지를 행별 개별 키에 저장 (cert_img_{no}_{idx})
+  (cert.rows||[]).forEach((r, i) => {
+    const key = 'cert_img_' + cert.no + '_' + i;
+    if (r.img) {
+      try { localStorage.setItem(key, r.img); } catch(e) { console.warn('이미지 저장 실패 행', i, e); }
+    } else {
+      try { localStorage.removeItem(key); } catch(e) {}
+    }
+  });
+}
+
+function loadCertImages(cert) {
+  // 행별 개별 키에서 이미지 복원
+  return {
+    ...cert,
+    rows: (cert.rows||[]).map((r, i) => ({
+      ...r,
+      img: r.img || localStorage.getItem('cert_img_' + cert.no + '_' + i) || ''
+    }))
+  };
+}
+
+function deleteCertImages(no, rowCount) {
+  // 삭제 시 개별 이미지 키도 정리
+  for (let i = 0; i < (rowCount || 20); i++) {
+    try { localStorage.removeItem('cert_img_' + no + '_' + i); } catch(e) {}
+  }
+}
+
 function fbSaveCertificates(allowEmpty = false) {
   // 빈 배열 실수 저장 방지 (deleteCert에서만 allowEmpty=true로 호출)
   if (!allowEmpty && certificates.length === 0) {
@@ -1267,22 +1297,17 @@ function fbSaveCertificates(allowEmpty = false) {
     return;
   }
 
-  // 1) localStorage에 이미지 포함 전체 저장 (이미지 원본 보관)
-  try {
-    localStorage.setItem('cert_data', JSON.stringify(certificates));
-  } catch(e) {
-    // 용량 초과 시 이미지 제거 후 저장
-    try {
-      const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
-      localStorage.setItem('cert_data', JSON.stringify(slim));
-    } catch(e2) {}
+  // 1) 이미지는 행별 개별 키에 저장 (cert_img_{no}_{idx})
+  certificates.forEach(c => saveCertImages(c));
+
+  // 2) cert_data에는 이미지 제외 슬림 버전 저장 (용량 절약)
+  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+  try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {
+    console.warn('cert_data 저장 실패:', e);
   }
 
-  // 2) Firebase에는 이미지 제외 버전 저장
-  const certForFb = certificates.map(c => ({
-    ...c,
-    rows: (c.rows||[]).map(r => ({ ...r, img: '' }))
-  }));
+  // 3) Firebase에도 이미지 제외 버전 저장
+  const certForFb = slim;
   fbDb.ref('certificates').set(certForFb)
     .catch(err => {
       console.error('Firebase 저장 오류:', err);
@@ -1326,31 +1351,21 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const val = snapshot.val();
       let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-      // localStorage에서 이미지 포함 원본 로드
+      // localStorage 슬림 버전 (구조만, 이미지 없음)
       let localCerts = [];
       try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
-      // Firebase 비어있으면 localStorage 백업으로 복구
+      // Firebase 비어있으면 localStorage로 복구
       if (fromFb.length === 0 && localCerts.length > 0) {
         fromFb = localCerts;
         try {
           fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));
         } catch(e) {}
       }
-      // Firebase 데이터에 localStorage 이미지 병합
-      const localMap = {};
-      localCerts.forEach(c => { localMap[c.no] = c; });
-      certificates = fromFb.map(c => {
-        try {
-          const local = localMap[c.no];
-          if (!local) return c;
-          // 각 행별 이미지를 localStorage 원본에서 복원
-          return { ...c, rows: (c.rows||[]).map((r, i) => ({
-            ...r,
-            img: (local.rows && local.rows[i] && local.rows[i].img) || r.img || ''
-          })) };
-        } catch(e) { return c; }
-      });
-      try { localStorage.setItem('cert_data', JSON.stringify(certificates)); } catch(e) {}
+      // 각 cert에 행별 개별 키에서 이미지 복원
+      certificates = fromFb.map(c => { try { return loadCertImages(c); } catch(e) { return c; } });
+      // 슬림 버전만 cert_data에 업데이트
+      const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+      try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
       renderCertList();
     } catch(e) { console.error('cert listener error:', e); }
   });
@@ -1757,8 +1772,9 @@ function renderCertList(filter='') {
 }
 
 function loadCert(no) {
-  const c = certificates.find(x=>x.no===no);
-  if (!c) return;
+  const raw = certificates.find(x=>x.no===no);
+  if (!raw) return;
+  const c = loadCertImages(raw);
   document.getElementById('cf-no').value = c.no;
   document.getElementById('cf-title').value = c.title||'';
   document.getElementById('cf-date').value = c.date||'';
@@ -1832,6 +1848,8 @@ function loadCert(no) {
 }
 
 function deleteCert(no) {
+  const target = certificates.find(c=>c.no===no);
+  deleteCertImages(no, target ? (target.rows||[]).length : 20);
   certificates = certificates.filter(c=>c.no!==no);
   fbSaveCertificates(true); // allowEmpty=true: 마지막 항목 삭제 허용
   renderCertList();
