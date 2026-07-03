@@ -1321,17 +1321,22 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   });
   fbDb.ref('certificates').on('value', snapshot => {
-    const val = snapshot.val();
-    const fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-    // 로컬에 저장된 이미지 복원 (Firebase에는 이미지 미포함)
-    const imgStore = JSON.parse(localStorage.getItem('cert_images') || '{}');
-    certificates = fromFb.map(c => {
-      const imgs = imgStore[c.no];
-      if (!imgs) return c;
-      return { ...c, rows: (c.rows||[]).map((r, i) => ({ ...r, img: imgs[i] || r.img || '' })) };
-    });
-    localStorage.setItem('cert_data', JSON.stringify(certificates));
-    renderCertList();
+    try {
+      const val = snapshot.val();
+      const fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+      // 로컬에 저장된 이미지 복원 (Firebase에는 이미지 미포함)
+      let imgStore = {};
+      try { imgStore = JSON.parse(localStorage.getItem('cert_images') || '{}'); } catch(e) {}
+      certificates = fromFb.map(c => {
+        try {
+          const imgs = imgStore[c.no];
+          if (!imgs) return c;
+          return { ...c, rows: (c.rows||[]).map((r, i) => ({ ...r, img: imgs[i] || r.img || '' })) };
+        } catch(e) { return c; }
+      });
+      try { localStorage.setItem('cert_data', JSON.stringify(certificates)); } catch(e) {}
+      renderCertList();
+    } catch(e) { console.error('cert listener error:', e); }
   });
 });
 
