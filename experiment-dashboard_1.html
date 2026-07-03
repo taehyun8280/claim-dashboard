@@ -1556,8 +1556,7 @@ function setPF(v) {
 }
 
 function saveCert() {
-  // Firebase에서 최신 상태는 onValue 리스너가 유지하므로 별도 재동기화 불필요
-
+  try {
   // auto-generate no if empty
   let no = document.getElementById('cf-no').value.trim();
   if (!no) {
@@ -1625,6 +1624,10 @@ function saveCert() {
 
   fbSaveCertificates();
   renderCertList();
+  } catch(e) {
+    console.error('saveCert 오류:', e);
+    showToast('저장 오류: ' + e.message);
+  }
 }
 
 function renderCertList(filter='') {
