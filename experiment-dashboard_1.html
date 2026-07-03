@@ -1544,6 +1544,9 @@ function setImgDrop(drop, dataUrl) {
     <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
 
+// 압축 완료 대기 Promise 목록 (저장 시 모두 완료 후 진행)
+const _compressionQueue = [];
+
 function handleImgPaste(e, drop) {
   if (drop._pasting) return; // 이중 호출 방지
   const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
@@ -1557,13 +1560,17 @@ function handleImgPaste(e, drop) {
       const reader = new FileReader();
       reader.onload = ev => {
         const rawUrl = ev.target.result;
-        // 즉시 원본 이미지 표시 (사용자가 붙여넣기 성공 여부 즉시 확인)
+        // 즉시 원본 표시 (사용자가 성공 여부 즉시 확인)
         setImgDrop(drop, rawUrl);
         drop._pasting = false;
-        // 백그라운드에서 압축 후 교체 (저장 용량 절약)
-        compressImage(rawUrl, 1200, 1200, 0.75, compressed => {
-          setImgDrop(drop, compressed);
+        // 압축 Promise를 전역 큐에 등록 — 저장 시 완료 대기
+        const p = new Promise(resolve => {
+          compressImage(rawUrl, 1200, 1200, 0.75, compressed => {
+            setImgDrop(drop, compressed); // 압축본으로 교체
+            resolve();
+          });
         });
+        _compressionQueue.push(p);
       };
       reader.onerror = () => { drop._pasting = false; };
       reader.readAsDataURL(blob);
@@ -1660,8 +1667,14 @@ function setPF(v) {
   document.getElementById('pf-fail').className = 'pf-btn' + (v==='fail'?' fail-sel':'');
 }
 
-function saveCert() {
+async function saveCert() {
   try {
+  // 진행 중인 압축이 있으면 완료까지 대기
+  if (_compressionQueue.length > 0) {
+    showToast('이미지 압축 중... 잠시 기다려주세요');
+    await Promise.all(_compressionQueue);
+    _compressionQueue.length = 0;
+  }
   // auto-generate no if empty
   const noEl = document.getElementById('cf-no');
   let no = noEl?.value?.trim() || '';
