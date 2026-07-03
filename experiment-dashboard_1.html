@@ -1291,23 +1291,29 @@ function deleteCertImages(no, rowCount) {
 }
 
 function fbSaveCertificates(allowEmpty = false) {
-  // 빈 배열 실수 저장 방지 (deleteCert에서만 allowEmpty=true로 호출)
   if (!allowEmpty && certificates.length === 0) {
     console.warn('fbSaveCertificates: certificates 비어있어 저장 건너뜀');
     return;
   }
 
-  // 1) 이미지는 행별 개별 키에 저장 (cert_img_{no}_{idx})
+  // 경로 1) 행별 개별 localStorage 키 (cert_img_{no}_{i})
   certificates.forEach(c => saveCertImages(c));
 
-  // 2) cert_data에는 이미지 제외 슬림 버전 저장 (용량 절약)
-  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
-  try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {
-    console.warn('cert_data 저장 실패:', e);
+  // 경로 2) cert_data에 이미지 포함 전체 저장 시도 → 실패 시 슬림 저장
+  try {
+    localStorage.setItem('cert_data', JSON.stringify(certificates));
+  } catch(e) {
+    // 용량 초과 시 슬림 저장 (이미지는 경로1에 있으므로 안전)
+    const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+    try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e2) {
+      console.warn('cert_data 저장 실패:', e2);
+    }
   }
 
-  // 3) Firebase에도 이미지 제외 버전 저장
-  const certForFb = slim;
+  // 경로 3) Firebase (이미지 제외)
+  const certForFb = certificates.map(c => ({
+    ...c, rows: (c.rows||[]).map(r => ({...r, img: ''}))
+  }));
   fbDb.ref('certificates').set(certForFb)
     .catch(err => {
       console.error('Firebase 저장 오류:', err);
@@ -1351,21 +1357,45 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const val = snapshot.val();
       let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-      // localStorage 슬림 버전 (구조만, 이미지 없음)
+
+      // cert_data에서 이미지 포함 버전 읽기 (경로2 복원)
       let localCerts = [];
       try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
-      // Firebase 비어있으면 localStorage로 복구
+      const localMap = {};
+      localCerts.forEach(c => { if (c && c.no) localMap[c.no] = c; });
+
       if (fromFb.length === 0 && localCerts.length > 0) {
         fromFb = localCerts;
         try {
           fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));
         } catch(e) {}
       }
-      // 각 cert에 행별 개별 키에서 이미지 복원
-      certificates = fromFb.map(c => { try { return loadCertImages(c); } catch(e) { return c; } });
-      // 슬림 버전만 cert_data에 업데이트
-      const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
-      try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
+
+      // 3가지 경로에서 이미지 병합: cert_data(경로2) > 개별키(경로1) > 없음
+      certificates = fromFb.map(c => {
+        try {
+          const rows = (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{}));
+          const local = localMap[c.no];
+          return {
+            ...c,
+            rows: rows.map((r, i) => ({
+              ...r,
+              img: r.img ||
+                   (local && local.rows && local.rows[i] && local.rows[i].img) ||
+                   localStorage.getItem('cert_img_' + c.no + '_' + i) ||
+                   ''
+            }))
+          };
+        } catch(e) { return c; }
+      });
+
+      // cert_data 저장 (이미지 포함 시도 → 실패 시 슬림)
+      try {
+        localStorage.setItem('cert_data', JSON.stringify(certificates));
+      } catch(e) {
+        const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+        try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e2) {}
+      }
       renderCertList();
     } catch(e) { console.error('cert listener error:', e); }
   });
