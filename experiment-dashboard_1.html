@@ -1521,6 +1521,9 @@ function addResultRow() {
   renumberRows();
 }
 
+// img-drop 엘리먼트 → 이미지 dataUrl 맵 (타이밍 무관, 동기 접근)
+const _imgMap = new WeakMap();
+
 function compressImage(dataUrl, maxW, maxH, quality, callback) {
   const img = new Image();
   img.onload = () => {
@@ -1535,20 +1538,19 @@ function compressImage(dataUrl, maxW, maxH, quality, callback) {
     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
     callback(canvas.toDataURL('image/jpeg', quality));
   };
+  img.onerror = () => callback(dataUrl); // 압축 실패 시 원본 반환
   img.src = dataUrl;
 }
 
 function setImgDrop(drop, dataUrl) {
+  _imgMap.set(drop, dataUrl); // 맵에 즉시 동기 저장
   drop.innerHTML = `
     <img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;" data-src="${dataUrl}">
     <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
 
-// 압축 완료 대기 Promise 목록 (저장 시 모두 완료 후 진행)
-const _compressionQueue = [];
-
 function handleImgPaste(e, drop) {
-  if (drop._pasting) return; // 이중 호출 방지
+  if (drop._pasting) return;
   const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
   if (!items) return;
   for (const item of items) {
@@ -1560,17 +1562,13 @@ function handleImgPaste(e, drop) {
       const reader = new FileReader();
       reader.onload = ev => {
         const rawUrl = ev.target.result;
-        // 즉시 원본 표시 (사용자가 성공 여부 즉시 확인)
+        // 즉시 맵에 저장 + 화면 표시 (타이밍 무관)
         setImgDrop(drop, rawUrl);
         drop._pasting = false;
-        // 압축 Promise를 전역 큐에 등록 — 저장 시 완료 대기
-        const p = new Promise(resolve => {
-          compressImage(rawUrl, 1200, 1200, 0.75, compressed => {
-            setImgDrop(drop, compressed); // 압축본으로 교체
-            resolve();
-          });
+        // 백그라운드 압축 후 맵·화면 업데이트
+        compressImage(rawUrl, 1200, 1200, 0.75, compressed => {
+          setImgDrop(drop, compressed);
         });
-        _compressionQueue.push(p);
       };
       reader.onerror = () => { drop._pasting = false; };
       reader.readAsDataURL(blob);
@@ -1580,6 +1578,7 @@ function handleImgPaste(e, drop) {
 }
 
 function clearImg(drop) {
+  _imgMap.delete(drop); // 맵에서 제거
   drop.innerHTML = `<span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
     <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
@@ -1667,14 +1666,8 @@ function setPF(v) {
   document.getElementById('pf-fail').className = 'pf-btn' + (v==='fail'?' fail-sel':'');
 }
 
-async function saveCert() {
+function saveCert() {
   try {
-  // 진행 중인 압축이 있으면 완료까지 대기
-  if (_compressionQueue.length > 0) {
-    showToast('이미지 압축 중... 잠시 기다려주세요');
-    await Promise.all(_compressionQueue);
-    _compressionQueue.length = 0;
-  }
   // auto-generate no if empty
   const noEl = document.getElementById('cf-no');
   let no = noEl?.value?.trim() || '';
@@ -1683,29 +1676,29 @@ async function saveCert() {
     if (noEl) noEl.value = no;
   }
 
-  // 이미지 수집 (복잡/단순 공통)
-  const imgMap = [];
-  document.querySelectorAll('#result-tbody .img-drop img').forEach((img, i) => {
-    imgMap.push(img.dataset.src || '');
-  });
+  // 이미지 수집: _imgMap(WeakMap) 우선, 없으면 DOM data-src
+  function getDropImg(drop) {
+    return (_imgMap.has(drop) ? _imgMap.get(drop) : '') ||
+           (drop.querySelector('img')?.dataset?.src || '');
+  }
 
   const rows = [];
   if (complexMode) {
-    // 복잡 모드: 각 행에서 텍스트 셀만 수집, 이미지는 imgMap으로
+    const drops = [...document.querySelectorAll('#result-tbody .img-drop')];
     document.querySelectorAll('#result-tbody tr').forEach((tr, ti) => {
       const cells = [...tr.cells].map(td => td.textContent.trim());
-      rows.push({ _cells: cells, img: imgMap[ti] || '' });
+      rows.push({ _cells: cells, img: drops[ti] ? getDropImg(drops[ti]) : '' });
     });
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
-      const imgEl = tr.querySelector('.img-drop img');
+      const drop = tr.querySelector('.img-drop');
       rows.push({
         item: tr.querySelector('[data-field="item"]')?.value || '',
         spec: tr.querySelector('[data-field="spec"]')?.value || '',
         cond: tr.querySelector('[data-field="cond"]')?.value || '',
         result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || '',
         results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
-        img: imgEl ? imgEl.dataset.src : '',
+        img: drop ? getDropImg(drop) : '',
         note: tr.querySelector('[data-field="note"]')?.value || ''
       });
     });
@@ -1859,8 +1852,7 @@ function loadCert(no) {
       tr.querySelector('[data-field="note"]').value = r.note||'';
       if (r.img) {
         const drop = tr.querySelector('.img-drop');
-        drop.innerHTML = `<img src="${r.img}" style="width:100%;height:100%;object-fit:contain;" data-src="${r.img}">
-          <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>`;
+        if (drop) setImgDrop(drop, r.img); // _imgMap에도 등록
       }
     });
   }
