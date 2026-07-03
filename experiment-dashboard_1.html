@@ -1767,7 +1767,7 @@ function renderCertList(filter='') {
   const list = (filter
     ? certificates.filter(c => JSON.stringify(c).toLowerCase().includes(filter.toLowerCase()))
     : [...certificates]
-  ).sort((a, b) => (b.savedAt || b.date || '').localeCompare(a.savedAt || a.date || ''));
+  ).sort((a, b) => (b.date || b.savedAt || '').localeCompare(a.date || a.savedAt || ''));
 
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
