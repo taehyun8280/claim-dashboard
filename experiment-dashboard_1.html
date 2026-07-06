@@ -1934,22 +1934,7 @@ async function loadCert(no) {
   } else {
     resetToSimpleTable();
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
-    const getRowCount = (base) => {
-      // 1순위: cert 오브젝트에 직접 저장된 값
-      if (raw[`${base}RowCount`] && raw[`${base}RowCount`] > 1) return raw[`${base}RowCount`];
-      // 2순위: 행 데이터에서 감지
-      for (const r of renderRows) {
-        const c = parseInt(r[`${base}Count`]) || 0;
-        if (c > 1) return c;
-        if (r[`${base}2`] !== undefined && r[`${base}2`] !== '') return 2;
-      }
-      return 1;
-    };
-    const detectedSpec = getRowCount('spec');
-    const detectedCond = getRowCount('cond');
-    console.log('[loadCert] specRowCount:', raw.specRowCount, '→ detected:', detectedSpec, '| condRowCount:', raw.condRowCount, '→ detected:', detectedCond, '| renderRows[0]:', renderRows[0]);
-    setSpecRowCount(detectedSpec);
-    setCondRowCount(detectedCond);
+    // 전역 spec/cond는 1로 두고, 각 행에서 개별 설정
     const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -1966,8 +1951,15 @@ async function loadCert(no) {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
       const _toArr2 = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
+
+      // 행별 spec/cond 수 감지 후 개별 적용
+      const rowSpecCount = parseInt(r.specCount) || (r.spec2 !== undefined && r.spec2 !== '' ? 2 : 1);
+      const rowCondCount = parseInt(r.condCount) || (r.cond2 !== undefined && r.cond2 !== '' ? 2 : 1);
+      if (rowSpecCount > 1) setRowSpecCount(tr.id, rowSpecCount);
+      if (rowCondCount > 1) setRowCondCount(tr.id, rowCondCount);
+
       const fillFlatFields = (base, count) => {
-        const legacyArr = _toArr2(r[`${base}s`]); // 구형: r.specs, r.conds
+        const legacyArr = _toArr2(r[`${base}s`]);
         if (count > 1) {
           for (let fi = 1; fi <= count; fi++) {
             const el = tr.querySelector(`[data-field="${base}${fi}"]`);
@@ -1978,9 +1970,9 @@ async function loadCert(no) {
           if (el) el.value = r[base] || r[`${base}1`] || legacyArr[0] || '';
         }
       };
-      fillFlatFields('item', itemRowCount);
-      fillFlatFields('spec', specRowCount);
-      fillFlatFields('cond', condRowCount);
+      fillFlatFields('item', parseInt(r.itemCount)||1);
+      fillFlatFields('spec', rowSpecCount);
+      fillFlatFields('cond', rowCondCount);
       const savedResults = r.results || [r.result||'', r.result2||''];
       savedResults.forEach((rv, ri) => {
         const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
