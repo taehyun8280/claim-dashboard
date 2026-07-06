@@ -700,7 +700,7 @@
   .cert-panel-close:hover { color: var(--text); background: rgba(0,0,0,.06); }
   .cert-panel-body {
     flex: 1;
-    overflow: auto;
+    overflow-y: auto;
     padding: 32px;
     max-width: 1100px;
     width: 100%;
@@ -1536,7 +1536,10 @@ function addResultRow() {
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
     <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea>`}</td>
     <td data-cond-cell style="padding:0;${condColHidden?'display:none;':''}">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
-    <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" ${condRowCount>1?`data-result-vertical="${condRowCount}"`:''}style="text-align:center;vertical-align:middle;padding:0;">${buildResultCellHTML(condRowCount, splitResultCount, null, taStyle)}</td>
+    <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${splitResultCount > 1
+      ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
+      : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
+    }</td>
     ${Array.from({length:photoColCount},(_,pi)=>`<td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
         style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
@@ -1747,26 +1750,12 @@ function saveCert() {
       for (let fi = 1; fi <= 20; fi++) {
         if (tr.querySelector(`[data-field="specresult${fi}"]`)) srCount = fi; else break;
       }
-      // 결과 2D 그리드 감지
-      const resultTd = tr.querySelector('td[data-result-cell]');
-      const rv = parseInt(resultTd?.dataset?.resultVertical) || 0;
-      let resultGrid = null;
-      if (rv > 1) {
-        resultGrid = Array.from({length: rv}, (_, ri) =>
-          Array.from({length: splitResultCount > 1 ? splitResultCount : 1}, (_, ci) => {
-            const field = splitResultCount > 1 ? `result_r${ri+1}_c${ci+1}` : `result_r${ri+1}`;
-            return tr.querySelector(`[data-field="${field}"]`)?.value || '';
-          })
-        );
-      }
       rows.push({
         ...getFlatFields('item'),
         ...getFlatFields('spec'),
         ...getFlatFields('cond'),
-        result: rv > 1 ? (resultGrid[0]?.[0]||'') : (tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || ''),
-        results: rv > 1 ? resultGrid.map(row => row[0]) : Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
-        resultGrid: resultGrid || undefined,
-        resultCondCount: rv > 1 ? rv : undefined,
+        result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || tr.querySelector('[data-field="specresult1"]')?.value || '',
+        results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
         img: drop ? getDropImg(drop) : '',
         photoCount: allDrops.length,
         ...Object.fromEntries(allDrops.map((d, pi) => ['img'+(pi+1), getDropImg(d)])),
@@ -1970,17 +1959,6 @@ async function loadCert(no) {
       if (rowSpecCount > 1) setRowSpecCount(tr.id, rowSpecCount);
       if (rowCondCount > 1) setRowCondCount(tr.id, rowCondCount);
 
-      // 결과 2D 그리드 복원
-      if (r.resultGrid && r.resultCondCount > 1) {
-        const resultTd = tr.querySelector('td[data-result-cell]');
-        if (resultTd) {
-          resultTd.setAttribute('data-result-vertical', r.resultCondCount);
-          resultTd.style.padding = '0';
-          const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
-          resultTd.innerHTML = buildResultCellHTML(r.resultCondCount, splitResultCount, r.resultGrid, taStyle);
-        }
-      }
-
       const fillFlatFields = (base, count) => {
         const legacyArr = _toArr2(r[`${base}s`]);
         if (count > 1) {
@@ -1996,17 +1974,15 @@ async function loadCert(no) {
       fillFlatFields('item', parseInt(r.itemCount)||1);
       fillFlatFields('spec', rowSpecCount);
       fillFlatFields('cond', rowCondCount);
-      if (!(r.resultGrid && r.resultCondCount > 1)) {
-        const savedResults = r.results || [r.result||'', r.result2||''];
-        savedResults.forEach((rv, ri) => {
-          const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
-          const el = tr.querySelector(`[data-field="${key}"]`);
-          if (el) el.value = rv;
-        });
-        if (!splitResultCount || splitResultCount <= 1) {
-          const el = tr.querySelector('[data-field="result"]');
-          if (el) el.value = r.result || '';
-        }
+      const savedResults = r.results || [r.result||'', r.result2||''];
+      savedResults.forEach((rv, ri) => {
+        const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
+        const el = tr.querySelector(`[data-field="${key}"]`);
+        if (el) el.value = rv;
+      });
+      if (!splitResultCount || splitResultCount <= 1) {
+        const el = tr.querySelector('[data-field="result"]');
+        if (el) el.value = r.result || '';
       }
       tr.querySelector('[data-field="note"]').value = r.note||'';
       // IDB에서 이미지 비동기 로드
@@ -2437,47 +2413,17 @@ function setRowSpecCount(rowId, n) {
     : `<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용">${prev[0]||''}</textarea>`;
 }
 
-function buildResultCellHTML(condN, resultM, grid, taStyle) {
-  taStyle = taStyle || 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
-  if (condN > 1) {
-    return `<div style="display:flex;flex-direction:column;height:100%;">${
-      Array.from({length: condN}, (_, ri) => {
-        const vals = grid ? (grid[ri] || []) : [];
-        if (resultM > 1) {
-          return `<div style="display:flex;flex:1;min-height:40px;${ri < condN-1 ? 'border-bottom:1px solid var(--border);' : ''}">${
-            Array.from({length: resultM}, (_, ci) =>
-              `<textarea data-field="result_r${ri+1}_c${ci+1}" placeholder="결과${ci+1}" style="${taStyle}${ci < resultM-1 ? 'border-right:1px solid var(--border);' : ''}flex:1;text-align:center;">${vals[ci]||''}</textarea>`
-            ).join('')
-          }</div>`;
-        } else {
-          return `<textarea data-field="result_r${ri+1}" placeholder="결과" style="${taStyle}flex:1;${ri < condN-1 ? 'border-bottom:1px solid var(--border);' : ''}">${vals[0]||''}</textarea>`;
-        }
-      }).join('')
-    }</div>`;
-  } else if (resultM > 1) {
-    return `<div style="display:flex;height:100%;">${Array.from({length:resultM},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<resultM-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`;
-  } else {
-    return `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`;
-  }
-}
-
 function setCondRowCount(n) {
   n = parseInt(n) || 1;
   condRowCount = n;
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
-    const condTd = tr.cells[3]; if (!condTd) return;
-    const prev = Array.from(condTd.querySelectorAll('textarea')).map(t => t.value);
-    condTd.style.padding = '0';
-    condTd.innerHTML = n > 1
+    const td = tr.cells[3]; if (!td) return;
+    const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+    td.style.padding = '0';
+    td.innerHTML = n > 1
       ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
       : `<textarea data-field="cond" style="${taStyle}" placeholder="조건">${prev[0]||''}</textarea>`;
-    // 결과칸도 동기화
-    const resultTd = tr.querySelector('td[data-result-cell]'); if (!resultTd) return;
-    if (n > 1) resultTd.setAttribute('data-result-vertical', n);
-    else resultTd.removeAttribute('data-result-vertical');
-    resultTd.style.padding = '0';
-    resultTd.innerHTML = buildResultCellHTML(n, splitResultCount, null, taStyle);
   });
   const sel = document.getElementById('cond-row-select'); if (sel) sel.value = String(n);
 }
@@ -2486,18 +2432,12 @@ function setRowCondCount(rowId, n) {
   n = parseInt(n) || 1;
   const tr = document.getElementById(rowId); if (!tr) return;
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
-  const condTd = tr.cells[3]; if (!condTd) return;
-  const prev = Array.from(condTd.querySelectorAll('textarea')).map(t => t.value);
-  condTd.style.padding = '0';
-  condTd.innerHTML = n > 1
+  const td = tr.cells[3]; if (!td) return;
+  const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
+  td.style.padding = '0';
+  td.innerHTML = n > 1
     ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
     : `<textarea data-field="cond" style="${taStyle}" placeholder="조건">${prev[0]||''}</textarea>`;
-  // 결과칸도 동기화
-  const resultTd = tr.querySelector('td[data-result-cell]'); if (!resultTd) return;
-  if (n > 1) resultTd.setAttribute('data-result-vertical', n);
-  else resultTd.removeAttribute('data-result-vertical');
-  resultTd.style.padding = '0';
-  resultTd.innerHTML = buildResultCellHTML(n, splitResultCount, null, taStyle);
 }
 
 function setRowSplitCount(rowId, n) {
@@ -2764,28 +2704,25 @@ function setSplitCount(n) {
   const rcs = document.getElementById('result-col-select'); if (rcs) rcs.value = String(n);
   const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
   rebuildThead();
-  const taStyle2 = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
-  document.querySelectorAll('#result-tbody tr').forEach(tr => {
-    const td = tr.querySelector('td[data-result-cell]');
-    if (!td) return;
-    const rowCondN = parseInt(td.dataset.resultVertical) || 0;
-    if (rowCondN > 1) {
-      // 2D 그리드 행: 결과 열 수 변경에 맞춰 재생성
-      td.colSpan = n > 1 ? n : 1;
-      td.style.padding = '0';
-      td.innerHTML = buildResultCellHTML(rowCondN, n, null, taStyle2);
-    } else if (n > 1) {
+  if (n > 1) {
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const td = tr.querySelector('td[data-result-cell]');
+      if (!td) return;
       const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
       td.colSpan = n;
       td.style.padding = '0';
       td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${inStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
-    } else {
+    });
+  } else {
+    document.querySelectorAll('#result-tbody tr').forEach(tr => {
+      const td = tr.querySelector('td[data-result-cell]');
+      if (!td) return;
       const v = td.querySelector('textarea')?.value || '';
       td.colSpan = 1;
       td.style.padding = '';
       td.innerHTML = `<textarea data-field="result" placeholder="결과" style="${inStyle}text-align:center;">${v}</textarea>`;
-    }
-  });
+    });
+  }
 }
 
 function filterList(v) { renderCertList(v); }
