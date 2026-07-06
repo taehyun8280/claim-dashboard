@@ -1700,16 +1700,21 @@ function saveCert() {
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const drop = tr.querySelector('.img-drop');
-      const getFields = (base, count) => count > 1
-        ? Array.from({length: count}, (_, i) => tr.querySelector(`[data-field="${base}${i+1}"]`)?.value || '')
-        : [tr.querySelector(`[data-field="${base}"]`)?.value || ''];
+      const getFlatFields = (base, count) => {
+        const obj = { [`${base}Count`]: count };
+        if (count > 1) {
+          for (let fi = 1; fi <= count; fi++)
+            obj[`${base}${fi}`] = tr.querySelector(`[data-field="${base}${fi}"]`)?.value || '';
+        }
+        obj[base] = count > 1
+          ? (tr.querySelector(`[data-field="${base}1"]`)?.value || '')
+          : (tr.querySelector(`[data-field="${base}"]`)?.value || '');
+        return obj;
+      };
       rows.push({
-        item: tr.querySelector('[data-field="item"]')?.value || tr.querySelector('[data-field="item1"]')?.value || '',
-        items: getFields('item', itemRowCount),
-        spec: tr.querySelector('[data-field="spec"]')?.value || tr.querySelector('[data-field="spec1"]')?.value || '',
-        specs: getFields('spec', specRowCount),
-        cond: tr.querySelector('[data-field="cond"]')?.value || tr.querySelector('[data-field="cond1"]')?.value || '',
-        conds: getFields('cond', condRowCount),
+        ...getFlatFields('item', itemRowCount),
+        ...getFlatFields('spec', specRowCount),
+        ...getFlatFields('cond', condRowCount),
         result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || '',
         results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
         img: drop ? getDropImg(drop) : '',
@@ -1859,12 +1864,17 @@ function loadCert(no) {
     resetToSimpleTable();
     if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
-    const _toArr = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
-    // raw.specRowCount가 없거나 데이터에서 더 큰 값 감지되면 그걸 사용
-    const detectedSpec = Math.max(raw.specRowCount||1, ...(renderRows.map(r=>_toArr(r.specs).length||1)));
-    const detectedCond = Math.max(raw.condRowCount||1, ...(renderRows.map(r=>_toArr(r.conds).length||1)));
-    setSpecRowCount(detectedSpec);
-    setCondRowCount(detectedCond);
+    const getRowCount = (base) => {
+      for (const r of renderRows) {
+        const c = r[`${base}Count`] || raw[`${base}RowCount`] || 1;
+        if (c > 1) return c;
+        // flat field 감지: spec2, cond2 등이 있으면
+        if (r[`${base}2`] !== undefined && r[`${base}2`] !== '') return 2;
+      }
+      return raw[`${base}RowCount`] || 1;
+    };
+    setSpecRowCount(getRowCount('spec'));
+    setCondRowCount(getRowCount('cond'));
     const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -1878,19 +1888,20 @@ function loadCert(no) {
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
-      const toArr = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
-      const fillFields = (base, arr, fallback) => {
-        const a = toArr(arr);
-        if (a.length > 1) {
-          a.forEach((v, i) => { const el = tr.querySelector(`[data-field="${base}${i+1}"]`); if (el) el.value = v; });
+      const fillFlatFields = (base, count) => {
+        if (count > 1) {
+          for (let fi = 1; fi <= count; fi++) {
+            const el = tr.querySelector(`[data-field="${base}${fi}"]`);
+            if (el) el.value = r[`${base}${fi}`] || '';
+          }
         } else {
           const el = tr.querySelector(`[data-field="${base}"]`) || tr.querySelector(`[data-field="${base}1"]`);
-          if (el) el.value = (a[0]) || fallback || '';
+          if (el) el.value = r[base] || r[`${base}1`] || '';
         }
       };
-      fillFields('item', r.items, r.item);
-      fillFields('spec', r.specs, r.spec);
-      fillFields('cond', r.conds, r.cond);
+      fillFlatFields('item', itemRowCount);
+      fillFlatFields('spec', specRowCount);
+      fillFlatFields('cond', condRowCount);
       const savedResults = r.results || [r.result||'', r.result2||''];
       savedResults.forEach((rv, ri) => {
         const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
