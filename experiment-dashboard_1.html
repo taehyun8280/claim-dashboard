@@ -1728,24 +1728,36 @@ function saveCert() {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const allDrops = [...tr.querySelectorAll('.img-drop')];
       const drop = allDrops[0] || null;
-      const getFlatFields = (base, count) => {
-        const obj = { [`${base}Count`]: count };
-        if (count > 1) {
-          for (let fi = 1; fi <= count; fi++)
-            obj[`${base}${fi}`] = tr.querySelector(`[data-field="${base}${fi}"]`)?.value || '';
+      // DOM에서 실제 필드 수 자동 감지 (전역 count와 무관하게 정확히 저장)
+      const getFlatFields = (base) => {
+        let domCount = 0;
+        for (let fi = 1; fi <= 20; fi++) {
+          if (tr.querySelector(`[data-field="${base}${fi}"]`)) domCount = fi; else break;
         }
-        obj[base] = count > 1
-          ? (tr.querySelector(`[data-field="${base}1"]`)?.value || '')
-          : (tr.querySelector(`[data-field="${base}"]`)?.value || '');
+        const single = tr.querySelector(`[data-field="${base}"]`);
+        const actualCount = domCount > 0 ? domCount : 1;
+        const obj = { [`${base}Count`]: actualCount };
+        if (domCount > 0) {
+          for (let fi = 1; fi <= domCount; fi++)
+            obj[`${base}${fi}`] = tr.querySelector(`[data-field="${base}${fi}"]`)?.value || '';
+          obj[base] = obj[`${base}1`] || '';
+        } else {
+          obj[base] = single?.value || '';
+        }
         return obj;
       };
+      // specresult 수도 DOM에서 감지
+      let srCount = 0;
+      for (let fi = 1; fi <= 20; fi++) {
+        if (tr.querySelector(`[data-field="specresult${fi}"]`)) srCount = fi; else break;
+      }
       rows.push({
-        ...getFlatFields('item', itemRowCount),
-        ...getFlatFields('spec', specRowCount),
-        ...getFlatFields('cond', condRowCount),
+        ...getFlatFields('item'),
+        ...getFlatFields('spec'),
+        ...getFlatFields('cond'),
         result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || tr.querySelector('[data-field="specresult1"]')?.value || '',
         results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
-        specresults: specRowCount > 1 ? Array.from({length: specRowCount}, (_,i) => tr.querySelector(`[data-field="specresult${i+1}"]`)?.value || '') : null,
+        specresults: srCount > 0 ? Array.from({length: srCount}, (_,i) => tr.querySelector(`[data-field="specresult${i+1}"]`)?.value || '') : null,
         img: drop ? getDropImg(drop) : '',
         photoCount: allDrops.length,
         ...Object.fromEntries(allDrops.map((d, pi) => ['img'+(pi+1), getDropImg(d)])),
