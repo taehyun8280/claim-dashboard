@@ -2547,9 +2547,11 @@ function rebuildThead() {
           `<th><input id="result-label${i+1}" placeholder="구분${i+1}" style="${inStyle}font-weight:bold;"></th>`
         ).join('')
       : '';
-    // 사진 서브 th (빈 칸 n개로 시각 분리)
+    // 사진 서브 th (결과칸처럼 라벨 입력 칸)
     const photoSubThs = photoColCount > 1
-      ? Array.from({length:photoColCount}, () => `<th style="min-width:160px;"></th>`).join('')
+      ? Array.from({length:photoColCount}, (_,i) =>
+          `<th style="min-width:160px;"><input id="photo-label${i+1}" placeholder="사진${i+1}" style="${inStyle}font-weight:bold;"></th>`
+        ).join('')
       : '';
 
     const resultRow1 = splitResultCount > 1
