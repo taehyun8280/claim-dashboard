@@ -1299,8 +1299,17 @@ function idbDel(key) {
 // cert의 모든 이미지를 IDB에 저장
 async function idbSaveCertImgs(no, rows) {
   await Promise.all((rows||[]).map((r, i) => {
-    const key = no + '_' + i;
-    return r.img ? idbPut(key, r.img) : idbDel(key);
+    const photoCount = r.photoCount || 1;
+    if (photoCount > 1) {
+      return Promise.all(Array.from({length: photoCount}, (_, pi) => {
+        const key = no + '_' + i + '_' + pi;
+        const img = r['img'+(pi+1)] || (pi===0 ? r.img : '');
+        return img ? idbPut(key, img) : idbDel(key);
+      }));
+    } else {
+      const key = no + '_' + i;
+      return r.img ? idbPut(key, r.img) : idbDel(key);
+    }
   }));
 }
 
@@ -1314,7 +1323,10 @@ async function idbLoadCertImgs(no, rows) {
 
 // cert 이미지 IDB에서 삭제
 function idbDeleteCertImgs(no, rowCount) {
-  for (let i = 0; i < (rowCount || 20); i++) idbDel(no + '_' + i);
+  for (let i = 0; i < (rowCount || 20); i++) {
+    idbDel(no + '_' + i);
+    for (let pi = 0; pi < 10; pi++) idbDel(no + '_' + i + '_' + pi);
+  }
 }
 
 function fbSaveCertificates(allowEmpty = false) {
@@ -1699,7 +1711,8 @@ function saveCert() {
     });
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
-      const drop = tr.querySelector('.img-drop');
+      const allDrops = [...tr.querySelectorAll('.img-drop')];
+      const drop = allDrops[0] || null;
       const getFlatFields = (base, count) => {
         const obj = { [`${base}Count`]: count };
         if (count > 1) {
@@ -1718,10 +1731,17 @@ function saveCert() {
         result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || '',
         results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
         img: drop ? getDropImg(drop) : '',
+        photoCount: allDrops.length,
+        ...Object.fromEntries(allDrops.map((d, pi) => ['img'+(pi+1), getDropImg(d)])),
         note: tr.querySelector('[data-field="note"]')?.value || ''
       });
     });
   }
+
+  try {
+    const rowsSlim = rows.map(r => { const s={...r}; delete s.img; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
+    localStorage.setItem('cert_rows_' + no, JSON.stringify(rowsSlim));
+  } catch(e) {}
 
   const cert = {
     no,
@@ -1849,7 +1869,12 @@ function loadCert(no) {
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
 
-  const renderRows = raw.rows || [];
+  let _rowsOverride = null;
+  try {
+    const _stored = localStorage.getItem('cert_rows_' + raw.no);
+    if (_stored) _rowsOverride = JSON.parse(_stored);
+  } catch(e) {}
+  const renderRows = _rowsOverride || raw.rows || [];
 
   if (raw.complexMode && raw.complexTableData && raw.complexColIdx) {
     renderComplexTable(raw.complexTableData, raw.complexColIdx);
@@ -1916,11 +1941,17 @@ function loadCert(no) {
       }
       tr.querySelector('[data-field="note"]').value = r.note||'';
       // IDB에서 이미지 비동기 로드
-      const drop = tr.querySelector('.img-drop');
-      if (drop) {
-        idbGet(no + '_' + i).then(img => {
-          if (img) setImgDrop(drop, img);
+      const allLoadDrops = [...tr.querySelectorAll('.img-drop')];
+      if (allLoadDrops.length > 1) {
+        allLoadDrops.forEach((d, pi) => {
+          idbGet(no + '_' + i + '_' + pi).then(img => {
+            if (!img) idbGet(no + '_' + i).then(img2 => { if (img2 && pi===0) setImgDrop(d, img2); });
+            else setImgDrop(d, img);
+          });
         });
+      } else if (allLoadDrops[0]) {
+        const d = allLoadDrops[0];
+        idbGet(no + '_' + i).then(img => { if (img) setImgDrop(d, img); });
       }
     });
   }
@@ -1932,6 +1963,7 @@ function loadCert(no) {
 function deleteCert(no) {
   const target = certificates.find(c=>c.no===no);
   idbDeleteCertImgs(no, target ? (target.rows||[]).length : 20);
+  try { localStorage.removeItem('cert_rows_' + no); } catch(e) {}
   certificates = certificates.filter(c=>c.no!==no);
   fbSaveCertificates(true);
   renderCertList();
