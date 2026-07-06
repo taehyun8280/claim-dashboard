@@ -1700,10 +1700,16 @@ function saveCert() {
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const drop = tr.querySelector('.img-drop');
+      const getFields = (base, count) => count > 1
+        ? Array.from({length: count}, (_, i) => tr.querySelector(`[data-field="${base}${i+1}"]`)?.value || '')
+        : [tr.querySelector(`[data-field="${base}"]`)?.value || ''];
       rows.push({
-        item: tr.querySelector('[data-field="item"]')?.value || '',
-        spec: tr.querySelector('[data-field="spec"]')?.value || '',
-        cond: tr.querySelector('[data-field="cond"]')?.value || '',
+        item: tr.querySelector('[data-field="item"]')?.value || tr.querySelector('[data-field="item1"]')?.value || '',
+        items: getFields('item', itemRowCount),
+        spec: tr.querySelector('[data-field="spec"]')?.value || tr.querySelector('[data-field="spec1"]')?.value || '',
+        specs: getFields('spec', specRowCount),
+        cond: tr.querySelector('[data-field="cond"]')?.value || tr.querySelector('[data-field="cond1"]')?.value || '',
+        conds: getFields('cond', condRowCount),
         result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || '',
         results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
         img: drop ? getDropImg(drop) : '',
@@ -1731,7 +1737,7 @@ function saveCert() {
     signer: document.getElementById('cf-signer')?.value||'',
     note: document.getElementById('cf-note')?.value||'',
     pf: pfState,
-    splitResultCount, photoColCount, itemRowCount,
+    splitResultCount, photoColCount, itemRowCount, specRowCount, condRowCount,
     splitLabels: splitResultCount > 1 ? Array.from({length: splitResultCount}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || '') : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
@@ -1853,6 +1859,8 @@ function loadCert(no) {
     resetToSimpleTable();
     if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
+    if (raw.specRowCount && raw.specRowCount > 1) setSpecRowCount(raw.specRowCount);
+    if (raw.condRowCount && raw.condRowCount > 1) setCondRowCount(raw.condRowCount);
     const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -1866,9 +1874,17 @@ function loadCert(no) {
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
-      tr.querySelector('[data-field="item"]').value = r.item||'';
-      tr.querySelector('[data-field="spec"]').value = r.spec||'';
-      if (tr.querySelector('[data-field="cond"]')) tr.querySelector('[data-field="cond"]').value = r.cond||'';
+      const fillFields = (base, arr, fallback) => {
+        if (arr && arr.length > 1) {
+          arr.forEach((v, i) => { const el = tr.querySelector(`[data-field="${base}${i+1}"]`); if (el) el.value = v; });
+        } else {
+          const el = tr.querySelector(`[data-field="${base}"]`) || tr.querySelector(`[data-field="${base}1"]`);
+          if (el) el.value = (arr && arr[0]) || fallback || '';
+        }
+      };
+      fillFields('item', r.items, r.item);
+      fillFields('spec', r.specs, r.spec);
+      fillFields('cond', r.conds, r.cond);
       const savedResults = r.results || [r.result||'', r.result2||''];
       savedResults.forEach((rv, ri) => {
         const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
