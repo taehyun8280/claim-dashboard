@@ -1859,8 +1859,12 @@ function loadCert(no) {
     resetToSimpleTable();
     if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
-    setSpecRowCount(raw.specRowCount || 1);
-    setCondRowCount(raw.condRowCount || 1);
+    const _toArr = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
+    // raw.specRowCount가 없거나 데이터에서 더 큰 값 감지되면 그걸 사용
+    const detectedSpec = Math.max(raw.specRowCount||1, ...(renderRows.map(r=>_toArr(r.specs).length||1)));
+    const detectedCond = Math.max(raw.condRowCount||1, ...(renderRows.map(r=>_toArr(r.conds).length||1)));
+    setSpecRowCount(detectedSpec);
+    setCondRowCount(detectedCond);
     const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -2681,7 +2685,7 @@ async function copyCertImage(btn) {
     const fullH = target.scrollHeight;
     const canvas = await html2canvas(target, {
       backgroundColor: '#ffffff',
-      scale: 4,
+      scale: 2,
       useCORS: true,
       logging: false,
       width: target.offsetWidth,
