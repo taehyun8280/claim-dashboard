@@ -2598,7 +2598,48 @@ function rebuildThead() {
 function setPhotoCount(n) {
   n = parseInt(n) || 1;
   photoColCount = n;
-  rebuildThead();
+  const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
+  const thead = document.getElementById('result-thead');
+  let trows = thead.querySelectorAll('tr');
+
+  // 2행 헤더가 없으면 강제 생성 (splitResultCount=1 + photoColCount>1 케이스)
+  if (n > 1 && trows.length === 1) {
+    // 모든 th에 rowspan=2 추가
+    trows[0].querySelectorAll('th').forEach(th => { th.rowSpan = 2; });
+    thead.appendChild(document.createElement('tr'));
+    trows = thead.querySelectorAll('tr');
+  }
+
+  // 기존 photo sub-th 제거
+  trows[1] && Array.from(trows[1].querySelectorAll('th[data-photo-sub]')).forEach(th => th.remove());
+
+  // 1행의 시험사진 th 찾아서 갱신
+  const photoTh = Array.from(trows[0].querySelectorAll('th')).find(th => th.textContent.trim() === '시험사진');
+  if (photoTh) {
+    photoTh.colSpan = n;
+    photoTh.rowSpan = n > 1 ? 1 : (trows.length > 1 ? 2 : 1);
+    photoTh.style.width = n === 1 ? '180px' : '';
+  }
+
+  // photo sub-th 삽입 (n>1일 때)
+  if (n > 1 && trows[1]) {
+    // 비고 th 앞에 photo sub-ths 삽입 (없으면 끝에 append)
+    const noteSubTh = Array.from(trows[1].querySelectorAll('th')).find(th => th.textContent.trim() === '비고');
+    Array.from({length:n}, (_,i) => {
+      const th = document.createElement('th');
+      th.setAttribute('data-photo-sub', '');
+      th.style.minWidth = '160px';
+      th.innerHTML = `<input id="photo-label${i+1}" placeholder="사진${i+1}" style="${inStyle}font-weight:bold;">`;
+      noteSubTh ? trows[1].insertBefore(th, noteSubTh) : trows[1].appendChild(th);
+    });
+  }
+
+  // 2행이 비어 있으면 제거
+  if (trows[1] && trows[1].children.length === 0) {
+    trows[1].remove();
+    trows[0].querySelectorAll('th').forEach(th => { th.removeAttribute('rowspan'); });
+  }
+
   // 기존 행 photo 칸 동기화
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
     const imgCells = Array.from(tr.querySelectorAll('td.img-cell'));
