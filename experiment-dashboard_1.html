@@ -2534,15 +2534,32 @@ function makeImgCell(rc, pi) {
   return td;
 }
 
+function _buildPhotoThs(n, rowspan) {
+  // n개의 시험사진 th 생성 (rowspan 옵션)
+  const rs = rowspan && rowspan > 1 ? ` rowspan="${rowspan}"` : '';
+  if (n === 1) return `<th${rs} style="width:180px;">시험사진</th>`;
+  return Array.from({length:n}, (_,i) =>
+    `<th${rs} style="min-width:160px;">시험사진${i+1}</th>`
+  ).join('');
+}
+
 function setPhotoCount(n) {
   n = parseInt(n) || 1;
   photoColCount = n;
-  // 헤더 시험사진 th colspan 업데이트
+  // 헤더: 기존 시험사진 th 모두 제거 후 n개로 교체
   const thead = document.getElementById('result-thead');
-  thead.querySelectorAll('th').forEach(th => {
-    if (th.textContent.trim().startsWith('시험사진')) {
-      th.colSpan = n;
-      th.style.width = n === 1 ? '180px' : '';
+  const rows = thead.querySelectorAll('tr');
+  rows.forEach(row => {
+    const photoThs = Array.from(row.querySelectorAll('th')).filter(th => th.textContent.trim().startsWith('시험사진'));
+    if (photoThs.length > 0) {
+      const ref = photoThs[photoThs.length - 1].nextSibling;
+      const parent = photoThs[0].parentNode;
+      photoThs.forEach(th => th.remove());
+      const rs = rows.length > 1 ? 2 : 1;
+      const dummy = document.createElement('tbody');
+      dummy.innerHTML = `<tr>${_buildPhotoThs(n, rs)}</tr>`;
+      const newThs = Array.from(dummy.querySelector('tr').children);
+      newThs.reverse().forEach(th => parent.insertBefore(th, ref));
     }
   });
   // 기존 행 photo 칸 동기화
@@ -2591,7 +2608,7 @@ function setSplitCount(n) {
         <th rowspan="2">기준</th>
         <th rowspan="2">조건</th>
         <th colspan="${n}" id="result-th">결과</th>
-        <th rowspan="2" style="width:180px;">시험사진</th>
+        ${_buildPhotoThs(photoColCount, 2)}
         <th rowspan="2">비고</th>
       </tr>
       <tr>${labelThs}</tr>`;
@@ -2611,7 +2628,7 @@ function setSplitCount(n) {
         <th>기준</th>
         <th>조건</th>
         <th id="result-th" colspan="1">결과</th>
-        <th style="width:180px;">시험사진</th>
+        ${_buildPhotoThs(photoColCount, 1)}
         <th>비고</th>
       </tr>`;
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
