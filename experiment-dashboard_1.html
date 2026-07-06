@@ -1888,15 +1888,17 @@ function loadCert(no) {
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
+      const _toArr2 = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
       const fillFlatFields = (base, count) => {
+        const legacyArr = _toArr2(r[`${base}s`]); // 구형: r.specs, r.conds
         if (count > 1) {
           for (let fi = 1; fi <= count; fi++) {
             const el = tr.querySelector(`[data-field="${base}${fi}"]`);
-            if (el) el.value = r[`${base}${fi}`] || '';
+            if (el) el.value = r[`${base}${fi}`] || legacyArr[fi-1] || '';
           }
         } else {
           const el = tr.querySelector(`[data-field="${base}"]`) || tr.querySelector(`[data-field="${base}1"]`);
-          if (el) el.value = r[base] || r[`${base}1`] || '';
+          if (el) el.value = r[base] || r[`${base}1`] || legacyArr[0] || '';
         }
       };
       fillFlatFields('item', itemRowCount);
