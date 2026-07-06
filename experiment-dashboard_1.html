@@ -1321,6 +1321,18 @@ async function idbLoadCertImgs(no, rows) {
   return (rows||[]).map((r, i) => ({ ...r, img: imgs[i] || '' }));
 }
 
+// cert 행 텍스트 데이터를 IDB에 저장
+async function idbSaveRowsText(no, rows) {
+  const slim = rows.map(r => { const s={...r}; delete s.img; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
+  await idbPut('rows_text_' + no, JSON.stringify(slim));
+}
+
+// cert 행 텍스트 데이터를 IDB에서 읽기
+async function idbLoadRowsText(no) {
+  const str = await idbGet('rows_text_' + no);
+  try { return str ? JSON.parse(str) : null; } catch(e) { return null; }
+}
+
 // cert 이미지 IDB에서 삭제
 function idbDeleteCertImgs(no, rowCount) {
   for (let i = 0; i < (rowCount || 20); i++) {
@@ -1773,8 +1785,8 @@ function saveCert() {
   const idx = certificates.findIndex(c=>c.no===no);
   const isNew = idx < 0;
 
-  // IDB에 이미지 저장 (비동기, 완료 후 토스트)
-  idbSaveCertImgs(no, rows).then(() => {
+  // IDB에 이미지 + 행 텍스트 저장
+  Promise.all([idbSaveCertImgs(no, rows), idbSaveRowsText(no, rows)]).then(() => {
     // 이미지 제거한 슬림 버전을 certificates에 보관
     const slimRows = rows.map(r => { const s={...r,img:''}; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
     const slimCert = {...cert, rows: slimRows};
@@ -1846,7 +1858,7 @@ function renderCertList(filter='') {
   });
 }
 
-function loadCert(no) {
+async function loadCert(no) {
   const raw = certificates.find(x=>x.no===no);
   if (!raw) return;
 
@@ -1870,11 +1882,14 @@ function loadCert(no) {
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
 
-  let _rowsOverride = null;
-  try {
-    const _stored = localStorage.getItem('cert_rows_' + raw.no);
-    if (_stored) _rowsOverride = JSON.parse(_stored);
-  } catch(e) {}
+  const _idbRows = await idbLoadRowsText(raw.no);
+  let _rowsOverride = _idbRows;
+  if (!_rowsOverride) {
+    try {
+      const _stored = localStorage.getItem('cert_rows_' + raw.no);
+      if (_stored) _rowsOverride = JSON.parse(_stored);
+    } catch(e) {}
+  }
   const renderRows = _rowsOverride || raw.rows || [];
 
   if (raw.complexMode && raw.complexTableData && raw.complexColIdx) {
@@ -1965,6 +1980,7 @@ function loadCert(no) {
 function deleteCert(no) {
   const target = certificates.find(c=>c.no===no);
   idbDeleteCertImgs(no, target ? (target.rows||[]).length : 20);
+  idbDel('rows_text_' + no);
   try { localStorage.removeItem('cert_rows_' + no); } catch(e) {}
   certificates = certificates.filter(c=>c.no!==no);
   fbSaveCertificates(true);
