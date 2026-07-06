@@ -1361,6 +1361,46 @@ async function fbUploadCertImgs(no, rows) {
   }));
 }
 
+// 기존 IDB 이미지 → Firebase Storage 일괄 마이그레이션
+async function migrateImagesToStorage() {
+  if (window.__imgMigrationDone || window.__imgMigrationRunning) return;
+  window.__imgMigrationRunning = true;
+  let migrated = 0;
+  let anyUpdated = false;
+  for (const cert of certificates) {
+    const rows = cert.rows || [];
+    let certUpdated = false;
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const pc = r.photoCount || 1;
+      if (pc > 1) {
+        for (let pi = 0; pi < pc; pi++) {
+          const urlKey = 'imgUrl' + (pi+1);
+          if (r[urlKey]) continue;
+          const img = await idbGet(cert.no + '_' + i + '_' + pi);
+          if (!img) continue;
+          const url = await fbUploadImg(cert.no, i, pi, img);
+          if (url) { r[urlKey] = url; if (pi===0) r.imgUrl = url; certUpdated = true; migrated++; }
+        }
+      } else {
+        if (r.imgUrl) continue;
+        const img = await idbGet(cert.no + '_' + i);
+        if (!img) continue;
+        const url = await fbUploadImg(cert.no, i, 0, img);
+        if (url) { r.imgUrl = url; r.imgUrl1 = url; certUpdated = true; migrated++; }
+      }
+    }
+    if (certUpdated) anyUpdated = true;
+  }
+  if (anyUpdated) {
+    fbSaveCertificates();
+    renderCertList();
+    showToast(`기존 사진 ${migrated}장을 클라우드에 업로드 완료했습니다.`);
+  }
+  window.__imgMigrationDone = true;
+  window.__imgMigrationRunning = false;
+}
+
 // cert 행 텍스트 데이터를 IDB에 저장
 async function idbSaveRowsText(no, rows) {
   const slim = rows.map(r => { const s={...r}; delete s.img; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
@@ -1446,6 +1486,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
       try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
       renderCertList();
+      // 기존 IDB 이미지를 Firebase Storage로 1회 마이그레이션
+      if (!window.__imgMigrationDone) migrateImagesToStorage();
     } catch(e) { console.error('cert listener error:', e); }
   });
 });
