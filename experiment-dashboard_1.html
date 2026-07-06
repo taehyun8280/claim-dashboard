@@ -2795,6 +2795,26 @@ async function copyCertImage(btn) {
       replaced.push({ el, div });
     });
 
+    // ── 1c. 세로 분할 셀(flex-column) → block으로 변환해 html2canvas가 올바르게 렌더링 ──
+    const flexRestores = [];
+    target.querySelectorAll('td > div').forEach(flexDiv => {
+      const style = flexDiv.getAttribute('style') || '';
+      if (!style.includes('flex-direction')) return;
+      const capDivs = Array.from(flexDiv.querySelectorAll('.__cap-text'));
+      if (capDivs.length < 2) return;
+      const origStyle = flexDiv.getAttribute('style');
+      flexDiv.style.display = 'block';
+      flexDiv.style.height = 'auto';
+      capDivs.forEach((div, i) => {
+        if (i < capDivs.length - 1) {
+          div.style.borderBottom = '1.5px solid #ccc';
+          div.style.paddingBottom = '8px';
+          div.style.marginBottom = '8px';
+        }
+      });
+      flexRestores.push({ flexDiv, origStyle, capDivs });
+    });
+
     // ── 2. 캡처용 스타일 삽입 ──
     const styleEl = document.createElement('style');
     styleEl.id = 'cert-capture-style';
@@ -2861,6 +2881,10 @@ async function copyCertImage(btn) {
     styleEl.remove();
     hiddenRows.forEach(tr => { tr.style.display = ''; });
     replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
+    flexRestores.forEach(({ flexDiv, origStyle, capDivs }) => {
+      flexDiv.setAttribute('style', origStyle);
+      capDivs.forEach(div => { div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
+    });
     splitRestores.forEach(item => {
       if (item.cleanup) { item.cleanup(); return; }
       const { td, newCells, parent, nextSib } = item;
