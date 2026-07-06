@@ -2755,7 +2755,7 @@ async function copyCertImage(btn) {
         cell.className = '__split-cap-td';
         const w = i === n - 1 ? totalW - perW * (n - 1) : perW;
         cell.style.cssText = `width:${w}px;min-width:${w}px;max-width:${w}px;box-sizing:border-box;`;
-        cell.textContent = ta.value || '';
+        cell.innerHTML = (ta.value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         parent.insertBefore(cell, td);
         return cell;
       });
@@ -2789,7 +2789,7 @@ async function copyCertImage(btn) {
     target.querySelectorAll('td textarea, td input, th input').forEach(el => {
       const div = document.createElement('div');
       div.className = '__cap-text';
-      div.textContent = el.value || '';
+      div.innerHTML = (el.value || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
       el.parentNode.insertBefore(div, el);
       el.style.display = 'none';
       replaced.push({ el, div });
