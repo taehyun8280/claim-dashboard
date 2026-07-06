@@ -1368,6 +1368,7 @@ let photoColCount = 1;
 let itemRowCount = 1;
 let specRowCount = 1;
 let condRowCount = 1;
+let condColHidden = false;
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
@@ -1534,7 +1535,7 @@ function addResultRow() {
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;vertical-align:middle;">${rc}</td>
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
     <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea>`}</td>
-    <td style="padding:0;">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
+    <td data-cond-cell style="padding:0;${condColHidden?'display:none;':''}">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
     <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${splitResultCount > 1
       ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
       : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
@@ -2956,7 +2957,8 @@ const MC_OPTIONS = {
   'cf-spec': ['KS G 4009(가정용 목제 식탁 및 의자)','ANSI/BIFMA X 5.5(Desk/Table Products)',
     'KS G 4203(사무용 책상 및 테이블)','기준-품관21. HPM 시험 기준서','기준-품관19.기타치장판의물성시험 기준서','기준-품관22. LPM 시험 기준서',
     '기준-품관-0025 엣지, 핫멜트 및 수성접착제 시험기준','엣지핫멜트 수정접착제 시험 방법 응용',
-    'KS G ISO 7170:2005','KS G 7170 (수납가구의 강도 및 내구성 시험방법)','의뢰자 요청에 의한 시험 및 기준']
+    'KS G ISO 7170:2005','KS G 7170 (수납가구의 강도 및 내구성 시험방법)','의뢰자 요청에 의한 시험 및 기준',
+    '기준-품관34.항온항습기 시험기준서']
 };
 const mcState = {}; // { id: Set<string> }
 
