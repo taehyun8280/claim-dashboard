@@ -2806,6 +2806,8 @@ async function copyCertImage(btn) {
       flexDiv.style.display = 'block';
       flexDiv.style.height = 'auto';
       capDivs.forEach((div, i) => {
+        div.style.display = 'block';
+        div.style.width = '100%';
         if (i < capDivs.length - 1) {
           div.style.borderBottom = '1.5px solid #ccc';
           div.style.paddingBottom = '8px';
@@ -2814,6 +2816,26 @@ async function copyCertImage(btn) {
       });
       flexRestores.push({ flexDiv, origStyle, capDivs });
     });
+
+    // ── 1d. 조건 열이 모두 비어있으면 캡처 중 숨기기 ──
+    const hiddenCondCells = [];
+    const visibleRows = Array.from(target.querySelectorAll('#result-tbody tr')).filter(tr => tr.style.display !== 'none');
+    const allCondDivs = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('.__cap-text')).filter(d => {
+      const ta = d.previousSibling || d.nextSibling;
+      const field = (d.previousSibling?.dataset?.field || d.nextSibling?.dataset?.field || '');
+      return field.startsWith('cond');
+    }));
+    // data-field가 cond*인 숨겨진 textarea로 확인
+    const allCondTas = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('[data-field^="cond"]')));
+    const condIsEmpty = allCondTas.length > 0 && allCondTas.every(ta => !ta.value.trim());
+    if (condIsEmpty) {
+      visibleRows.forEach(tr => {
+        const condTd = Array.from(tr.querySelectorAll('td')).find(td => td.querySelector('[data-field^="cond"]'));
+        if (condTd) { condTd.style.display = 'none'; hiddenCondCells.push(condTd); }
+      });
+      const condTh = Array.from(target.querySelectorAll('th')).find(th => th.textContent.trim() === '조건');
+      if (condTh) { condTh.style.display = 'none'; hiddenCondCells.push(condTh); }
+    }
 
     // ── 2. 캡처용 스타일 삽입 ──
     const styleEl = document.createElement('style');
@@ -2883,8 +2905,9 @@ async function copyCertImage(btn) {
     replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
     flexRestores.forEach(({ flexDiv, origStyle, capDivs }) => {
       flexDiv.setAttribute('style', origStyle);
-      capDivs.forEach(div => { div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
+      capDivs.forEach(div => { div.style.display = ''; div.style.width = ''; div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
     });
+    hiddenCondCells.forEach(el => { el.style.display = ''; });
     splitRestores.forEach(item => {
       if (item.cleanup) { item.cleanup(); return; }
       const { td, newCells, parent, nextSib } = item;
