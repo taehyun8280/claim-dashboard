@@ -822,6 +822,7 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -1255,6 +1256,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.database();
+const fbStorage = firebase.storage();
 
 function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
@@ -1319,6 +1321,44 @@ async function idbLoadCertImgs(no, rows) {
     r.img ? Promise.resolve(r.img) : idbGet(no + '_' + i)
   ));
   return (rows||[]).map((r, i) => ({ ...r, img: imgs[i] || '' }));
+}
+
+// Firebase Storage에 base64 이미지 업로드 → 다운로드 URL 반환
+async function fbUploadImg(no, rowIdx, photoIdx, base64DataUrl) {
+  if (!base64DataUrl) return null;
+  try {
+    const path = `cert-imgs/${no}/${rowIdx}_${photoIdx}.jpg`;
+    const ref = fbStorage.ref(path);
+    await ref.putString(base64DataUrl, 'data_url');
+    return await ref.getDownloadURL();
+  } catch(e) {
+    console.warn('Storage 업로드 실패:', e);
+    return null;
+  }
+}
+
+// cert의 모든 이미지를 Firebase Storage에 업로드 → rows에 URL 추가
+async function fbUploadCertImgs(no, rows) {
+  return await Promise.all((rows||[]).map(async (r, i) => {
+    const pc = r.photoCount || 1;
+    const updated = {...r};
+    if (pc > 1) {
+      await Promise.all(Array.from({length: pc}, async (_, pi) => {
+        const img = r['img'+(pi+1)] || (pi===0 ? r.img : '');
+        if (img && img.startsWith('data:')) {
+          const url = await fbUploadImg(no, i, pi, img);
+          if (url) updated['imgUrl'+(pi+1)] = url;
+        }
+      }));
+      updated.imgUrl = updated['imgUrl1'] || '';
+    } else {
+      if (r.img && r.img.startsWith('data:')) {
+        const url = await fbUploadImg(no, i, 0, r.img);
+        if (url) { updated.imgUrl = url; updated.imgUrl1 = url; }
+      }
+    }
+    return updated;
+  }));
 }
 
 // cert 행 텍스트 데이터를 IDB에 저장
@@ -1798,10 +1838,18 @@ function saveCert() {
   const idx = certificates.findIndex(c=>c.no===no);
   const isNew = idx < 0;
 
-  // IDB에 이미지 + 행 텍스트 저장
-  Promise.all([idbSaveCertImgs(no, rows), idbSaveRowsText(no, rows)]).then(() => {
-    // 이미지 제거한 슬림 버전을 certificates에 보관
-    const slimRows = rows.map(r => { const s={...r,img:''}; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
+  // IDB 저장 + Firebase Storage 업로드 병렬 처리
+  Promise.all([
+    idbSaveCertImgs(no, rows),
+    idbSaveRowsText(no, rows),
+    fbUploadCertImgs(no, rows)
+  ]).then(([,, rowsWithUrls]) => {
+    // imgUrl* 을 slimRows에 포함 (base64 제외)
+    const slimRows = (rowsWithUrls||rows).map(r => {
+      const s = {...r, img: ''};
+      for (let pi = 1; pi <= 10; pi++) delete s['img'+pi];
+      return s;
+    });
     const slimCert = {...cert, rows: slimRows};
     if (idx >= 0) certificates[idx] = slimCert;
     else certificates.push(slimCert);
@@ -1861,13 +1909,38 @@ function renderCertList(filter='') {
     </tr>`;
   }).join('');
 
-  // IDB에서 각 성적서의 사진 비동기 로드 후 셀 업데이트
+  // 사진 썸네일: Firebase Storage URL 우선, 없으면 IDB 폴백
   list.forEach(c => {
     const rows = c.rows || [];
     const rowCount = rows.length || 20;
     const cell = document.getElementById('cert-img-cell-' + c.no);
     if (!cell) return;
-    // 단일 키(no_i)와 멀티 키(no_i_pi) 모두 조회
+
+    // Firebase Storage URL이 있는 이미지 먼저 수집
+    window.__listImgCache = window.__listImgCache || {};
+    const urlImgs = [];
+    for (let i = 0; i < rowCount; i++) {
+      const r = rows[i] || {};
+      const pc = r.photoCount || 1;
+      if (pc > 1) {
+        for (let pi = 0; pi < pc; pi++) {
+          const url = r['imgUrl'+(pi+1)] || (pi===0 ? r.imgUrl : '');
+          if (url) { const k = c.no+'_'+i+'_'+pi; window.__listImgCache[k]=url; urlImgs.push({img:url,key:k}); }
+        }
+      } else {
+        const url = r.imgUrl;
+        if (url) { const k = c.no+'_'+i; window.__listImgCache[k]=url; urlImgs.push({img:url,key:k}); }
+      }
+    }
+
+    if (urlImgs.length > 0) {
+      cell.innerHTML = urlImgs.map(({img,key}) =>
+        `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
+      ).join('');
+      return;
+    }
+
+    // URL 없으면 IDB 폴백
     const keys = [];
     for (let i = 0; i < rowCount; i++) {
       const pc = (rows[i] && rows[i].photoCount) || 1;
@@ -1880,7 +1953,6 @@ function renderCertList(filter='') {
     Promise.all(keys.map(k => idbGet(k))).then(imgs => {
       const found = imgs.map((img, idx) => ({img, key: keys[idx]})).filter(x => x.img);
       if (!found.length) return;
-      window.__listImgCache = window.__listImgCache || {};
       found.forEach(({img, key}) => { window.__listImgCache[key] = img; });
       cell.innerHTML = found.map(({img, key}) =>
         `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
@@ -1985,10 +2057,13 @@ async function loadCert(no) {
         if (el) el.value = r.result || '';
       }
       tr.querySelector('[data-field="note"]').value = r.note||'';
-      // IDB에서 이미지 비동기 로드
+      // 이미지 로드: Firebase Storage URL 우선, 없으면 IDB 폴백
       const allLoadDrops = [...tr.querySelectorAll('.img-drop')];
       if (allLoadDrops.length > 1) {
         allLoadDrops.forEach((d, pi) => {
+          const urlKey = 'imgUrl' + (pi+1);
+          const storageUrl = r[urlKey] || (pi===0 ? r.imgUrl : '');
+          if (storageUrl) { setImgDrop(d, storageUrl); return; }
           idbGet(no + '_' + i + '_' + pi).then(img => {
             if (!img) idbGet(no + '_' + i).then(img2 => { if (img2 && pi===0) setImgDrop(d, img2); });
             else setImgDrop(d, img);
@@ -1996,7 +2071,8 @@ async function loadCert(no) {
         });
       } else if (allLoadDrops[0]) {
         const d = allLoadDrops[0];
-        idbGet(no + '_' + i).then(img => { if (img) setImgDrop(d, img); });
+        if (r.imgUrl) { setImgDrop(d, r.imgUrl); }
+        else idbGet(no + '_' + i).then(img => { if (img) setImgDrop(d, img); });
       }
     });
   }
