@@ -1874,12 +1874,14 @@ function loadCert(no) {
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
+      const toArr = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
       const fillFields = (base, arr, fallback) => {
-        if (arr && arr.length > 1) {
-          arr.forEach((v, i) => { const el = tr.querySelector(`[data-field="${base}${i+1}"]`); if (el) el.value = v; });
+        const a = toArr(arr);
+        if (a.length > 1) {
+          a.forEach((v, i) => { const el = tr.querySelector(`[data-field="${base}${i+1}"]`); if (el) el.value = v; });
         } else {
           const el = tr.querySelector(`[data-field="${base}"]`) || tr.querySelector(`[data-field="${base}1"]`);
-          if (el) el.value = (arr && arr[0]) || fallback || '';
+          if (el) el.value = (a[0]) || fallback || '';
         }
       };
       fillFields('item', r.items, r.item);
