@@ -2534,23 +2534,60 @@ function makeImgCell(rc, pi) {
   return td;
 }
 
-function _buildPhotoTh(n, rowspan) {
-  const rs = rowspan && rowspan > 1 ? ` rowspan="${rowspan}"` : '';
-  const w = n === 1 ? ' style="width:180px;"' : ` colspan="${n}"`;
-  return `<th${rs}${w}>시험사진</th>`;
+// 헤더 통합 재생성 — splitResultCount, photoColCount 둘 다 반영
+function rebuildThead() {
+  const thead = document.getElementById('result-thead');
+  const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
+  const needTwoRows = splitResultCount > 1 || photoColCount > 1;
+
+  if (needTwoRows) {
+    // 결과 서브 th
+    const resultLabelThs = splitResultCount > 1
+      ? Array.from({length:splitResultCount}, (_,i) =>
+          `<th><input id="result-label${i+1}" placeholder="구분${i+1}" style="${inStyle}font-weight:bold;"></th>`
+        ).join('')
+      : '';
+    // 사진 서브 th (빈 칸 n개로 시각 분리)
+    const photoSubThs = photoColCount > 1
+      ? Array.from({length:photoColCount}, () => `<th style="min-width:160px;"></th>`).join('')
+      : '';
+
+    const resultRow1 = splitResultCount > 1
+      ? `<th colspan="${splitResultCount}" id="result-th">결과</th>`
+      : `<th rowspan="2" id="result-th">결과</th>`;
+    const photoRow1 = photoColCount > 1
+      ? `<th colspan="${photoColCount}">시험사진</th>`
+      : `<th rowspan="2" style="width:180px;">시험사진</th>`;
+
+    thead.innerHTML = `
+      <tr>
+        <th rowspan="2" style="width:40px;">No</th>
+        <th rowspan="2">시험</th>
+        <th rowspan="2">기준</th>
+        <th rowspan="2">조건</th>
+        ${resultRow1}
+        ${photoRow1}
+        <th rowspan="2">비고</th>
+      </tr>
+      <tr>${resultLabelThs}${photoSubThs}</tr>`;
+  } else {
+    thead.innerHTML = `
+      <tr>
+        <th style="width:40px;">No</th>
+        <th>시험</th>
+        <th>기준</th>
+        <th>조건</th>
+        <th id="result-th" colspan="1">결과</th>
+        <th style="width:180px;">시험사진</th>
+        <th>비고</th>
+      </tr>`;
+  }
 }
 
 function setPhotoCount(n) {
   n = parseInt(n) || 1;
   photoColCount = n;
-  // 헤더 시험사진 th colspan 업데이트
-  const thead = document.getElementById('result-thead');
-  thead.querySelectorAll('th').forEach(th => {
-    if (th.textContent.trim() === '시험사진') {
-      th.colSpan = n;
-      th.style.width = n === 1 ? '180px' : '';
-    }
-  });
+  rebuildThead();
   // 기존 행 photo 칸 동기화
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
     const imgCells = Array.from(tr.querySelectorAll('td.img-cell'));
@@ -2584,23 +2621,9 @@ function setSplitCount(n) {
   n = parseInt(n) || 1;
   splitResultCount = n;
   const rcs = document.getElementById('result-col-select'); if (rcs) rcs.value = String(n);
-  const thead = document.getElementById('result-thead');
   const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
+  rebuildThead();
   if (n > 1) {
-    const labelThs = Array.from({length:n}, (_,i) =>
-      `<th><input id="result-label${i+1}" placeholder="구분${i+1}" style="${inStyle}font-weight:bold;"></th>`
-    ).join('');
-    thead.innerHTML = `
-      <tr>
-        <th rowspan="2" style="width:40px;">No</th>
-        <th rowspan="2">시험</th>
-        <th rowspan="2">기준</th>
-        <th rowspan="2">조건</th>
-        <th colspan="${n}" id="result-th">결과</th>
-        ${_buildPhotoTh(photoColCount, 2)}
-        <th rowspan="2">비고</th>
-      </tr>
-      <tr>${labelThs}</tr>`;
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const td = tr.querySelector('td[data-result-cell]');
       if (!td) return;
@@ -2610,16 +2633,6 @@ function setSplitCount(n) {
       td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${inStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
     });
   } else {
-    thead.innerHTML = `
-      <tr>
-        <th style="width:40px;">No</th>
-        <th>시험</th>
-        <th>기준</th>
-        <th>조건</th>
-        <th id="result-th" colspan="1">결과</th>
-        ${_buildPhotoTh(photoColCount, 1)}
-        <th>비고</th>
-      </tr>`;
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const td = tr.querySelector('td[data-result-cell]');
       if (!td) return;
