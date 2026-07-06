@@ -1535,11 +1535,9 @@ function addResultRow() {
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
     <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea>`}</td>
     <td style="padding:0;">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
-    <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${specRowCount > 1
-      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="specresult${i+1}" placeholder="결과" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
-      : splitResultCount > 1
-        ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
-        : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
+    <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${splitResultCount > 1
+      ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
+      : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
     }</td>
     ${Array.from({length:photoColCount},(_,pi)=>`<td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
@@ -1757,7 +1755,6 @@ function saveCert() {
         ...getFlatFields('cond'),
         result: tr.querySelector('[data-field="result"]')?.value || tr.querySelector('[data-field="result1"]')?.value || tr.querySelector('[data-field="specresult1"]')?.value || '',
         results: Array.from({length: splitResultCount}, (_,i) => tr.querySelector(`[data-field="result${i+1}"]`)?.value || tr.querySelector('[data-field="result"]')?.value || ''),
-        specresults: srCount > 0 ? Array.from({length: srCount}, (_,i) => tr.querySelector(`[data-field="specresult${i+1}"]`)?.value || '') : null,
         img: drop ? getDropImg(drop) : '',
         photoCount: allDrops.length,
         ...Object.fromEntries(allDrops.map((d, pi) => ['img'+(pi+1), getDropImg(d)])),
@@ -1984,23 +1981,15 @@ async function loadCert(no) {
       fillFlatFields('item', itemRowCount);
       fillFlatFields('spec', specRowCount);
       fillFlatFields('cond', condRowCount);
-      if (specRowCount > 1 && r.specresults) {
-        const _toArr2 = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
-        _toArr2(r.specresults).forEach((rv, ri) => {
-          const el = tr.querySelector(`[data-field="specresult${ri+1}"]`);
-          if (el) el.value = rv;
-        });
-      } else {
-        const savedResults = r.results || [r.result||'', r.result2||''];
-        savedResults.forEach((rv, ri) => {
-          const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
-          const el = tr.querySelector(`[data-field="${key}"]`);
-          if (el) el.value = rv;
-        });
-        if (!splitResultCount || splitResultCount <= 1) {
-          const el = tr.querySelector('[data-field="result"]');
-          if (el) el.value = r.result || '';
-        }
+      const savedResults = r.results || [r.result||'', r.result2||''];
+      savedResults.forEach((rv, ri) => {
+        const key = splitResultCount > 1 ? `result${ri+1}` : 'result';
+        const el = tr.querySelector(`[data-field="${key}"]`);
+        if (el) el.value = rv;
+      });
+      if (!splitResultCount || splitResultCount <= 1) {
+        const el = tr.querySelector('[data-field="result"]');
+        if (el) el.value = r.result || '';
       }
       tr.querySelector('[data-field="note"]').value = r.note||'';
       // IDB에서 이미지 비동기 로드
@@ -2415,13 +2404,6 @@ function setSpecRowCount(n) {
     td.innerHTML = n > 1
       ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
       : `<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용">${prev[0]||''}</textarea>`;
-    // 결과칸도 기준칸 수에 맞춰 세로 분할
-    const resultTd = tr.querySelector('td[data-result-cell]'); if (!resultTd) return;
-    const prevR = Array.from(resultTd.querySelectorAll('textarea')).map(t => t.value);
-    resultTd.style.padding = '0';
-    resultTd.innerHTML = n > 1
-      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="specresult${i+1}" placeholder="결과" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;text-align:center;">${prevR[i]||''}</textarea>`).join('')}</div>`
-      : `<textarea data-field="result" style="${taStyle}" placeholder="결과" style="text-align:center;">${prevR[0]||''}</textarea>`;
   });
   const sel = document.getElementById('spec-row-select'); if (sel) sel.value = String(n);
 }
