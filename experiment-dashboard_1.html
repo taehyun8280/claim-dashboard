@@ -822,7 +822,6 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -1256,7 +1255,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.database();
-const fbStorage = firebase.storage();
 
 function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
@@ -1323,82 +1321,62 @@ async function idbLoadCertImgs(no, rows) {
   return (rows||[]).map((r, i) => ({ ...r, img: imgs[i] || '' }));
 }
 
-// Firebase Storage에 base64 이미지 업로드 → 다운로드 URL 반환
-async function fbUploadImg(no, rowIdx, photoIdx, base64DataUrl) {
-  if (!base64DataUrl) return null;
-  try {
-    const path = `cert-imgs/${no}/${rowIdx}_${photoIdx}.jpg`;
-    const ref = fbStorage.ref(path);
-    await ref.putString(base64DataUrl, 'data_url');
-    return await ref.getDownloadURL();
-  } catch(e) {
-    console.warn('Storage 업로드 실패:', e);
-    return null;
-  }
-}
-
-// cert의 모든 이미지를 Firebase Storage에 업로드 → rows에 URL 추가
-async function fbUploadCertImgs(no, rows) {
-  return await Promise.all((rows||[]).map(async (r, i) => {
+// Firebase DB에 cert 이미지 저장 (cert_imgs/{no})
+async function fbSaveCertImgs(no, rows) {
+  const imgRows = (rows||[]).map(r => {
     const pc = r.photoCount || 1;
-    const updated = {...r};
+    const obj = { photoCount: pc };
     if (pc > 1) {
-      await Promise.all(Array.from({length: pc}, async (_, pi) => {
-        const img = r['img'+(pi+1)] || (pi===0 ? r.img : '');
-        if (img && img.startsWith('data:')) {
-          const url = await fbUploadImg(no, i, pi, img);
-          if (url) updated['imgUrl'+(pi+1)] = url;
-        }
-      }));
-      updated.imgUrl = updated['imgUrl1'] || '';
-    } else {
-      if (r.img && r.img.startsWith('data:')) {
-        const url = await fbUploadImg(no, i, 0, r.img);
-        if (url) { updated.imgUrl = url; updated.imgUrl1 = url; }
+      for (let pi = 1; pi <= pc; pi++) {
+        const v = r['img'+pi] || (pi===1 ? r.img : '');
+        if (v) obj['img'+pi] = v;
       }
+      obj.img = obj.img1 || '';
+    } else {
+      if (r.img) obj.img = r.img;
     }
-    return updated;
-  }));
+    return obj;
+  });
+  await fbDb.ref('cert_imgs/' + no).set(imgRows);
 }
 
-// 기존 IDB 이미지 → Firebase Storage 일괄 마이그레이션
-async function migrateImagesToStorage() {
-  if (window.__imgMigrationDone || window.__imgMigrationRunning) return;
-  window.__imgMigrationRunning = true;
+// Firebase DB에서 cert 이미지 로드
+function fbLoadCertImgs(no) {
+  return new Promise(resolve => {
+    fbDb.ref('cert_imgs/' + no).once('value', snap => resolve(snap.val() || null));
+  });
+}
+
+// 기존 IDB 이미지 → Firebase DB 일괄 마이그레이션
+async function migrateImagesToFirebaseDB() {
+  if (window.__fbImgMigrationDone || window.__fbImgMigrationRunning) return;
+  window.__fbImgMigrationRunning = true;
   let migrated = 0;
-  let anyUpdated = false;
   for (const cert of certificates) {
     const rows = cert.rows || [];
-    let certUpdated = false;
+    const imgRows = [];
+    let anyImg = false;
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
       const pc = r.photoCount || 1;
+      const obj = { photoCount: pc };
       if (pc > 1) {
         for (let pi = 0; pi < pc; pi++) {
-          const urlKey = 'imgUrl' + (pi+1);
-          if (r[urlKey]) continue;
           const img = await idbGet(cert.no + '_' + i + '_' + pi);
-          if (!img) continue;
-          const url = await fbUploadImg(cert.no, i, pi, img);
-          if (url) { r[urlKey] = url; if (pi===0) r.imgUrl = url; certUpdated = true; migrated++; }
+          if (img) { obj['img'+(pi+1)] = img; anyImg = true; migrated++; }
         }
+        obj.img = obj.img1 || '';
       } else {
-        if (r.imgUrl) continue;
         const img = await idbGet(cert.no + '_' + i);
-        if (!img) continue;
-        const url = await fbUploadImg(cert.no, i, 0, img);
-        if (url) { r.imgUrl = url; r.imgUrl1 = url; certUpdated = true; migrated++; }
+        if (img) { obj.img = img; anyImg = true; migrated++; }
       }
+      imgRows.push(obj);
     }
-    if (certUpdated) anyUpdated = true;
+    if (anyImg) await fbDb.ref('cert_imgs/' + cert.no).set(imgRows);
   }
-  if (anyUpdated) {
-    fbSaveCertificates();
-    renderCertList();
-    showToast(`기존 사진 ${migrated}장을 클라우드에 업로드 완료했습니다.`);
-  }
-  window.__imgMigrationDone = true;
-  window.__imgMigrationRunning = false;
+  if (migrated > 0) showToast(`기존 사진 ${migrated}장을 클라우드에 동기화 완료했습니다.`);
+  window.__fbImgMigrationDone = true;
+  window.__fbImgMigrationRunning = false;
 }
 
 // cert 행 텍스트 데이터를 IDB에 저장
@@ -1486,8 +1464,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
       try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
       renderCertList();
-      // 기존 IDB 이미지를 Firebase Storage로 1회 마이그레이션
-      if (!window.__imgMigrationDone) migrateImagesToStorage();
+      // 기존 IDB 이미지를 Firebase DB로 1회 마이그레이션
+      if (!window.__fbImgMigrationDone) migrateImagesToFirebaseDB();
     } catch(e) { console.error('cert listener error:', e); }
   });
 });
@@ -1684,7 +1662,7 @@ function handleImgPaste(e, drop) {
         setImgDrop(drop, rawUrl);
         drop._pasting = false;
         // 백그라운드 압축 후 맵·화면 업데이트
-        compressImage(rawUrl, 1200, 1200, 0.75, compressed => {
+        compressImage(rawUrl, 800, 800, 0.5, compressed => {
           setImgDrop(drop, compressed);
         });
       };
@@ -1880,14 +1858,13 @@ function saveCert() {
   const idx = certificates.findIndex(c=>c.no===no);
   const isNew = idx < 0;
 
-  // IDB 저장 + Firebase Storage 업로드 병렬 처리
+  // IDB 저장 + Firebase DB 이미지 저장 병렬 처리
   Promise.all([
     idbSaveCertImgs(no, rows),
     idbSaveRowsText(no, rows),
-    fbUploadCertImgs(no, rows)
-  ]).then(([,, rowsWithUrls]) => {
-    // imgUrl* 을 slimRows에 포함 (base64 제외)
-    const slimRows = (rowsWithUrls||rows).map(r => {
+    fbSaveCertImgs(no, rows)
+  ]).then(() => {
+    const slimRows = rows.map(r => {
       const s = {...r, img: ''};
       for (let pi = 1; pi <= 10; pi++) delete s['img'+pi];
       return s;
@@ -1951,54 +1928,52 @@ function renderCertList(filter='') {
     </tr>`;
   }).join('');
 
-  // 사진 썸네일: Firebase Storage URL 우선, 없으면 IDB 폴백
+  // 사진 썸네일: Firebase DB 우선, 없으면 IDB 폴백
   list.forEach(c => {
     const rows = c.rows || [];
     const rowCount = rows.length || 20;
     const cell = document.getElementById('cert-img-cell-' + c.no);
     if (!cell) return;
-
-    // Firebase Storage URL이 있는 이미지 먼저 수집
     window.__listImgCache = window.__listImgCache || {};
-    const urlImgs = [];
-    for (let i = 0; i < rowCount; i++) {
-      const r = rows[i] || {};
-      const pc = r.photoCount || 1;
-      if (pc > 1) {
-        for (let pi = 0; pi < pc; pi++) {
-          const url = r['imgUrl'+(pi+1)] || (pi===0 ? r.imgUrl : '');
-          if (url) { const k = c.no+'_'+i+'_'+pi; window.__listImgCache[k]=url; urlImgs.push({img:url,key:k}); }
-        }
-      } else {
-        const url = r.imgUrl;
-        if (url) { const k = c.no+'_'+i; window.__listImgCache[k]=url; urlImgs.push({img:url,key:k}); }
-      }
-    }
 
-    if (urlImgs.length > 0) {
-      cell.innerHTML = urlImgs.map(({img,key}) =>
-        `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
-      ).join('');
-      return;
-    }
-
-    // URL 없으면 IDB 폴백
-    const keys = [];
-    for (let i = 0; i < rowCount; i++) {
-      const pc = (rows[i] && rows[i].photoCount) || 1;
-      if (pc > 1) {
-        for (let pi = 0; pi < pc; pi++) keys.push(c.no + '_' + i + '_' + pi);
-      } else {
-        keys.push(c.no + '_' + i);
+    // Firebase DB에서 이미지 로드
+    fbLoadCertImgs(c.no).then(fbImgRows => {
+      const found = [];
+      if (fbImgRows && fbImgRows.length) {
+        fbImgRows.forEach((fr, i) => {
+          if (!fr) return;
+          const pc = fr.photoCount || 1;
+          if (pc > 1) {
+            for (let pi = 1; pi <= pc; pi++) {
+              const img = fr['img'+pi] || (pi===1 ? fr.img : '');
+              if (img) { const k = c.no+'_'+i+'_'+(pi-1); window.__listImgCache[k]=img; found.push({img,key:k}); }
+            }
+          } else if (fr.img) {
+            const k = c.no+'_'+i; window.__listImgCache[k]=fr.img; found.push({img:fr.img,key:k});
+          }
+        });
       }
-    }
-    Promise.all(keys.map(k => idbGet(k))).then(imgs => {
-      const found = imgs.map((img, idx) => ({img, key: keys[idx]})).filter(x => x.img);
-      if (!found.length) return;
-      found.forEach(({img, key}) => { window.__listImgCache[key] = img; });
-      cell.innerHTML = found.map(({img, key}) =>
-        `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
-      ).join('');
+      if (found.length) {
+        cell.innerHTML = found.map(({img,key}) =>
+          `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
+        ).join('');
+        return;
+      }
+      // Firebase DB에 없으면 IDB 폴백
+      const keys = [];
+      for (let i = 0; i < rowCount; i++) {
+        const pc = (rows[i] && rows[i].photoCount) || 1;
+        if (pc > 1) { for (let pi = 0; pi < pc; pi++) keys.push(c.no+'_'+i+'_'+pi); }
+        else keys.push(c.no+'_'+i);
+      }
+      Promise.all(keys.map(k => idbGet(k))).then(imgs => {
+        const idbFound = imgs.map((img,idx) => ({img,key:keys[idx]})).filter(x => x.img);
+        if (!idbFound.length) return;
+        idbFound.forEach(({img,key}) => { window.__listImgCache[key]=img; });
+        cell.innerHTML = idbFound.map(({img,key}) =>
+          `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
+        ).join('');
+      });
     });
   });
 }
@@ -2062,6 +2037,8 @@ async function loadCert(no) {
     }
     // setSplitCount이 thead를 재생성하므로 반드시 그 후에 setPhotoCount 호출
     if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
+    // Firebase DB 이미지 미리 로드 (await로 행 렌더 전에 확보)
+    window.__loadingFbImgRows = await fbLoadCertImgs(no) || [];
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
@@ -2099,13 +2076,13 @@ async function loadCert(no) {
         if (el) el.value = r.result || '';
       }
       tr.querySelector('[data-field="note"]').value = r.note||'';
-      // 이미지 로드: Firebase Storage URL 우선, 없으면 IDB 폴백
+      // 이미지 로드: Firebase DB 우선, 없으면 IDB 폴백 (fbImgRows는 아래서 세팅)
       const allLoadDrops = [...tr.querySelectorAll('.img-drop')];
+      const fbRow = (window.__loadingFbImgRows || [])[i] || {};
       if (allLoadDrops.length > 1) {
         allLoadDrops.forEach((d, pi) => {
-          const urlKey = 'imgUrl' + (pi+1);
-          const storageUrl = r[urlKey] || (pi===0 ? r.imgUrl : '');
-          if (storageUrl) { setImgDrop(d, storageUrl); return; }
+          const fbImg = fbRow['img'+(pi+1)] || (pi===0 ? fbRow.img : '');
+          if (fbImg) { setImgDrop(d, fbImg); return; }
           idbGet(no + '_' + i + '_' + pi).then(img => {
             if (!img) idbGet(no + '_' + i).then(img2 => { if (img2 && pi===0) setImgDrop(d, img2); });
             else setImgDrop(d, img);
@@ -2113,7 +2090,7 @@ async function loadCert(no) {
         });
       } else if (allLoadDrops[0]) {
         const d = allLoadDrops[0];
-        if (r.imgUrl) { setImgDrop(d, r.imgUrl); }
+        if (fbRow.img) { setImgDrop(d, fbRow.img); }
         else idbGet(no + '_' + i).then(img => { if (img) setImgDrop(d, img); });
       }
     });
