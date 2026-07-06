@@ -1335,7 +1335,8 @@ function fbSaveCertificates(allowEmpty = false) {
     return;
   }
   // cert_data: 이미지 제외 슬림 버전만 localStorage에 저장
-  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r=>({...r,img:''}))}));
+  const _stripImgs = r => { const s={...r,img:''}; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; };
+  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(_stripImgs)}));
   try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
   // Firebase에도 슬림 버전
   fbDb.ref('certificates').set(slim)
@@ -1775,7 +1776,7 @@ function saveCert() {
   // IDB에 이미지 저장 (비동기, 완료 후 토스트)
   idbSaveCertImgs(no, rows).then(() => {
     // 이미지 제거한 슬림 버전을 certificates에 보관
-    const slimRows = rows.map(r => ({...r, img: ''}));
+    const slimRows = rows.map(r => { const s={...r,img:''}; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
     const slimCert = {...cert, rows: slimRows};
     if (idx >= 0) certificates[idx] = slimCert;
     else certificates.push(slimCert);
@@ -1887,7 +1888,6 @@ function loadCert(no) {
     });
   } else {
     resetToSimpleTable();
-    if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
     const getRowCount = (base) => {
       for (const r of renderRows) {
@@ -1910,6 +1910,8 @@ function loadCert(no) {
         });
       }
     }
+    // setSplitCount이 thead를 재생성하므로 반드시 그 후에 setPhotoCount 호출
+    if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
