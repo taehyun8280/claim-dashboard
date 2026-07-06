@@ -2538,16 +2538,21 @@ function makeImgCell(rc, pi) {
 function rebuildThead() {
   const thead = document.getElementById('result-thead');
   const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
+
+  // 기존 라벨 값 보존
+  const prevResultLabels = Array.from({length:splitResultCount}, (_,i) =>
+    document.getElementById('result-label'+(i+1))?.value || '');
+  const prevPhotoLabels = Array.from({length:photoColCount}, (_,i) =>
+    document.getElementById('photo-label'+(i+1))?.value || '');
+
   const needTwoRows = splitResultCount > 1 || photoColCount > 1;
 
   if (needTwoRows) {
-    // 결과 서브 th
     const resultLabelThs = splitResultCount > 1
       ? Array.from({length:splitResultCount}, (_,i) =>
           `<th><input id="result-label${i+1}" placeholder="구분${i+1}" style="${inStyle}font-weight:bold;"></th>`
         ).join('')
       : '';
-    // 사진 서브 th (결과칸처럼 라벨 입력 칸)
     const photoSubThs = photoColCount > 1
       ? Array.from({length:photoColCount}, (_,i) =>
           `<th style="min-width:160px;"><input id="photo-label${i+1}" placeholder="사진${i+1}" style="${inStyle}font-weight:bold;"></th>`
@@ -2584,6 +2589,10 @@ function rebuildThead() {
         <th>비고</th>
       </tr>`;
   }
+
+  // 라벨 값 복원
+  prevResultLabels.forEach((v,i) => { if (v) { const el = document.getElementById('result-label'+(i+1)); if (el) el.value = v; } });
+  prevPhotoLabels.forEach((v,i) => { if (v) { const el = document.getElementById('photo-label'+(i+1)); if (el) el.value = v; } });
 }
 
 function setPhotoCount(n) {
