@@ -1795,7 +1795,15 @@ function saveCert() {
 
     fbSaveCertificates();
     renderCertList();
-    showToast(isNew ? `성적서가 저장되었습니다. (사진 ${rows.filter(r=>r.img).length}장)` : `성적서가 수정되었습니다. (사진 ${rows.filter(r=>r.img).length}장)`);
+    const totalImgs = rows.reduce((sum, r) => {
+      const pc = r.photoCount || 1;
+      for (let pi = 0; pi < pc; pi++) {
+        const v = r['img'+(pi+1)] || (pi===0 ? r.img : '');
+        if (v) sum++;
+      }
+      return sum;
+    }, 0);
+    showToast(isNew ? `성적서가 저장되었습니다. (사진 ${totalImgs}장)` : `성적서가 수정되었습니다. (사진 ${totalImgs}장)`);
   }).catch(e => {
     showToast('이미지 저장 오류: ' + e.message);
   });
@@ -1842,17 +1850,27 @@ function renderCertList(filter='') {
 
   // IDB에서 각 성적서의 사진 비동기 로드 후 셀 업데이트
   list.forEach(c => {
-    const rowCount = (c.rows || []).length || 20;
+    const rows = c.rows || [];
+    const rowCount = rows.length || 20;
     const cell = document.getElementById('cert-img-cell-' + c.no);
     if (!cell) return;
-    const promises = Array.from({length: rowCount}, (_, i) => idbGet(c.no + '_' + i));
-    Promise.all(promises).then(imgs => {
-      const found = imgs.filter(Boolean);
+    // 단일 키(no_i)와 멀티 키(no_i_pi) 모두 조회
+    const keys = [];
+    for (let i = 0; i < rowCount; i++) {
+      const pc = (rows[i] && rows[i].photoCount) || 1;
+      if (pc > 1) {
+        for (let pi = 0; pi < pc; pi++) keys.push(c.no + '_' + i + '_' + pi);
+      } else {
+        keys.push(c.no + '_' + i);
+      }
+    }
+    Promise.all(keys.map(k => idbGet(k))).then(imgs => {
+      const found = imgs.map((img, idx) => ({img, key: keys[idx]})).filter(x => x.img);
       if (!found.length) return;
       window.__listImgCache = window.__listImgCache || {};
-      found.forEach((img, i) => { window.__listImgCache[c.no + '_' + i] = img; });
-      cell.innerHTML = found.map((img, i) =>
-        `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal(window.__listImgCache['${c.no}_${i}'])">`
+      found.forEach(({img, key}) => { window.__listImgCache[key] = img; });
+      cell.innerHTML = found.map(({img, key}) =>
+        `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" ondblclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
       ).join('');
     });
   });
