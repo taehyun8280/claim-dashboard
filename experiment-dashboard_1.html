@@ -1905,16 +1905,21 @@ async function loadCert(no) {
     resetToSimpleTable();
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
     const getRowCount = (base) => {
+      // 1순위: cert 오브젝트에 직접 저장된 값
+      if (raw[`${base}RowCount`] && raw[`${base}RowCount`] > 1) return raw[`${base}RowCount`];
+      // 2순위: 행 데이터에서 감지
       for (const r of renderRows) {
-        const c = r[`${base}Count`] || raw[`${base}RowCount`] || 1;
+        const c = parseInt(r[`${base}Count`]) || 0;
         if (c > 1) return c;
-        // flat field 감지: spec2, cond2 등이 있으면
         if (r[`${base}2`] !== undefined && r[`${base}2`] !== '') return 2;
       }
-      return raw[`${base}RowCount`] || 1;
+      return 1;
     };
-    setSpecRowCount(getRowCount('spec'));
-    setCondRowCount(getRowCount('cond'));
+    const detectedSpec = getRowCount('spec');
+    const detectedCond = getRowCount('cond');
+    console.log('[loadCert] specRowCount:', raw.specRowCount, '→ detected:', detectedSpec, '| condRowCount:', raw.condRowCount, '→ detected:', detectedCond, '| renderRows[0]:', renderRows[0]);
+    setSpecRowCount(detectedSpec);
+    setCondRowCount(detectedCond);
     const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
