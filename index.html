@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>품질 고객클레임 대시보드</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>품질 고객클레임 대시보드</h1>
+        <p id="dataStatus" hidden></p>
+      </div>
+      <div class="header-actions">
+        <button id="openDataInsert" class="insert-button" type="button">데이터 삽입</button>
+        <button id="toggleFileCards" class="insert-button secondary" type="button">데이터 삭제</button>
+        <input id="dashboardFile" type="file" accept=".json" hidden />
+        <input id="imageFiles" type="file" accept="image/*,video/*" multiple hidden />
+      </div>
+    </header>
+
+    <main>
+      <section class="file-panel" aria-label="업로드 자료 관리">
+        <div id="fileCards" class="file-cards"></div>
+      </section>
+
+      <nav class="dashboard-tabs" aria-label="대시보드 화면 선택">
+        <button class="dashboard-tab active" type="button" data-dashboard-tab="daily">일일접수현황</button>
+        <button class="dashboard-tab" type="button" data-dashboard-tab="weekly">주하자현황</button>
+        <button class="dashboard-tab" type="button" data-dashboard-tab="monthDefect">월하자현황</button>
+        <button class="dashboard-tab" type="button" data-dashboard-tab="claimAccum">클레임누적현황</button>
+      </nav>
+
+      <section id="dailyDashboardPanel" class="dashboard-panel active" data-dashboard-panel="daily">
+        <div class="dashboard-group-body">
+
+          <section class="sheet-section daily-receipt-section">
+            <div class="section-title-row">
+              <div class="section-title blue">일접수현황</div>
+              <div class="section-controls" aria-label="일접수현황 기간 선택">
+                <label>년도 <select id="dailyYearSelect" autocomplete="off"></select></label>
+                <label>월 <select id="dailyMonthSelect" autocomplete="off"></select></label>
+                <label>주 <select id="dailyWeekSelect" autocomplete="off"></select></label>
+              </div>
+            </div>
+            <div id="dailyReceiptCards" class="daily-receipt-cards" aria-live="polite"></div>
+          </section>
+
+          <section class="sheet-section">
+            <div class="section-title">
+              <span class="blue">고객클레임 접수현황</span>
+            </div>
+            <div class="table-wrap">
+              <table id="summaryTable" class="dashboard-table summary-table"></table>
+            </div>
+          </section>
+
+          <section class="sheet-section detail-section">
+            <div class="detail-title">
+              <span>고객클레임 접수 세부내역</span>
+              <select id="detailDateSelect" aria-label="세부내역 날짜 선택"></select>
+            </div>
+            <div class="table-wrap">
+              <table id="detailTable" class="dashboard-table detail-table"></table>
+            </div>
+          </section>
+
+          <section class="sheet-section quality-cost-section">
+            <button id="toggleCostSection" class="section-title-toggle blue" type="button" aria-expanded="false">> 품질 비용</button>
+            <div id="qualityCostBody" class="table-wrap is-hidden">
+              <table id="costTable" class="dashboard-table cost-table"></table>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="weeklyDashboardPanel" class="dashboard-panel" data-dashboard-panel="weekly">
+        <section class="sheet-section weekly-placeholder">
+          <div class="section-title-row">
+            <div class="section-title blue">주하자현황</div>
+            <div class="section-controls" aria-label="주하자현황 기간 선택">
+              <label>년도 <select id="weeklyYearSelect"></select></label>
+              <label>월 <select id="weeklyMonthSelect"></select></label>
+            </div>
+          </div>
+          <div id="weeklyDefectContent" class="weekly-empty"></div>
+        </section>
+      </section>
+
+      <section id="monthDefectDashboardPanel" class="dashboard-panel" data-dashboard-panel="monthDefect">
+        <section class="sheet-section weekly-placeholder">
+          <div class="section-title-row">
+            <div class="section-title blue">월하자현황</div>
+            <div class="section-controls" aria-label="월하자현황 기간 선택">
+              <label>년도 <select id="monthlyYearSelect"></select></label>
+            </div>
+          </div>
+          <div id="monthDefectContent" class="weekly-empty"></div>
+        </section>
+      </section>
+
+      <section id="claimAccumDashboardPanel" class="dashboard-panel" data-dashboard-panel="claimAccum">
+        <div id="defectCloseDashboardBody" class="dashboard-group-body">
+          <iframe
+            class="defect-close-frame"
+            src="/defect-close-dashboard/"
+            title="클레임누적현황"
+          ></iframe>
+        </div>
+      </section>
+    </main>
+
+    <template id="emptyState">
+      <tr>
+        <td class="empty-cell" colspan="20">업로드된 데이터가 없습니다.</td>
+      </tr>
+    </template>
+
+    <div id="dataInsertModal" class="modal" aria-hidden="true">
+      <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dataInsertTitle">
+        <div class="modal-head">
+          <h2 id="dataInsertTitle">데이터 삽입</h2>
+          <button id="closeDataInsert" type="button">닫기</button>
+        </div>
+        <div class="link-form">
+          <label>
+            <span>1. 기존데이터</span>
+            <input id="existingDataLink" type="url" placeholder="스프레드시트 링크를 붙여넣기" />
+            <small id="existingDataLinkStatus" class="link-status"></small>
+          </label>
+          <button id="loadExistingData" type="button">넣기</button>
+          <button id="clearExistingDataLink" type="button">지우기</button>
+
+          <label>
+            <span>2. 접수내역 (금월데이터)</span>
+            <input id="receiptDataLink" type="url" placeholder="스프레드시트 링크를 붙여넣기" />
+            <small id="receiptDataLinkStatus" class="link-status"></small>
+          </label>
+          <button id="loadReceiptData" type="button">넣기</button>
+          <button id="clearReceiptDataLink" type="button">지우기</button>
+
+          <label>
+            <span>3. 접수내역 (누적데이터)</span>
+            <input id="receiptHistoryDataLink" type="url" placeholder="스프레드시트 링크를 붙여넣기" />
+            <small id="receiptHistoryDataLinkStatus" class="link-status"></small>
+          </label>
+          <button id="loadReceiptHistoryData" type="button">넣기</button>
+          <button id="clearReceiptHistoryDataLink" type="button">지우기</button>
+
+          <label>
+            <span>4. 월간현황 자료</span>
+            <input id="monthlyStatusDataLink" type="url" placeholder="스프레드시트 링크를 붙여넣기" />
+            <small id="monthlyStatusDataLinkStatus" class="link-status"></small>
+          </label>
+          <button id="loadMonthlyStatusData" type="button">넣기</button>
+          <button id="clearMonthlyStatusDataLink" type="button">지우기</button>
+        </div>
+        <div id="linkedDataList" class="linked-data-list"></div>
+      </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script>window.__USE_EXTERNAL_DAILY_STABLE = true;</script>
+    <script src="./app.js?v=20260703-v23"></script>
+    <script src="./daily-stable-v23.js?v=20260706-v26"></script>
+    <script>
+      (function () {
+        if (location.hostname !== "127.0.0.1" && location.hostname !== "localhost") return;
+        try {
+          var es = new EventSource("/api/live-reload");
+          es.onmessage = function () { location.reload(); };
+        } catch (_) {}
+      })();
+    </script>
+  </body>
+</html>
