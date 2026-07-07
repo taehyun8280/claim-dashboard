@@ -1340,10 +1340,14 @@ async function fbSaveCertImgs(no, rows) {
   await fbDb.ref('cert_imgs/' + no).set(imgRows);
 }
 
-// Firebase DB에서 cert 이미지 로드
+// Firebase DB에서 cert 이미지 로드 (배열/객체 모두 처리)
 function fbLoadCertImgs(no) {
   return new Promise(resolve => {
-    fbDb.ref('cert_imgs/' + no).once('value', snap => resolve(snap.val() || null));
+    fbDb.ref('cert_imgs/' + no).once('value', snap => {
+      const val = snap.val();
+      if (!val) { resolve([]); return; }
+      resolve(Array.isArray(val) ? val : Object.values(val));
+    });
   });
 }
 
