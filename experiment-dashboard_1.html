@@ -2544,10 +2544,9 @@ function setCondRowCount(n) {
 function syncResultRowsToCondRows(tr, n, taStyle) {
   if (!taStyle) taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
   const rtd = tr.querySelector('td[data-result-cell]'); if (!rtd) return;
-  // 가로 분할 중이면 건드리지 않음
-  if (parseInt(rtd.colSpan) > 1) return;
   const prev = Array.from(rtd.querySelectorAll('textarea')).map(t => t.value);
   rtd.style.padding = '0';
+  rtd.colSpan = 1; // 세로 분할 시 가로 분할 해제
   if (n > 1) {
     rtd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
   } else {
