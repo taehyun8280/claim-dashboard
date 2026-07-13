@@ -1600,12 +1600,23 @@ function addResultRow() {
     <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
     <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea>`}</td>
     <td data-cond-cell style="padding:0;${condColHidden?'display:none;':''}">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
-    <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${splitResultCount > 1
-      ? `<div style="display:flex;height:100%;">${Array.from({length:splitResultCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitResultCount-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
-      : condRowCount > 1
-        ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`
-        : `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`
-    }</td>
+    <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${(() => {
+      const sN = splitResultCount || 1; const cN = condRowCount || 1;
+      if (cN > 1) {
+        const rows = Array.from({length:cN},(_,ci)=>{
+          const cols = Array.from({length:sN},(_,ri)=>{
+            const idx=ci*sN+ri;
+            return `<textarea data-field="result${idx+1}" placeholder="결과${idx+1}" style="${taStyle}${ri<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`;
+          }).join('');
+          return `<div style="display:flex;flex:1;${ci<cN-1?'border-bottom:1px solid var(--border);':''}">${cols}</div>`;
+        }).join('');
+        return `<div style="display:flex;flex-direction:column;height:100%;">${rows}</div>`;
+      } else if (sN > 1) {
+        return `<div style="display:flex;height:100%;">${Array.from({length:sN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`;
+      } else {
+        return `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`;
+      }
+    })()}</td>
     ${Array.from({length:photoColCount},(_,pi)=>`<td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
         style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
@@ -2074,17 +2085,17 @@ async function loadCert(no) {
       fillFlatFields('spec', rowSpecCount);
       fillFlatFields('cond', rowCondCount);
       const savedResults = r.results || [r.result||''];
-      // 결과칸 세로 분할 복원 (조건 또는 기준 행 수와 일치)
-      const autoSplitN = rowCondCount > 1 ? rowCondCount : rowSpecCount > 1 ? rowSpecCount : 1;
-      if (autoSplitN > 1 && splitResultCount <= 1) {
-        syncResultRowsToCondRows(tr, autoSplitN);
+      // 결과칸 그리드 복원 (조건행 × 결과열)
+      const autoCondN = rowCondCount > 1 ? rowCondCount : rowSpecCount > 1 ? rowSpecCount : 1;
+      if (autoCondN > 1) {
+        syncResultRowsToCondRows(tr, autoCondN);
       }
       savedResults.forEach((rv, ri) => {
-        const key = (splitResultCount > 1 || autoSplitN > 1) ? `result${ri+1}` : 'result';
+        const key = (splitResultCount > 1 || autoCondN > 1) ? `result${ri+1}` : 'result';
         const el = tr.querySelector(`[data-field="${key}"]`);
         if (el) el.value = rv;
       });
-      if (splitResultCount <= 1 && autoSplitN <= 1) {
+      if (splitResultCount <= 1 && autoCondN <= 1) {
         const el = tr.querySelector('[data-field="result"]');
         if (el) el.value = r.result || '';
       }
@@ -2541,14 +2552,27 @@ function setCondRowCount(n) {
   const sel = document.getElementById('cond-row-select'); if (sel) sel.value = String(n);
 }
 
-function syncResultRowsToCondRows(tr, n, taStyle) {
+function syncResultRowsToCondRows(tr, condN, taStyle) {
   if (!taStyle) taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
   const rtd = tr.querySelector('td[data-result-cell]'); if (!rtd) return;
+  const splitN = splitResultCount || 1;
   const prev = Array.from(rtd.querySelectorAll('textarea')).map(t => t.value);
   rtd.style.padding = '0';
-  rtd.colSpan = 1; // 세로 분할 시 가로 분할 해제
-  if (n > 1) {
-    rtd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
+  rtd.colSpan = splitN; // 결과 열 수만큼 colspan 유지
+  if (condN > 1) {
+    // 조건행 × 결과열 그리드: condN행, 각 행에 splitN개 열
+    const rows = Array.from({length: condN}, (_, ci) => {
+      const cols = Array.from({length: splitN}, (_, ri) => {
+        const idx = ci * splitN + ri;
+        const fieldName = (condN === 1 && splitN === 1) ? 'result' : `result${idx + 1}`;
+        return `<textarea data-field="${fieldName}" placeholder="결과${idx+1}" style="${taStyle}${ri < splitN-1 ? 'border-right:1px solid var(--border);' : ''}flex:1;text-align:center;">${prev[idx]||''}</textarea>`;
+      }).join('');
+      return `<div style="display:flex;flex:1;${ci < condN-1 ? 'border-bottom:1px solid var(--border);' : ''}">${cols}</div>`;
+    }).join('');
+    rtd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${rows}</div>`;
+  } else if (splitN > 1) {
+    // 조건1행 × 결과N열 (기존 가로 분할)
+    rtd.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:splitN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
   } else {
     rtd.innerHTML = `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;">${prev[0]||''}</textarea>`;
   }
