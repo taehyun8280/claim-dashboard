@@ -595,6 +595,11 @@
     border-color: var(--accent);
   }
   .field-select option { background: var(--surface2); }
+  [data-field="note"][contenteditable]:empty:before {
+    content: attr(data-placeholder);
+    color: var(--text3);
+    pointer-events: none;
+  }
   .field-textarea { resize: vertical; min-height: 80px; }
   /* datalist input — same arrow style as select */
   input[list].field-input {
@@ -1340,6 +1345,34 @@ async function fbSaveCertImgs(no, rows) {
   await fbDb.ref('cert_imgs/' + no).set(imgRows);
 }
 
+function handleNotePaste(e, el) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = document.createElement('img');
+        img.src = ev.target.result;
+        img.style.cssText = 'max-width:100%;max-height:150px;display:block;margin:3px 0;border-radius:4px;cursor:pointer;';
+        img.onclick = () => openImgModal(ev.target.result);
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          range.insertNode(img);
+          range.collapse(false);
+        } else {
+          el.appendChild(img);
+        }
+      };
+      reader.readAsDataURL(item.getAsFile());
+      return;
+    }
+  }
+}
+
 // Firebase DB에서 cert 이미지 로드 (배열/객체 모두 처리)
 function fbLoadCertImgs(no) {
   return new Promise(resolve => {
@@ -1624,7 +1657,7 @@ function addResultRow() {
         <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
       </div>
     </td>`).join('')}
-    <td><textarea data-field="note" style="${taStyle}" placeholder="비고"></textarea></td>
+    <td style="padding:4px;vertical-align:top;"><div contenteditable="true" data-field="note" onpaste="handleNotePaste(event,this)" style="background:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;min-height:60px;outline:none;line-height:1.5;word-break:break-all;white-space:pre-wrap;" data-placeholder="비고"></div></td>
   `;
   tbody.appendChild(tr);
 
@@ -1836,7 +1869,7 @@ function saveCert() {
         img: drop ? getDropImg(drop) : '',
         photoCount: allDrops.length,
         ...Object.fromEntries(allDrops.map((d, pi) => ['img'+(pi+1), getDropImg(d)])),
-        note: tr.querySelector('[data-field="note"]')?.value || ''
+        note: (() => { const el = tr.querySelector('[data-field="note"]'); return el ? (el.innerHTML !== undefined ? el.innerHTML : el.value) : ''; })()
       });
     });
   }
@@ -2099,7 +2132,8 @@ async function loadCert(no) {
         const el = tr.querySelector('[data-field="result"]');
         if (el) el.value = r.result || '';
       }
-      tr.querySelector('[data-field="note"]').value = r.note||'';
+      const noteEl = tr.querySelector('[data-field="note"]');
+      if (noteEl) { if (noteEl.getAttribute('contenteditable')) noteEl.innerHTML = r.note||''; else noteEl.value = r.note||''; }
       // 이미지 로드: Firebase DB 우선, 없으면 IDB 폴백 (fbImgRows는 아래서 세팅)
       const allLoadDrops = [...tr.querySelectorAll('.img-drop')];
       const fbRow = (window.__loadingFbImgRows || [])[i] || {};
