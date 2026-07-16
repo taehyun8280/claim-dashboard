@@ -1881,22 +1881,33 @@ function downloadCertPDF() {
   const tdStyle = 'border:1px solid #ccc;padding:6px 10px;font-size:12px;vertical-align:middle;white-space:pre-wrap;';
   const tdcStyle = tdStyle + 'text-align:center;';
 
-  // 헤더
+  // 헤더 (2행 필요 여부 판단)
+  const needTwoHeaderRows = splitN > 1 || photoCount > 1;
+  const rs = needTwoHeaderRows ? ' rowspan="2"' : '';
+  const thMerge = v => `<th${rs} style="${thStyle}vertical-align:middle;">${v}</th>`;
+
   let thead = '<tr>';
-  thead += `<th style="${thStyle}">No</th><th style="${thStyle}">시험</th><th style="${thStyle}">기준</th><th style="${thStyle}">조건</th>`;
+  thead += thMerge('No') + thMerge('시험') + thMerge('기준') + thMerge('조건');
   if (splitN > 1) {
     thead += `<th colspan="${splitN}" style="${thStyle}">결과</th>`;
   } else {
-    thead += `<th style="${thStyle}">결과</th>`;
+    thead += thMerge('결과');
   }
-  if (photoCount > 0) thead += `<th colspan="${photoCount}" style="${thStyle}">시험사진</th>`;
-  thead += `<th style="${thStyle}">비고</th></tr>`;
+  if (photoCount > 1) {
+    thead += `<th colspan="${photoCount}" style="${thStyle}">시험사진</th>`;
+  } else if (photoCount === 1) {
+    thead += thMerge('시험사진');
+  }
+  thead += thMerge('비고') + '</tr>';
 
-  if (splitN > 1) {
-    thead += '<tr><th style="' + thStyle + '"></th><th style="' + thStyle + '"></th><th style="' + thStyle + '"></th><th style="' + thStyle + '"></th>';
-    resultLabels.forEach(l => { thead += `<th style="${thStyle}">${l}</th>`; });
-    if (photoCount > 0) Array.from({length:photoCount},(_,i) => { thead += `<th style="${thStyle}">사진${i+1}</th>`; });
-    thead += `<th style="${thStyle}"></th></tr>`;
+  if (needTwoHeaderRows) {
+    thead += '<tr>';
+    if (splitN > 1) resultLabels.forEach(l => { thead += `<th style="${thStyle}vertical-align:middle;">${l}</th>`; });
+    if (photoCount > 1) {
+      const photoLabels = Array.from({length: photoCount}, (_,i) => document.getElementById(`photo-label${i+1}`)?.value || `사진${i+1}`);
+      photoLabels.forEach(l => { thead += `<th style="${thStyle}vertical-align:middle;">${l}</th>`; });
+    }
+    thead += '</tr>';
   }
 
   // 본문
