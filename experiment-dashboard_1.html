@@ -1240,6 +1240,11 @@
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
       </svg>이미지 복사
     </button>
+    <button class="btn btn-outline" onclick="downloadCertCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>CSV 다운로드
+    </button>
     <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
   </div>
 </div>
@@ -1860,6 +1865,90 @@ function setPF(v) {
   pfState = v;
   document.getElementById('pf-pass').className = 'pf-btn' + (v==='pass'?' pass-sel':'');
   document.getElementById('pf-fail').className = 'pf-btn' + (v==='fail'?' fail-sel':'');
+}
+
+function downloadCertCSV() {
+  const esc = v => '"' + String(v||'').replace(/"/g,'""').replace(/\n/g,' ') + '"';
+
+  // 헤더 정보
+  const no     = document.getElementById('cf-no')?.value || '';
+  const title  = document.getElementById('cf-title')?.value || '';
+  const date   = document.getElementById('cf-date')?.value || '';
+  const client = document.getElementById('cf-client')?.value || '';
+  const req    = document.getElementById('cf-requester')?.value || '';
+  const person = document.getElementById('cf-person')?.value || '';
+  const item   = getMultiComboValue('cf-item');
+  const spec   = getMultiComboValue('cf-spec');
+  const sample = document.getElementById('cf-sample')?.value || '';
+  const cond   = document.getElementById('cf-cond')?.value || '';
+  const start  = document.getElementById('cf-start')?.value || '';
+  const end    = document.getElementById('cf-end')?.value || '';
+  const note   = document.getElementById('cf-note')?.value || '';
+  const pf     = pfState === 'pass' ? '합격' : pfState === 'fail' ? '불합격' : '';
+
+  const lines = [];
+
+  // 성적서 기본 정보 섹션
+  lines.push(['성적서번호', '제목', '발행일자', '시험의뢰기관', '의뢰자', '담당자', '시험항목', '시험규격/방법', '시험시료', '시험조건', '시험시작일', '시험종료일', '판정', '특이사항'].map(esc).join(','));
+  lines.push([no, title, date, client, req, person, item, spec, sample, cond, start, end, pf, note].map(esc).join(','));
+  lines.push('');
+
+  // 시험 결과 행 섹션
+  const resultHeaders = ['No', '시험 항목', '기준', '조건'];
+  const splitN = splitResultCount || 1;
+  if (splitN > 1) {
+    const labels = Array.from({length: splitN}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || `결과${i+1}`);
+    labels.forEach(l => resultHeaders.push(l));
+  } else {
+    resultHeaders.push('결과');
+  }
+  resultHeaders.push('비고');
+  lines.push(resultHeaders.map(esc).join(','));
+
+  document.querySelectorAll('#result-tbody tr').forEach((tr, idx) => {
+    const getField = (...names) => {
+      for (const n of names) {
+        const el = tr.querySelector(`[data-field="${n}"]`);
+        if (el) return el.value !== undefined ? el.value : el.innerText || '';
+      }
+      return '';
+    };
+    const rowNo = idx + 1;
+    const itemVal = getField('item') || Array.from({length:10},(_,i)=>getField(`item${i+1}`)).filter(Boolean).join(' / ');
+    const specVal = getField('spec') || Array.from({length:10},(_,i)=>getField(`spec${i+1}`)).filter(Boolean).join(' / ');
+    const condVal = getField('cond') || Array.from({length:10},(_,i)=>getField(`cond${i+1}`)).filter(Boolean).join(' / ');
+
+    // 결과 수집 (세로 행 × 가로 열 그리드 포함)
+    let results = [];
+    if (splitN > 1) {
+      results = Array.from({length: splitN}, (_,i) => getField(`result${i+1}`));
+    } else {
+      // 세로 분할 확인
+      let rIdx = 1;
+      while (tr.querySelector(`[data-field="result${rIdx}"]`)) rIdx++;
+      if (rIdx > 1) {
+        results = [Array.from({length: rIdx-1}, (_,i) => getField(`result${i+1}`)).join(' / ')];
+      } else {
+        results = [getField('result')];
+      }
+    }
+
+    const noteVal = (() => { const el = tr.querySelector('[data-field="note"]'); return el ? (el.getAttribute('contenteditable') ? el.innerText : el.value) : ''; })();
+    const row = [rowNo, itemVal, specVal, condVal, ...results, noteVal];
+    lines.push(row.map(esc).join(','));
+  });
+
+  // BOM + CSV 다운로드
+  const bom = '﻿';
+  const csvContent = bom + lines.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `성적서_${no || title || '다운로드'}_${date || new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 파일이 다운로드됐습니다.');
 }
 
 function saveCert() {
