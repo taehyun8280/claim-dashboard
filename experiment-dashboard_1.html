@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>?ㅽ뿕 愿由???쒕낫??v2</title>
+<title>실험 관리 대시보드 v2</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
 
@@ -34,7 +34,7 @@
     min-height: 100vh;
   }
 
-  /* ??? IMAGE MODAL ??? */
+  /* ─── IMAGE MODAL ─── */
   .img-modal-overlay {
     display:none;position:fixed;inset:0;z-index:9999;
     background:rgba(0,0,0,.88);align-items:center;justify-content:center;
@@ -50,7 +50,7 @@
   }
   .img-modal-overlay .close-btn:hover { opacity:1; }
 
-  /* ??? MULTI-SELECT COMBO ??? */
+  /* ─── MULTI-SELECT COMBO ─── */
   .mc-wrap { position:relative; }
   .mc-tags-input {
     min-height:38px;padding:4px 36px 4px 8px;
@@ -93,7 +93,7 @@
   .mc-opt.selected { color:var(--accent); }
   .mc-opt input[type=checkbox] { accent-color:var(--accent);cursor:pointer; }
 
-  /* ??? HERO HEADER BANNER ??? */
+  /* ─── HERO HEADER BANNER ─── */
   .hero-header {
     background: linear-gradient(135deg, #e8f8f3 0%, #ddf0fc 40%, #e6f7f2 100%);
     border-bottom: 1px solid var(--border);
@@ -224,10 +224,10 @@
     flex-shrink: 0;
   }
 
-  /* ??? LAYOUT ??? */
+  /* ─── LAYOUT ─── */
   .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
 
-  /* ??? HERO STATS (inside banner) ??? */
+  /* ─── HERO STATS (inside banner) ─── */
   .hero-stats {
     max-width: 1400px;
     margin: 0 auto;
@@ -275,7 +275,7 @@
   /* hide old summary-grid */
   .summary-grid { display: none; }
 
-  /* ??? FLOW STEPS ??? */
+  /* ─── FLOW STEPS ─── */
   .flow-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -335,7 +335,7 @@
     flex-shrink: 0;
   }
 
-  /* ??? KANBAN COLUMNS ??? */
+  /* ─── KANBAN COLUMNS ─── */
   .kanban-wrap {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -429,7 +429,7 @@
   }
   .exp-meta span { display: flex; align-items: center; gap: 3px; }
 
-  /* ??? ADD BUTTON ??? */
+  /* ─── ADD BUTTON ─── */
   .add-btn {
     display: flex;
     align-items: center;
@@ -456,7 +456,7 @@
     width: 14px; height: 14px; flex-shrink: 0;
   }
 
-  /* ??? LIST TABLE ??? */
+  /* ─── LIST TABLE ─── */
   .list-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -524,7 +524,7 @@
   .chip-prog { background: rgba(245,158,11,.15); color: #fbbf24; }
   .chip-done { background: rgba(0,200,160,.15); color: var(--accent); }
 
-  /* ??? ADD MODAL ??? */
+  /* ─── ADD MODAL ─── */
   .modal-bg {
     display: none;
     position: fixed;
@@ -601,7 +601,7 @@
     pointer-events: none;
   }
   .field-textarea { resize: vertical; min-height: 80px; }
-  /* datalist input ??same arrow style as select */
+  /* datalist input — same arrow style as select */
   input[list].field-input {
     appearance: none; -webkit-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238899aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -647,7 +647,7 @@
   }
   .btn-danger:hover { background: rgba(239,68,68,.2); }
 
-  /* ??? CERT FULL SCREEN ??? */
+  /* ─── CERT FULL SCREEN ─── */
   .cert-overlay {
     display: none;
     position: fixed;
@@ -830,14 +830,14 @@
 </head>
 <body>
 
-<!-- ??? HERO HEADER BANNER ??? -->
+<!-- ─── HERO HEADER BANNER ─── -->
 <div class="hero-header">
   <div class="hero-grid-bg"></div>
   <div class="hero-inner">
     <div class="hero-left">
       <div class="hero-eyebrow">IMPROVEMENT REPORT</div>
-      <div class="hero-title">?ㅽ뿕 愿由???쒕낫??/div>
-      <div class="hero-subtitle">?쒗뿕 ?묒닔 쨌 吏꾪뻾 쨌 ?꾨즺 ??ぉ?????붾㈃?먯꽌 ?꾪꽣留곹븯怨?議곗튂 ?곹깭源뚯? 愿由ы븯???꾩옣????쒕낫??/div>
+      <div class="hero-title">실험 관리 대시보드</div>
+      <div class="hero-subtitle">시험 접수 · 진행 · 완료 항목을 한 화면에서 필터링하고 조치 상태까지 관리하는 현장형 대시보드</div>
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
@@ -849,7 +849,7 @@
           <line x1="8" y1="17" x2="16" y2="17"/>
           <line x1="8" y1="9" x2="10" y2="9"/>
         </svg>
-        ?묒? ?곗씠??媛?몄삤湲?
+        엑셀 데이터 가져오기
       </button>
       <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
@@ -860,31 +860,31 @@
           <line x1="16" y1="17" x2="8" y2="17"/>
           <polyline points="10 9 9 9 8 9"/>
         </svg>
-        ?쒗뿕 ?깆쟻???묒꽦
+        시험 성적서 작성
       </button>
     </div>
   </div>
   <!-- STATS inside banner -->
   <div class="hero-stats">
     <div class="hero-stat-card">
-      <div class="card-label">?꾩껜 ?쒗뿕</div>
+      <div class="card-label">전체 시험</div>
       <div class="card-value c-text" id="cnt-total">0</div>
-      <div class="card-sub">?깅줉???쒗뿕 嫄댁닔</div>
+      <div class="card-sub">등록된 시험 건수</div>
     </div>
     <div class="hero-stat-card">
-      <div class="card-label">?쒗뿕 ?묒닔</div>
+      <div class="card-label">시험 접수</div>
       <div class="card-value c-accent2" id="cnt-wait">0</div>
-      <div class="card-sub">?묒닔 ?湲?以?/div>
+      <div class="card-sub">접수 대기 중</div>
     </div>
     <div class="hero-stat-card">
-      <div class="card-label">?쒗뿕 吏꾪뻾 以?/div>
+      <div class="card-label">시험 진행중</div>
       <div class="card-value c-accent3" id="cnt-prog">0</div>
-      <div class="card-sub">?꾩옱 ?쒗뿕 以?/div>
+      <div class="card-sub">현재 시험 중</div>
     </div>
     <div class="hero-stat-card">
-      <div class="card-label">?쒗뿕 ?꾨즺</div>
+      <div class="card-label">시험 완료</div>
       <div class="card-value c-accent" id="cnt-done">0</div>
-      <div class="card-sub">?깆쟻??諛쒗뻾 ?꾨즺</div>
+      <div class="card-sub">성적서 발행 완료</div>
     </div>
   </div>
 </div>
@@ -897,7 +897,7 @@
       <div class="kanban-header">
         <div class="kanban-title">
           <div class="status-dot dot-wait"></div>
-          ?쒗뿕 ?묒닔
+          시험 접수
         </div>
         <div class="kanban-count" id="k-cnt-wait">0</div>
       </div>
@@ -906,7 +906,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
           </svg>
-          ?쒗뿕 ?묒닔
+          시험 접수
         </button>
       </div>
     </div>
@@ -914,27 +914,27 @@
       <div class="kanban-header">
         <div class="kanban-title">
           <div class="status-dot dot-prog"></div>
-          ?쒗뿕 吏꾪뻾 以?
+          시험 진행중
         </div>
         <div class="kanban-count" id="k-cnt-prog">0</div>
       </div>
       <div class="kanban-body" id="col-prog">
-        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">吏꾪뻾 以묒씤 ?쒗뿕 ?놁쓬</p>
+        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">진행 중인 시험 없음</p>
       </div>
     </div>
     <div class="kanban-col">
       <div class="kanban-header">
         <div class="kanban-title">
           <div class="status-dot dot-done"></div>
-          ?쒗뿕 ?꾨즺
+          시험 완료
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <div class="kanban-count" id="k-cnt-done">0</div>
-          <input id="done-search" placeholder="?뵇 寃??.." oninput="render()" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);width:100px;outline:none;">
+          <input id="done-search" placeholder="🔍 검색..." oninput="render()" style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);width:100px;outline:none;">
         </div>
       </div>
       <div class="kanban-body" id="col-done">
-        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">?꾨즺???쒗뿕 ?놁쓬</p>
+        <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료된 시험 없음</p>
       </div>
     </div>
   </div>
@@ -944,28 +944,28 @@
     <div class="list-header">
       <div>
         <div class="section-eyebrow" style="margin-bottom:4px;">RECORDS</div>
-        <div style="font-size:15px;font-weight:700;">??λ맂 ?깆쟻??紐⑸줉 <span id="cert-count-badge" style="font-size:12px;font-weight:500;color:var(--text3);margin-left:4px;"></span></div>
+        <div style="font-size:15px;font-weight:700;">저장된 성적서 목록 <span id="cert-count-badge" style="font-size:12px;font-weight:500;color:var(--text3);margin-left:4px;"></span></div>
       </div>
-      <input class="list-search" placeholder="?뵇 寃??.." oninput="filterList(this.value)" id="list-search">
+      <input class="list-search" placeholder="🔍 검색..." oninput="filterList(this.value)" id="list-search">
     </div>
     <div class="list-table-wrap">
       <table class="list-table">
         <thead>
           <tr>
-            <th>?쒕ぉ</th>
-            <th>?섎ː 湲곌?</th>
-            <th>?섎ː??/th>
-            <th>?쒕즺 ?뺣낫</th>
-            <th>?쒗뿕 湲곌컙</th>
-            <th>?대떦??/th>
-            <th>?먯젙(寃곌낵)</th>
-            <th>?쒗뿕?ъ쭊</th>
-            <th>鍮꾧퀬</th>
+            <th>제목</th>
+            <th>의뢰 기관</th>
+            <th>의뢰자</th>
+            <th>시료 정보</th>
+            <th>시험 기간</th>
+            <th>담당자</th>
+            <th>판정(결과)</th>
+            <th>시험사진</th>
+            <th>비고</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="list-tbody">
-          <tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">??λ맂 ?깆쟻?쒓? ?놁뒿?덈떎</td></tr>
+          <tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>
         </tbody>
       </table>
     </div>
@@ -973,85 +973,85 @@
 
 </div><!-- /wrap -->
 
-<!-- ??? IMAGE ZOOM MODAL ??? -->
+<!-- ─── IMAGE ZOOM MODAL ─── -->
 <div class="img-modal-overlay" id="img-modal" onclick="closeImgModal()">
-  <button class="close-btn" onclick="closeImgModal()">??/button>
+  <button class="close-btn" onclick="closeImgModal()">✕</button>
   <img id="img-modal-img" src="" alt="">
 </div>
 
-<!-- ??? DETAIL MODAL ??? -->
+<!-- ─── DETAIL MODAL ─── -->
 <div class="modal-bg" id="detail-modal-bg" onclick="if(event.target===this)this.classList.remove('open')"></div>
 
-<!-- ??? ADD MODAL ??? -->
+<!-- ─── ADD MODAL ─── -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <div class="modal-title">
-      ?쒗뿕 ?묒닔 ?깅줉
-      <button class="modal-close" onclick="closeModal()">횞</button>
+      시험 접수 등록
+      <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <input type="hidden" id="m-id">
     <div class="modal-grid">
       <div class="modal-full">
-        <div class="field-label">?묒닔??/div>
+        <div class="field-label">접수일</div>
         <input class="field-input" type="date" id="m-date">
       </div>
       <div class="modal-full">
-        <div class="field-label">?쒗뿕紐?/div>
-        <input class="field-input" id="m-name" placeholder="?? KS B 0802 ?몄옣媛뺣룄 ?쒗뿕">
+        <div class="field-label">시험명</div>
+        <input class="field-input" id="m-name" placeholder="예) KS B 0802 인장강도 시험">
       </div>
       <div>
-        <div class="field-label">?섎ː 湲곌?</div>
-        <input class="field-input" id="m-client" list="client-list" placeholder="?좏깮 ?먮뒗 吏곸젒 ?낅젰" autocomplete="off">
+        <div class="field-label">의뢰 기관</div>
+        <input class="field-input" id="m-client" list="client-list" placeholder="선택 또는 직접 입력" autocomplete="off">
         <datalist id="client-list">
-          <option>?쇰８媛쒕컻?</option>
-          <option>?쇰８ ?덉쭏愿由ы?</option>
-          <option>?ы듃?대━?ㅺ뎄異뺣뵒?먯씤?</option>
-          <option>?ы듃?대━?ㅺ뎄異뺢컻諛쒗?</option>
-          <option>LDK?붿옄?명?</option>
-          <option>?쒗뭹寃쎌웳?κ컯?뷀?</option>
-          <option>異⑹＜ 援щℓ?</option>
-          <option>KCL(?ъ쇅?쒗뿕)</option>
-          <option>寃쎄린媛援ъ씤利앹꽱???ъ쇅?쒗뿕)</option>
-          <option>KOTITI(?ъ쇅?쒗뿕)</option>
+          <option>일룸개발팀</option>
+          <option>일룸 품질관리팀</option>
+          <option>포트폴리오구축디자인팀</option>
+          <option>포트폴리오구축개발팀</option>
+          <option>LDK디자인팀</option>
+          <option>제품경쟁력강화팀</option>
+          <option>충주 구매팀</option>
+          <option>KCL(사외시험)</option>
+          <option>경기가구인증센터(사외시험)</option>
+          <option>KOTITI(사외시험)</option>
         </datalist>
       </div>
       <div>
-        <div class="field-label">?대떦??/div>
+        <div class="field-label">담당자</div>
         <select class="field-select" id="m-person">
-          <option value="">?좏깮</option>
-          <option>諛뺥깭??/option>
-          <option>諛뺣룞??/option>
+          <option value="">선택</option>
+          <option>박태현</option>
+          <option>박동현</option>
         </select>
       </div>
       <div>
-        <div class="field-label">?곗꽑?쒖쐞</div>
+        <div class="field-label">우선순위</div>
         <select class="field-select" id="m-priority">
-          <option value="??>??(湲닿툒)</option>
-          <option value="以? selected>以?(蹂댄넻)</option>
-          <option value="??>??(?ъ쑀)</option>
+          <option value="상">상 (긴급)</option>
+          <option value="중" selected>중 (보통)</option>
+          <option value="하">하 (여유)</option>
         </select>
       </div>
       <div>
-        <div class="field-label">珥덇린 ?곹깭</div>
+        <div class="field-label">초기 상태</div>
         <select class="field-select" id="m-status">
-          <option value="?묒닔">?묒닔</option>
-          <option value="吏꾪뻾">吏꾪뻾 以?/option>
-          <option value="?꾨즺">?꾨즺</option>
+          <option value="접수">접수</option>
+          <option value="진행">진행 중</option>
+          <option value="완료">완료</option>
         </select>
       </div>
       <div class="modal-full">
-        <div class="field-label">鍮꾧퀬</div>
-        <textarea class="field-textarea" id="m-note" style="min-height:60px;" placeholder="?뱀씠?ы빆"></textarea>
+        <div class="field-label">비고</div>
+        <textarea class="field-textarea" id="m-note" style="min-height:60px;" placeholder="특이사항"></textarea>
       </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
-      <button class="btn btn-outline" onclick="closeModal()">痍⑥냼</button>
-      <button class="btn btn-primary" onclick="addExperiment()">?깅줉</button>
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="addExperiment()">등록</button>
     </div>
   </div>
 </div>
 
-<!-- ??? CERT SIDE PANEL ??? -->
+<!-- ─── CERT SIDE PANEL ─── -->
 <div class="cert-overlay" id="cert-overlay" onclick="closeCertPanel()"></div>
 <div class="cert-panel" id="cert-panel">
   <div class="cert-panel-header">
@@ -1063,50 +1063,50 @@
         <line x1="16" y1="17" x2="8" y2="17"/>
         <polyline points="10 9 9 9 8 9"/>
       </svg>
-      <h2>?쒗뿕 ?깆쟻???묒꽦</h2>
+      <h2>시험 성적서 작성</h2>
     </div>
-    <button class="cert-panel-close" onclick="closeCertPanel()">횞</button>
+    <button class="cert-panel-close" onclick="closeCertPanel()">×</button>
   </div>
 
   <div class="cert-panel-body" id="cert-print-area">
 
-  <!-- 罹≪쿂 踰붿쐞: 湲곕낯?뺣낫 + ?쒗뿕寃곌낵 ?뚯씠釉붾쭔 -->
+  <!-- 캡처 범위: 기본정보 + 시험결과 테이블만 -->
   <div id="cert-capture-area">
 
-    <!-- 湲곕낯 ?뺣낫 -->
-    <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">湲곕낯 ?뺣낫</div>
+    <!-- 기본 정보 -->
+    <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">기본 정보</div>
     <input type="hidden" id="cf-no" value="">
     <div style="margin-bottom:12px;">
-      <div class="field-label">?쒕ぉ</div>
-      <input class="field-input" id="cf-title" placeholder="?깆쟻???쒕ぉ???낅젰?섏꽭?? style="width:100%;">
+      <div class="field-label">제목</div>
+      <input class="field-input" id="cf-title" placeholder="성적서 제목을 입력하세요" style="width:100%;">
     </div>
     <div class="cert-form-grid">
       <div id="cf-date-wrap">
-        <div class="field-label">諛쒗뻾?쇱옄</div>
+        <div class="field-label">발행일자</div>
         <input class="field-input" type="date" id="cf-date">
       </div>
       <div>
-        <div class="field-label">?쒗뿕 ?섎ː 湲곌?</div>
-        <input class="field-input" id="cf-client" list="client-list" placeholder="?좏깮 ?먮뒗 吏곸젒 ?낅젰" autocomplete="off">
+        <div class="field-label">시험 의뢰 기관</div>
+        <input class="field-input" id="cf-client" list="client-list" placeholder="선택 또는 직접 입력" autocomplete="off">
       </div>
       <div>
-        <div class="field-label">?섎ː??/div>
-        <input class="field-input" id="cf-requester" placeholder="?섎ː???대쫫">
+        <div class="field-label">의뢰자</div>
+        <input class="field-input" id="cf-requester" placeholder="의뢰자 이름">
       </div>
       <div>
-        <div class="field-label">?대떦??/div>
+        <div class="field-label">담당자</div>
         <select class="field-select" id="cf-person">
-          <option value="">?좏깮</option>
-          <option value="諛뺥깭??>諛뺥깭??/option>
-          <option value="諛뺣룞??>諛뺣룞??/option>
+          <option value="">선택</option>
+          <option value="박태현">박태현</option>
+          <option value="박동현">박동현</option>
         </select>
       </div>
       <div>
-        <div class="field-label">?쒗뿕 ??ぉ</div>
+        <div class="field-label">시험 항목</div>
         <div class="mc-wrap" id="mc-cf-item">
           <div class="mc-tags-input" onclick="mcToggle('cf-item',event)">
             <span class="mc-tags" id="mc-cf-item-tags"></span>
-            <input class="mc-input" id="cf-item-input" placeholder="?좏깮 ?먮뒗 吏곸젒 ?낅젰..." oninput="mcFilter('cf-item',this.value)" onkeydown="mcInputKey('cf-item',event)">
+            <input class="mc-input" id="cf-item-input" placeholder="선택 또는 직접 입력..." oninput="mcFilter('cf-item',this.value)" onkeydown="mcInputKey('cf-item',event)">
           </div>
           <button class="mc-arrow" onclick="mcToggle('cf-item',event)"></button>
           <div class="mc-dropdown" id="mc-cf-item-dd"></div>
@@ -1114,11 +1114,11 @@
         </div>
       </div>
       <div>
-        <div class="field-label">?쒗뿕 洹쒓꺽/諛⑸쾿</div>
+        <div class="field-label">시험 규격/방법</div>
         <div class="mc-wrap" id="mc-cf-spec">
           <div class="mc-tags-input" onclick="mcToggle('cf-spec',event)">
             <span class="mc-tags" id="mc-cf-spec-tags"></span>
-            <input class="mc-input" id="cf-spec-input" placeholder="?좏깮 ?먮뒗 吏곸젒 ?낅젰..." oninput="mcFilter('cf-spec',this.value)" onkeydown="mcInputKey('cf-spec',event)">
+            <input class="mc-input" id="cf-spec-input" placeholder="선택 또는 직접 입력..." oninput="mcFilter('cf-spec',this.value)" onkeydown="mcInputKey('cf-spec',event)">
           </div>
           <button class="mc-arrow" onclick="mcToggle('cf-spec',event)"></button>
           <div class="mc-dropdown" id="mc-cf-spec-dd"></div>
@@ -1126,12 +1126,12 @@
         </div>
       </div>
       <div class="cert-form-full">
-        <div class="field-label">?쒕즺 ?뺣낫</div>
-        <input class="field-input" id="cf-sample" placeholder="?쒕즺紐? ?쒕즺 踰덊샇, ?섎웾 ??>
+        <div class="field-label">시료 정보</div>
+        <input class="field-input" id="cf-sample" placeholder="시료명, 시료 번호, 수량 등">
       </div>
       <div>
       <div>
-        <div class="field-label">?쒗뿕 湲곌컙</div>
+        <div class="field-label">시험 기간</div>
         <div style="display:flex;gap:6px;align-items:center;">
           <input class="field-input" type="date" id="cf-start" style="flex:1">
           <span style="color:var(--text3);font-size:12px;">~</span>
@@ -1143,53 +1143,53 @@
 
     <div class="divider"></div>
 
-    <!-- ?쒗뿕 寃곌낵 -->
+    <!-- 시험 결과 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">?쒗뿕 寃곌낵</div>
+      <div style="font-size:13px;font-weight:700;letter-spacing:2px;color:var(--accent);text-transform:uppercase;">시험 결과</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="font-size:10px;color:var(--text3);">?ㅼ젙 ??
+        <span style="font-size:10px;color:var(--text3);">설정 행
           <select id="row-target-select" onchange="onRowTargetChange()" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
-            <option value="all">?꾩껜</option>
+            <option value="all">전체</option>
           </select>
         </span>
         <span style="color:var(--border);">|</span>
-        <span style="font-size:10px;color:var(--text3);">湲곗?移?
+        <span style="font-size:10px;color:var(--text3);">기준칸
           <select id="spec-row-select" onchange="applyRowControl('spec',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
-            <option value="1">1媛?/option><option value="2">2媛?/option><option value="3">3媛?/option>
-            <option value="4">4媛?/option><option value="5">5媛?/option><option value="6">6媛?/option>
-            <option value="7">7媛?/option><option value="8">8媛?/option><option value="9">9媛?/option><option value="10">10媛?/option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
           </select>
         </span>
-        <span style="font-size:10px;color:var(--text3);">議곌굔移?
+        <span style="font-size:10px;color:var(--text3);">조건칸
           <select id="cond-row-select" onchange="applyRowControl('cond',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
-            <option value="1">1媛?/option><option value="2">2媛?/option><option value="3">3媛?/option>
-            <option value="4">4媛?/option><option value="5">5媛?/option><option value="6">6媛?/option>
-            <option value="7">7媛?/option><option value="8">8媛?/option><option value="9">9媛?/option><option value="10">10媛?/option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
           </select>
         </span>
-        <span style="font-size:10px;color:var(--text3);">?쒗뿕移?
+        <span style="font-size:10px;color:var(--text3);">시험칸
           <select id="item-row-select" onchange="applyRowControl('item',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
-            <option value="1">1媛?/option><option value="2">2媛?/option><option value="3">3媛?/option>
-            <option value="4">4媛?/option><option value="5">5媛?/option><option value="6">6媛?/option>
-            <option value="7">7媛?/option><option value="8">8媛?/option><option value="9">9媛?/option><option value="10">10媛?/option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
           </select>
         </span>
-        <span style="font-size:10px;color:var(--text3);">寃곌낵移?
+        <span style="font-size:10px;color:var(--text3);">결과칸
           <select id="result-col-select" onchange="applyRowControl('result',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
-            <option value="1">1媛?/option><option value="2">2媛?/option><option value="3">3媛?/option>
-            <option value="4">4媛?/option><option value="5">5媛?/option><option value="6">6媛?/option>
-            <option value="7">7媛?/option><option value="8">8媛?/option><option value="9">9媛?/option><option value="10">10媛?/option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
           </select>
         </span>
-        <span style="font-size:10px;color:var(--text3);">?ъ쭊移?
+        <span style="font-size:10px;color:var(--text3);">사진칸
           <select id="photo-col-select" onchange="applyRowControl('photo',this.value)" style="margin-left:2px;font-size:10px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);">
-            <option value="1">1媛?/option><option value="2">2媛?/option><option value="3">3媛?/option>
-            <option value="4">4媛?/option><option value="5">5媛?/option><option value="6">6媛?/option>
-            <option value="7">7媛?/option><option value="8">8媛?/option><option value="9">9媛?/option><option value="10">10媛?/option>
+            <option value="1">1개</option><option value="2">2개</option><option value="3">3개</option>
+            <option value="4">4개</option><option value="5">5개</option><option value="6">6개</option>
+            <option value="7">7개</option><option value="8">8개</option><option value="9">9개</option><option value="10">10개</option>
           </select>
         </span>
-        <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;" onclick="addResultRow()">+ ??異붽?</button>
-        <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;color:#e55;" onclick="deleteSelectedRow()">??????젣</button>
+        <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;" onclick="addResultRow()">+ 행 추가</button>
+        <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;color:#e55;" onclick="deleteSelectedRow()">− 행 삭제</button>
       </div>
     </div>
     <div class="result-table-wrap">
@@ -1197,12 +1197,12 @@
         <thead id="result-thead">
           <tr>
             <th style="width:40px;">No</th>
-            <th>?쒗뿕</th>
-            <th>湲곗?</th>
-            <th>議곌굔</th>
-            <th id="result-th" colspan="1">寃곌낵</th>
-            <th style="width:180px;">?쒗뿕?ъ쭊</th>
-            <th>鍮꾧퀬</th>
+            <th>시험</th>
+            <th>기준</th>
+            <th>조건</th>
+            <th id="result-th" colspan="1">결과</th>
+            <th style="width:180px;">시험사진</th>
+            <th>비고</th>
           </tr>
         </thead>
         <tbody id="result-tbody"></tbody>
@@ -1213,34 +1213,34 @@
 
     <div class="divider"></div>
 
-    <!-- 醫낇빀 ?먯젙 -->
+    <!-- 종합 판정 -->
     <div class="cert-form-grid">
       <div>
-        <div class="field-label">醫낇빀 ?먯젙</div>
+        <div class="field-label">종합 판정</div>
         <div class="pass-fail-wrap">
-          <button class="pf-btn" id="pf-pass" onclick="setPF('pass')">??PASS</button>
-          <button class="pf-btn" id="pf-fail" onclick="setPF('fail')">??FAIL</button>
+          <button class="pf-btn" id="pf-pass" onclick="setPF('pass')">✔ PASS</button>
+          <button class="pf-btn" id="pf-fail" onclick="setPF('fail')">✘ FAIL</button>
         </div>
       </div>
       <input type="hidden" id="cf-signer" value="">
       <input type="hidden" id="cf-cond" value="">
       <div class="cert-form-full">
-        <div class="field-label">?뱀씠?ы빆 / 鍮꾧퀬</div>
-        <textarea class="field-textarea" id="cf-note" placeholder="?쒗뿕 以??뱀씠?ы빆, 李멸퀬 ?ы빆 ?깆쓣 ?낅젰?섏꽭??></textarea>
+        <div class="field-label">특이사항 / 비고</div>
+        <textarea class="field-textarea" id="cf-note" placeholder="시험 중 특이사항, 참고 사항 등을 입력하세요"></textarea>
       </div>
     </div>
   </div>
 
   <div class="cert-panel-actions">
-    <button class="btn btn-outline" onclick="clearCertForm()">珥덇린??/button>
-    <button class="btn btn-outline" onclick="printCert()">?뼥 ?몄뇙</button>
+    <button class="btn btn-outline" onclick="clearCertForm()">초기화</button>
+    <button class="btn btn-outline" onclick="printCert()">🖨 인쇄</button>
     <button class="btn btn-outline" onclick="copyCertImage(this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-      </svg>?대?吏 蹂듭궗
+      </svg>이미지 복사
     </button>
-    <button class="btn btn-primary" onclick="saveCert()">?깆쟻?????/button>
+    <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
   </div>
 </div>
 
@@ -1248,7 +1248,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-// ??? FIREBASE ???
+// ─── FIREBASE ───
 const firebaseConfig = {
   apiKey: "AIzaSyD3nS7b5hGJKXDeeuT50C9xlxenTceCASk",
   authDomain: "experiment-dashboard-50db5.firebaseapp.com",
@@ -1265,13 +1265,13 @@ function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
-// ?? IndexedDB: ?대?吏 ?꾩슜 ??μ냼 (?⑸웾 ?쒗븳 ?놁쓬) ??
+// ── IndexedDB: 이미지 전용 저장소 (용량 제한 없음) ──
 let _idb = null;
 const _idbReady = new Promise((resolve, reject) => {
   const req = indexedDB.open('cert-images-db', 1);
   req.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
   req.onsuccess = e => { _idb = e.target.result; resolve(); };
-  req.onerror = e => { console.error('IDB ?닿린 ?ㅽ뙣', e); reject(e); };
+  req.onerror = e => { console.error('IDB 열기 실패', e); reject(e); };
 });
 
 function idbPut(key, val) {
@@ -1301,7 +1301,7 @@ function idbDel(key) {
   }));
 }
 
-// cert??紐⑤뱺 ?대?吏瑜?IDB?????
+// cert의 모든 이미지를 IDB에 저장
 async function idbSaveCertImgs(no, rows) {
   await Promise.all((rows||[]).map((r, i) => {
     const photoCount = r.photoCount || 1;
@@ -1318,7 +1318,7 @@ async function idbSaveCertImgs(no, rows) {
   }));
 }
 
-// cert??紐⑤뱺 ?대?吏瑜?IDB?먯꽌 ?쎌뼱 rows???⑹튂湲?
+// cert의 모든 이미지를 IDB에서 읽어 rows에 합치기
 async function idbLoadCertImgs(no, rows) {
   const imgs = await Promise.all((rows||[]).map((r, i) =>
     r.img ? Promise.resolve(r.img) : idbGet(no + '_' + i)
@@ -1326,7 +1326,7 @@ async function idbLoadCertImgs(no, rows) {
   return (rows||[]).map((r, i) => ({ ...r, img: imgs[i] || '' }));
 }
 
-// Firebase DB??cert ?대?吏 ???(cert_imgs/{no})
+// Firebase DB에 cert 이미지 저장 (cert_imgs/{no})
 async function fbSaveCertImgs(no, rows) {
   const imgRows = (rows||[]).map(r => {
     const pc = r.photoCount || 1;
@@ -1373,7 +1373,7 @@ function handleNotePaste(e, el) {
   }
 }
 
-// Firebase DB?먯꽌 cert ?대?吏 濡쒕뱶 (諛곗뿴/媛앹껜 紐⑤몢 泥섎━)
+// Firebase DB에서 cert 이미지 로드 (배열/객체 모두 처리)
 function fbLoadCertImgs(no) {
   return new Promise(resolve => {
     fbDb.ref('cert_imgs/' + no).once('value', snap => {
@@ -1384,7 +1384,7 @@ function fbLoadCertImgs(no) {
   });
 }
 
-// 湲곗〈 IDB ?대?吏 ??Firebase DB ?쇨큵 留덉씠洹몃젅?댁뀡
+// 기존 IDB 이미지 → Firebase DB 일괄 마이그레이션
 async function migrateImagesToFirebaseDB() {
   if (window.__fbImgMigrationDone || window.__fbImgMigrationRunning) return;
   window.__fbImgMigrationRunning = true;
@@ -1411,24 +1411,24 @@ async function migrateImagesToFirebaseDB() {
     }
     if (anyImg) await fbDb.ref('cert_imgs/' + cert.no).set(imgRows);
   }
-  if (migrated > 0) showToast(`湲곗〈 ?ъ쭊 ${migrated}?μ쓣 ?대씪?곕뱶???숆린???꾨즺?덉뒿?덈떎.`);
+  if (migrated > 0) showToast(`기존 사진 ${migrated}장을 클라우드에 동기화 완료했습니다.`);
   window.__fbImgMigrationDone = true;
   window.__fbImgMigrationRunning = false;
 }
 
-// cert ???띿뒪???곗씠?곕? IDB?????
+// cert 행 텍스트 데이터를 IDB에 저장
 async function idbSaveRowsText(no, rows) {
   const slim = rows.map(r => { const s={...r}; delete s.img; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; });
   await idbPut('rows_text_' + no, JSON.stringify(slim));
 }
 
-// cert ???띿뒪???곗씠?곕? IDB?먯꽌 ?쎄린
+// cert 행 텍스트 데이터를 IDB에서 읽기
 async function idbLoadRowsText(no) {
   const str = await idbGet('rows_text_' + no);
   try { return str ? JSON.parse(str) : null; } catch(e) { return null; }
 }
 
-// cert ?대?吏 IDB?먯꽌 ??젣
+// cert 이미지 IDB에서 삭제
 function idbDeleteCertImgs(no, rowCount) {
   for (let i = 0; i < (rowCount || 20); i++) {
     idbDel(no + '_' + i);
@@ -1438,19 +1438,19 @@ function idbDeleteCertImgs(no, rowCount) {
 
 function fbSaveCertificates(allowEmpty = false) {
   if (!allowEmpty && certificates.length === 0) {
-    console.warn('fbSaveCertificates: certificates 鍮꾩뼱?덉뼱 ???嫄대꼫?');
+    console.warn('fbSaveCertificates: certificates 비어있어 저장 건너뜀');
     return;
   }
-  // cert_data: ?대?吏 ?쒖쇅 ?щ┝ 踰꾩쟾留?localStorage?????
+  // cert_data: 이미지 제외 슬림 버전만 localStorage에 저장
   const _stripImgs = r => { const s={...r,img:''}; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; };
   const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(_stripImgs)}));
   try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
-  // Firebase?먮룄 ?щ┝ 踰꾩쟾
+  // Firebase에도 슬림 버전
   fbDb.ref('certificates').set(slim)
-    .catch(err => { console.error('Firebase ????ㅻ쪟:', err); showToast('Firebase ????ㅽ뙣: ' + err.message); });
+    .catch(err => { console.error('Firebase 저장 오류:', err); showToast('Firebase 저장 실패: ' + err.message); });
 }
 
-// ??? STATE ???
+// ─── STATE ───
 let experiments = JSON.parse(localStorage.getItem('exp_data') || '[]');
 let certificates = JSON.parse(localStorage.getItem('cert_data') || '[]');
 let pfState = '';
@@ -1465,7 +1465,7 @@ let specRowCount = 1;
 let condRowCount = 1;
 let condColHidden = false;
 
-// ??? INIT ???
+// ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('cf-date').value = today;
@@ -1476,7 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
   mcInit('cf-item');
   mcInit('cf-spec');
 
-  // ?? Firebase ?ㅼ떆媛??숆린??由ъ뒪????
+  // ── Firebase 실시간 동기화 리스너 ──
   fbDb.ref('experiments').on('value', snapshot => {
     const val = snapshot.val();
     experiments = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
@@ -1493,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fromFb = localCerts;
         try { fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));} catch(e){}
       }
-      // 援ъ“留????(?대?吏??IDB??蹂꾨룄 蹂닿?)
+      // 구조만 저장 (이미지는 IDB에 별도 보관)
       certificates = fromFb.map(c => ({
         ...c,
         rows: (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{})).map(r=>({...r,img:''}))
@@ -1501,18 +1501,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
       try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
       renderCertList();
-      // 湲곗〈 IDB ?대?吏瑜?Firebase DB濡?1??留덉씠洹몃젅?댁뀡
+      // 기존 IDB 이미지를 Firebase DB로 1회 마이그레이션
       if (!window.__fbImgMigrationDone) migrateImagesToFirebaseDB();
     } catch(e) { console.error('cert listener error:', e); }
   });
 });
 
-// ??? RENDER KANBAN ???
+// ─── RENDER KANBAN ───
 function render() {
   const asc = (a,b) => (a.date||'').localeCompare(b.date||'');
-  const wait = experiments.filter(e=>e.status==='?묒닔').sort(asc);
-  const prog = experiments.filter(e=>e.status==='吏꾪뻾').sort(asc);
-  const done = experiments.filter(e=>e.status==='?꾨즺').sort(asc);
+  const wait = experiments.filter(e=>e.status==='접수').sort(asc);
+  const prog = experiments.filter(e=>e.status==='진행').sort(asc);
+  const done = experiments.filter(e=>e.status==='완료').sort(asc);
 
   document.getElementById('cnt-total').textContent = experiments.length;
   document.getElementById('cnt-wait').textContent = wait.length;
@@ -1523,73 +1523,73 @@ function render() {
   document.getElementById('k-cnt-done').textContent = done.length;
 
   renderWaitCol(wait);
-  renderCol('col-prog', prog, '吏꾪뻾', false);
+  renderCol('col-prog', prog, '진행', false);
   const doneQ = (document.getElementById('done-search')?.value||'').trim().toLowerCase();
   const doneFilt = doneQ ? done.filter(e=>(e.name||'').toLowerCase().includes(doneQ)||(e.client||'').toLowerCase().includes(doneQ)||(e.person||'').toLowerCase().includes(doneQ)) : done;
-  renderCol('col-done', doneFilt, '?꾨즺', false);
+  renderCol('col-done', doneFilt, '완료', false);
 
   save();
 }
 
 function renderWaitCol(items) {
   const el = document.getElementById('col-wait');
-  const pending = items.filter(e => e.sampleStatus !== '?멸퀎?꾨즺');
-  const handed  = items.filter(e => e.sampleStatus === '?멸퀎?꾨즺');
+  const pending = items.filter(e => e.sampleStatus !== '인계완료');
+  const handed  = items.filter(e => e.sampleStatus === '인계완료');
   const cardHtml = (e) => {
-    const pClass = e.priority==='???'p-high':e.priority==='以??'p-mid':'p-low';
-    const isHanded = e.sampleStatus === '?멸퀎?꾨즺';
+    const pClass = e.priority==='상'?'p-high':e.priority==='중'?'p-mid':'p-low';
+    const isHanded = e.sampleStatus === '인계완료';
     return `<div class="exp-card" onclick="openDetailModal('${e.id}')">
       <div class="exp-card-top">
         <span class="priority-badge ${pClass}">${e.priority}</span>
-        <span style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;${isHanded?'background:#d1fae5;color:#065f46;':'background:#fef3c7;color:#92400e;'}">${isHanded?'?쒕즺 ?멸퀎 ?꾨즺':'?쒕즺 ?멸퀎 ?湲곗쨷'}</span>
+        <span style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;${isHanded?'background:#d1fae5;color:#065f46;':'background:#fef3c7;color:#92400e;'}">${isHanded?'시료 인계 완료':'시료 인계 대기중'}</span>
       </div>
       <div class="exp-name">${e.name}</div>
       <div class="exp-meta">
-        <span>?뱥 ${e.client||'??}</span>
-        <span>?뫀 ${e.person||'??}</span>
-        <span>?뱟 ${e.date}</span>
+        <span>📋 ${e.client||'—'}</span>
+        <span>👤 ${e.person||'—'}</span>
+        <span>📅 ${e.date}</span>
       </div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();toggleSampleStatus('${e.id}')">${isHanded?'???湲곗쨷?쇰줈':'???멸퀎 ?꾨즺'}</button>
-        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','吏꾪뻾')">??吏꾪뻾</button>
-        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">??젣</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();toggleSampleStatus('${e.id}')">${isHanded?'↩ 대기중으로':'✔ 인계 완료'}</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','진행')">→ 진행</button>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">삭제</button>
       </div>
     </div>`;
   };
   let html = '';
-  // ?뱀뀡1: ?쒕즺 ?멸퀎 ?湲곗쨷
-  html += `<div style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:4px 10px;border-radius:6px;margin-bottom:6px;">?븧 ?쒕즺 ?멸퀎 ?湲곗쨷 <span style="font-weight:500;">(${pending.length})</span></div>`;
+  // 섹션1: 시료 인계 대기중
+  html += `<div style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:4px 10px;border-radius:6px;margin-bottom:6px;">🕐 시료 인계 대기중 <span style="font-weight:500;">(${pending.length})</span></div>`;
   if (pending.length) pending.forEach(e => { html += cardHtml(e); });
-  else html += '<p style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0 12px;">?놁쓬</p>';
-  // 援щ텇??
+  else html += '<p style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0 12px;">없음</p>';
+  // 구분선
   html += `<div style="border-top:1px solid var(--border);margin:10px 0 8px;"></div>`;
-  // ?뱀뀡2: ?쒕즺 ?멸퀎 ?꾨즺
-  html += `<div style="font-size:11px;font-weight:700;color:#065f46;background:#d1fae5;padding:4px 10px;border-radius:6px;margin-bottom:6px;">???쒕즺 ?멸퀎 ?꾨즺 <span style="font-weight:500;">(${handed.length})</span></div>`;
+  // 섹션2: 시료 인계 완료
+  html += `<div style="font-size:11px;font-weight:700;color:#065f46;background:#d1fae5;padding:4px 10px;border-radius:6px;margin-bottom:6px;">✅ 시료 인계 완료 <span style="font-weight:500;">(${handed.length})</span></div>`;
   if (handed.length) handed.forEach(e => { html += cardHtml(e); });
-  else html += '<p style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0 12px;">?놁쓬</p>';
-  // ?묒닔 踰꾪듉
+  else html += '<p style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0 12px;">없음</p>';
+  // 접수 버튼
   html += `<button class="add-btn" onclick="openModal()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-    </svg>?쒗뿕 ?묒닔</button>`;
+    </svg>시험 접수</button>`;
   el.innerHTML = html;
 }
 
 function toggleSampleStatus(id) {
   const e = experiments.find(x=>x.id===id); if (!e) return;
-  e.sampleStatus = e.sampleStatus === '?멸퀎?꾨즺' ? '?湲곗쨷' : '?멸퀎?꾨즺';
+  e.sampleStatus = e.sampleStatus === '인계완료' ? '대기중' : '인계완료';
   render();
 }
 
 function renderCol(id, items, status, showAdd) {
   const el = document.getElementById(id);
   if (items.length === 0 && !showAdd) {
-    el.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">??ぉ ?놁쓬</p>';
+    el.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">항목 없음</p>';
     return;
   }
   let html = '';
   items.forEach(e => {
-    const pClass = e.priority==='???'p-high':e.priority==='以??'p-mid':'p-low';
+    const pClass = e.priority==='상'?'p-high':e.priority==='중'?'p-mid':'p-low';
     html += `
       <div class="exp-card" onclick="openDetailModal('${e.id}')">
         <div class="exp-card-top">
@@ -1597,14 +1597,14 @@ function renderCol(id, items, status, showAdd) {
         </div>
         <div class="exp-name">${e.name}</div>
         <div class="exp-meta">
-          <span>?뱥 ${e.client||'??}</span>
-          <span>?뫀 ${e.person||'??}</span>
-          <span>?뱟 ${e.date}</span>
+          <span>📋 ${e.client||'—'}</span>
+          <span>👤 ${e.person||'—'}</span>
+          <span>📅 ${e.date}</span>
         </div>
         <div style="margin-top:8px;display:flex;gap:6px;">
-          ${status!=='吏꾪뻾'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','吏꾪뻾')">??吏꾪뻾</button>`:''}
-          ${status!=='?꾨즺'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','?꾨즺')">???꾨즺</button>`:''}
-          <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">??젣</button>
+          ${status!=='진행'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','진행')">→ 진행</button>`:''}
+          ${status!=='완료'?`<button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','완료')">→ 완료</button>`:''}
+          <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">삭제</button>
         </div>
       </div>`;
   });
@@ -1613,13 +1613,13 @@ function renderCol(id, items, status, showAdd) {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
       </svg>
-      ?쒗뿕 ?묒닔
+      시험 접수
     </button>`;
   }
   el.innerHTML = html;
 }
 
-// ??? MODAL ???
+// ─── MODAL ───
 let nextId = () => {
   const n = experiments.length + 1;
   return 'EXP-' + String(n).padStart(4,'0');
@@ -1633,7 +1633,7 @@ function closeModal() {
 }
 function addExperiment() {
   const name = document.getElementById('m-name').value.trim();
-  if (!name) { showToast('?쒗뿕紐낆쓣 ?낅젰?댁＜?몄슂.'); return; }
+  if (!name) { showToast('시험명을 입력해주세요.'); return; }
   experiments.push({
     id: document.getElementById('m-id').value,
     name,
@@ -1646,21 +1646,21 @@ function addExperiment() {
   });
   render();
   closeModal();
-  showToast('?쒗뿕???묒닔?섏뿀?듬땲??');
+  showToast('시험이 접수되었습니다.');
   ['m-name','m-client','m-person','m-note'].forEach(id=>document.getElementById(id).value='');
 }
 
 function moveStatus(id, status) {
   const e = experiments.find(x=>x.id===id);
-  if (e) { e.status = status; fbSaveExperiments(); render(); showToast(`${id} ??${status} 泥섎━?섏뿀?듬땲??`); }
+  if (e) { e.status = status; fbSaveExperiments(); render(); showToast(`${id} → ${status} 처리되었습니다.`); }
 }
 function deleteExp(id) {
   experiments = experiments.filter(x=>x.id!==id);
   fbSaveExperiments(); render();
-  showToast('??젣?섏뿀?듬땲??');
+  showToast('삭제되었습니다.');
 }
 
-// ??? CERT PANEL ???
+// ─── CERT PANEL ───
 function openCertPanel() {
   document.getElementById('cert-overlay').classList.add('open');
   document.getElementById('cert-panel').classList.add('open');
@@ -1670,7 +1670,7 @@ function closeCertPanel() {
   document.getElementById('cert-panel').classList.remove('open');
 }
 
-// ??? RESULT ROWS ???
+// ─── RESULT ROWS ───
 function addResultRow() {
   rowCount++;
   const tbody = document.getElementById('result-tbody');
@@ -1680,38 +1680,38 @@ function addResultRow() {
   const taStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;width:100%;min-height:60px;resize:vertical;outline:none;line-height:1.5;';
   tr.innerHTML = `
     <td style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;vertical-align:middle;">${rc}</td>
-    <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="??ぉ${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="?쒗뿕 ??ぉ紐?></textarea>`}</td>
-    <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="湲곗?${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="湲곗? ?댁슜"></textarea>`}</td>
-    <td data-cond-cell style="padding:0;${condColHidden?'display:none;':''}">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="議곌굔${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="議곌굔"></textarea>`}</td>
+    <td style="padding:0;">${itemRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:itemRowCount},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<itemRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명"></textarea>`}</td>
+    <td style="padding:0;">${specRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:specRowCount},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<specRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용"></textarea>`}</td>
+    <td data-cond-cell style="padding:0;${condColHidden?'display:none;':''}">${condRowCount>1?`<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:condRowCount},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<condRowCount-1?'border-bottom:1px solid var(--border);':''}flex:1;"></textarea>`).join('')}</div>`:`<textarea data-field="cond" style="${taStyle}" placeholder="조건"></textarea>`}</td>
     <td data-result-cell colspan="${splitResultCount > 1 ? splitResultCount : 1}" style="text-align:center;vertical-align:middle;padding:0;">${(() => {
       const sN = splitResultCount || 1; const cN = condRowCount || 1;
       if (cN > 1) {
         const rows = Array.from({length:cN},(_,ci)=>{
           const cols = Array.from({length:sN},(_,ri)=>{
             const idx=ci*sN+ri;
-            return `<textarea data-field="result${idx+1}" placeholder="寃곌낵${idx+1}" style="${taStyle}${ri<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`;
+            return `<textarea data-field="result${idx+1}" placeholder="결과${idx+1}" style="${taStyle}${ri<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`;
           }).join('');
           return `<div style="display:flex;flex:1;${ci<cN-1?'border-bottom:1px solid var(--border);':''}">${cols}</div>`;
         }).join('');
         return `<div style="display:flex;flex-direction:column;height:100%;">${rows}</div>`;
       } else if (sN > 1) {
-        return `<div style="display:flex;height:100%;">${Array.from({length:sN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="寃곌낵${i+1}" style="${taStyle}${i<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`;
+        return `<div style="display:flex;height:100%;">${Array.from({length:sN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`;
       } else {
-        return `<textarea data-field="result" placeholder="寃곌낵" style="${taStyle}text-align:center;"></textarea>`;
+        return `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`;
       }
     })()}</td>
     ${Array.from({length:photoColCount},(_,pi)=>`<td class="img-cell" style="width:180px;min-width:160px;padding:6px;">
       <div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
         style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
-        <span class="img-placeholder" style="text-align:center;line-height:1.6;">?벜<br>?대┃ ??br>Ctrl+V</span>
-        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="?ъ쭊 ??젣" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">??/button>
+        <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+        <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
       </div>
     </td>`).join('')}
-    <td style="padding:4px;vertical-align:top;"><div contenteditable="true" data-field="note" onpaste="handleNotePaste(event,this)" style="background:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;min-height:60px;outline:none;line-height:1.5;word-break:break-all;white-space:pre-wrap;" data-placeholder="鍮꾧퀬"></div></td>
+    <td style="padding:4px;vertical-align:top;"><div contenteditable="true" data-field="note" onpaste="handleNotePaste(event,this)" style="background:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;min-height:60px;outline:none;line-height:1.5;word-break:break-all;white-space:pre-wrap;" data-placeholder="비고"></div></td>
   `;
   tbody.appendChild(tr);
 
-  // img-drop ?대깽?? paste???꾩뿭 由ъ뒪?덉뿉?쒕쭔 泥섎━ (?댁쨷 ?몄텧 諛⑹?)
+  // img-drop 이벤트: paste는 전역 리스너에서만 처리 (이중 호출 방지)
   tr.querySelectorAll('.img-drop').forEach(drop => {
     drop.addEventListener('click', () => drop.focus());
     drop.addEventListener('keydown', e => { if (e.key === 'Delete' || e.key === 'Backspace') clearImg(drop); });
@@ -1734,7 +1734,7 @@ function compressImage(dataUrl, maxW, maxH, quality, callback) {
     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
     callback(canvas.toDataURL('image/jpeg', quality));
   };
-  img.onerror = () => callback(dataUrl); // ?뺤텞 ?ㅽ뙣 ???먮낯 諛섑솚
+  img.onerror = () => callback(dataUrl); // 압축 실패 시 원본 반환
   img.src = dataUrl;
 }
 
@@ -1742,7 +1742,7 @@ function setImgDrop(drop, dataUrl) {
   drop._imgData = dataUrl;
   drop.innerHTML = `
     <img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain;" data-src="${dataUrl}">
-    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="?대?吏 ??젣" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">??/button>`;
+    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
 
 function handleImgPaste(e, drop) {
@@ -1758,10 +1758,10 @@ function handleImgPaste(e, drop) {
       const reader = new FileReader();
       reader.onload = ev => {
         const rawUrl = ev.target.result;
-        // 利됱떆 留듭뿉 ???+ ?붾㈃ ?쒖떆 (??대컢 臾닿?)
+        // 즉시 맵에 저장 + 화면 표시 (타이밍 무관)
         setImgDrop(drop, rawUrl);
         drop._pasting = false;
-        // 諛깃렇?쇱슫???뺤텞 ??留돠룻솕硫??낅뜲?댄듃
+        // 백그라운드 압축 후 맵·화면 업데이트
         compressImage(rawUrl, 800, 800, 0.5, compressed => {
           setImgDrop(drop, compressed);
         });
@@ -1775,11 +1775,11 @@ function handleImgPaste(e, drop) {
 
 function clearImg(drop) {
   delete drop._imgData;
-  drop.innerHTML = `<span class="img-placeholder" style="text-align:center;line-height:1.6;">?벜<br>?대┃ ??br>Ctrl+V</span>
-    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="?대?吏 ??젣" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">??/button>`;
+  drop.innerHTML = `<span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="이미지 삭제" style="display:none;position:absolute;top:2px;right:2px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:10px;padding:1px 4px;cursor:pointer;line-height:1.4;">✕</button>`;
 }
 
-// ?꾩뿭 paste: ?ъ빱?ㅻ맂 img-drop???대?吏 遺숈뿬?ｊ린
+// 전역 paste: 포커스된 img-drop에 이미지 붙여넣기
 document.addEventListener('paste', e => {
   const focused = document.activeElement;
   if (focused && focused.classList.contains('img-drop')) {
@@ -1795,7 +1795,7 @@ function delRow(id) {
 function deleteSelectedRow() {
   const rowId = document.getElementById('row-target-select')?.value;
   if (!rowId || rowId === 'all') {
-    // 留덉?留?????젣
+    // 마지막 행 삭제
     const rows = document.querySelectorAll('#result-tbody tr');
     if (rows.length > 0) { rows[rows.length - 1].remove(); renumberRows(); }
   } else {
@@ -1815,8 +1815,8 @@ function updateRowCountSelect() {
   if (!sel) return;
   const cur = sel.value;
   const rows = Array.from(document.querySelectorAll('#result-tbody tr'));
-  sel.innerHTML = '<option value="all">?꾩껜</option>' +
-    rows.map((tr, i) => `<option value="${tr.id}">${i+1}??/option>`).join('');
+  sel.innerHTML = '<option value="all">전체</option>' +
+    rows.map((tr, i) => `<option value="${tr.id}">${i+1}행</option>`).join('');
   if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
 }
 
@@ -1887,7 +1887,7 @@ function saveCert() {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const allDrops = [...tr.querySelectorAll('.img-drop')];
       const drop = allDrops[0] || null;
-      // DOM?먯꽌 ?ㅼ젣 ?꾨뱶 ???먮룞 媛먯? (?꾩뿭 count? 臾닿??섍쾶 ?뺥솗?????
+      // DOM에서 실제 필드 수 자동 감지 (전역 count와 무관하게 정확히 저장)
       const getFlatFields = (base) => {
         let domCount = 0;
         for (let fi = 1; fi <= 20; fi++) {
@@ -1905,7 +1905,7 @@ function saveCert() {
         }
         return obj;
       };
-      // specresult ?섎룄 DOM?먯꽌 媛먯?
+      // specresult 수도 DOM에서 감지
       let srCount = 0;
       for (let fi = 1; fi <= 20; fi++) {
         if (tr.querySelector(`[data-field="specresult${fi}"]`)) srCount = fi; else break;
@@ -1951,14 +1951,14 @@ function saveCert() {
     splitResultCount, photoColCount, itemRowCount, specRowCount, condRowCount,
     splitLabels: splitResultCount > 1 ? Array.from({length: splitResultCount}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || '') : [],
     rows,
-    status: pfState === 'pass' ? '?꾨즺' : pfState === 'fail' ? '?꾨즺(遺덊빀寃?' : '吏꾪뻾',
+    status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
     savedAt: new Date().toISOString()
   };
 
   const idx = certificates.findIndex(c=>c.no===no);
   const isNew = idx < 0;
 
-  // IDB ???+ Firebase DB ?대?吏 ???蹂묐젹 泥섎━
+  // IDB 저장 + Firebase DB 이미지 저장 병렬 처리
   Promise.all([
     idbSaveCertImgs(no, rows),
     idbSaveRowsText(no, rows),
@@ -1983,14 +1983,14 @@ function saveCert() {
       }
       return sum;
     }, 0);
-    showToast(isNew ? `?깆쟻?쒓? ??λ릺?덉뒿?덈떎. (?ъ쭊 ${totalImgs}??` : `?깆쟻?쒓? ?섏젙?섏뿀?듬땲?? (?ъ쭊 ${totalImgs}??`);
+    showToast(isNew ? `성적서가 저장되었습니다. (사진 ${totalImgs}장)` : `성적서가 수정되었습니다. (사진 ${totalImgs}장)`);
   }).catch(e => {
-    showToast('?대?吏 ????ㅻ쪟: ' + e.message);
+    showToast('이미지 저장 오류: ' + e.message);
   });
 
   } catch(e) {
-    console.error('saveCert ?ㅻ쪟:', e);
-    showToast('????ㅻ쪟: ' + (e.message||e) + ' ??' + (e.stack||'').split('\n')[1]);
+    console.error('saveCert 오류:', e);
+    showToast('저장 오류: ' + (e.message||e) + ' — ' + (e.stack||'').split('\n')[1]);
   }
 }
 
@@ -2001,36 +2001,36 @@ function renderCertList(filter='') {
     : [...certificates]
   ).sort((a, b) => (b.date || b.savedAt || '').localeCompare(a.date || a.savedAt || ''));
   const badge = document.getElementById('cert-count-badge');
-  if (badge) badge.textContent = filter ? `${list.length} / ${certificates.length}嫄? : `${certificates.length}嫄?;
+  if (badge) badge.textContent = filter ? `${list.length} / ${certificates.length}건` : `${certificates.length}건`;
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">??λ맂 ?깆쟻?쒓? ?놁뒿?덈떎</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:28px;">저장된 성적서가 없습니다</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(c => {
     const rows = c.rows || [];
 
-    const resultText = c.pf === 'pass' ? '?곹빀'
-      : c.pf === 'fail' ? '遺?곹빀'
-      : (rows.map(r => r.result||r.result1||'').filter(Boolean).join('<br>') || '??);
+    const resultText = c.pf === 'pass' ? '적합'
+      : c.pf === 'fail' ? '부적합'
+      : (rows.map(r => r.result||r.result1||'').filter(Boolean).join('<br>') || '—');
 
-    const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '??;
-    const titleDisplay = c.title || c.no || '??;
+    const noteText = rows.map(r => r.note||'').filter(Boolean).join('<br>') || '—';
+    const titleDisplay = c.title || c.no || '—';
     return `<tr>
       <td style="color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;white-space:nowrap;" onclick="loadCert('${c.no}')">${titleDisplay}</td>
-      <td style="white-space:nowrap;">${c.client||'??}</td>
-      <td style="white-space:nowrap;">${c.requester||'??}</td>
-      <td>${c.sample||'??}</td>
-      <td style="white-space:nowrap;">${c.start||'??} ~ ${c.end||'??}</td>
-      <td style="white-space:nowrap;">${c.person||'??}</td>
+      <td style="white-space:nowrap;">${c.client||'—'}</td>
+      <td style="white-space:nowrap;">${c.requester||'—'}</td>
+      <td>${c.sample||'—'}</td>
+      <td style="white-space:nowrap;">${c.start||'—'} ~ ${c.end||'—'}</td>
+      <td style="white-space:nowrap;">${c.person||'—'}</td>
       <td style="max-width:100px;line-height:1.6;">${resultText}</td>
-      <td style="text-align:center;" id="cert-img-cell-${c.no}"><span style="color:var(--text3)">??/span></td>
+      <td style="text-align:center;" id="cert-img-cell-${c.no}"><span style="color:var(--text3)">—</span></td>
       <td style="max-width:160px;line-height:1.6;">${noteText}</td>
-      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">??젣</button></td>
+      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteCert('${c.no}')">삭제</button></td>
     </tr>`;
   }).join('');
 
-  // ?ъ쭊 ?몃꽕?? Firebase DB ?곗꽑, ?놁쑝硫?IDB ?대갚
+  // 사진 썸네일: Firebase DB 우선, 없으면 IDB 폴백
   list.forEach(c => {
     const rows = c.rows || [];
     const rowCount = rows.length || 20;
@@ -2038,7 +2038,7 @@ function renderCertList(filter='') {
     if (!cell) return;
     window.__listImgCache = window.__listImgCache || {};
 
-    // Firebase DB?먯꽌 ?대?吏 濡쒕뱶
+    // Firebase DB에서 이미지 로드
     fbLoadCertImgs(c.no).then(fbImgRows => {
       const found = [];
       if (fbImgRows && fbImgRows.length) {
@@ -2061,7 +2061,7 @@ function renderCertList(filter='') {
         ).join('');
         return;
       }
-      // Firebase DB???놁쑝硫?IDB ?대갚
+      // Firebase DB에 없으면 IDB 폴백
       const keys = [];
       for (let i = 0; i < rowCount; i++) {
         const pc = (rows[i] && rows[i].photoCount) || 1;
@@ -2084,7 +2084,7 @@ async function loadCert(no) {
   const raw = certificates.find(x=>x.no===no);
   if (!raw) return;
 
-  // ???꾨뱶 梨꾩슦湲?
+  // 폼 필드 채우기
   document.getElementById('cf-no').value = raw.no;
   document.getElementById('cf-title').value = raw.title||'';
   document.getElementById('cf-date').value = raw.date||'';
@@ -2116,7 +2116,7 @@ async function loadCert(no) {
 
   if (raw.complexMode && raw.complexTableData && raw.complexColIdx) {
     renderComplexTable(raw.complexTableData, raw.complexColIdx);
-    // IDB?먯꽌 ?대?吏 濡쒕뱶 ??蹂듭썝
+    // IDB에서 이미지 로드 후 복원
     const drops = document.querySelectorAll('#result-tbody .img-drop');
     renderRows.forEach((r, i) => {
       idbGet(no + '_' + i).then(img => {
@@ -2126,7 +2126,7 @@ async function loadCert(no) {
   } else {
     resetToSimpleTable();
     if (raw.itemRowCount && raw.itemRowCount > 1) setItemRowCount(raw.itemRowCount);
-    // ?꾩뿭 spec/cond??1濡??먭퀬, 媛??됱뿉??媛쒕퀎 ?ㅼ젙
+    // 전역 spec/cond는 1로 두고, 각 행에서 개별 설정
     const loadCount = raw.splitResultCount || (raw.splitResultMode ? 2 : 1);
     if (loadCount > 1) {
       setSplitCount(loadCount);
@@ -2137,16 +2137,16 @@ async function loadCert(no) {
         });
       }
     }
-    // setSplitCount??thead瑜??ъ깮?깊븯誘濡?諛섎뱶??洹??꾩뿉 setPhotoCount ?몄텧
+    // setSplitCount이 thead를 재생성하므로 반드시 그 후에 setPhotoCount 호출
     if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
-    // Firebase DB ?대?吏 誘몃━ 濡쒕뱶 (await濡????뚮뜑 ?꾩뿉 ?뺣낫)
+    // Firebase DB 이미지 미리 로드 (await로 행 렌더 전에 확보)
     window.__loadingFbImgRows = await fbLoadCertImgs(no) || [];
     renderRows.forEach((r, i) => {
       addResultRow();
       const tr = document.querySelector('#result-tbody tr:last-child');
       const _toArr2 = v => v == null ? [] : Array.isArray(v) ? v : Object.values(v);
 
-      // ?됰퀎 spec/cond ??媛먯? ??媛쒕퀎 ?곸슜
+      // 행별 spec/cond 수 감지 후 개별 적용
       const rowSpecCount = parseInt(r.specCount) || (r.spec2 !== undefined && r.spec2 !== '' ? 2 : 1);
       const rowCondCount = parseInt(r.condCount) || (r.cond2 !== undefined && r.cond2 !== '' ? 2 : 1);
       if (rowSpecCount > 1) setRowSpecCount(tr.id, rowSpecCount);
@@ -2168,7 +2168,7 @@ async function loadCert(no) {
       fillFlatFields('spec', rowSpecCount);
       fillFlatFields('cond', rowCondCount);
       const savedResults = r.results || [r.result||''];
-      // 寃곌낵移?洹몃━??蹂듭썝 (議곌굔??횞 寃곌낵??
+      // 결과칸 그리드 복원 (조건행 × 결과열)
       const autoCondN = rowCondCount > 1 ? rowCondCount : rowSpecCount > 1 ? rowSpecCount : 1;
       if (autoCondN > 1) {
         syncResultRowsToCondRows(tr, autoCondN);
@@ -2184,7 +2184,7 @@ async function loadCert(no) {
       }
       const noteEl = tr.querySelector('[data-field="note"]');
       if (noteEl) { if (noteEl.getAttribute('contenteditable')) noteEl.innerHTML = r.note||''; else noteEl.value = r.note||''; }
-      // ?대?吏 濡쒕뱶: Firebase DB ?곗꽑, ?놁쑝硫?IDB ?대갚 (fbImgRows???꾨옒???명똿)
+      // 이미지 로드: Firebase DB 우선, 없으면 IDB 폴백 (fbImgRows는 아래서 세팅)
       const allLoadDrops = [...tr.querySelectorAll('.img-drop')];
       const fbRow = (window.__loadingFbImgRows || [])[i] || {};
       if (allLoadDrops.length > 1) {
@@ -2205,7 +2205,7 @@ async function loadCert(no) {
   }
 
   openCertPanel();
-  showToast(`?깆쟻??${no} 遺덈윭?ㅺ린 ?꾨즺`);
+  showToast(`성적서 ${no} 불러오기 완료`);
 }
 
 function deleteCert(no) {
@@ -2216,7 +2216,7 @@ function deleteCert(no) {
   certificates = certificates.filter(c=>c.no!==no);
   fbSaveCertificates(true);
   renderCertList();
-  showToast('??젣?섏뿀?듬땲??');
+  showToast('삭제되었습니다.');
 }
 
 function clearCertForm() {
@@ -2228,10 +2228,10 @@ function clearCertForm() {
   setPF('');
   resetToSimpleTable();
   for(let i=0;i<10;i++) addResultRow();
-  showToast('珥덇린?붾릺?덉뒿?덈떎.');
+  showToast('초기화되었습니다.');
 }
 
-// ??? EXCEL IMPORT ???
+// ─── EXCEL IMPORT ───
 function triggerExcelImport() {
   document.getElementById('excel-file-input').click();
 }
@@ -2248,7 +2248,7 @@ function handleExcelFile(input) {
   } else {
     // xlsx/xls: use SheetJS via CDN (lazy load)
     if (!window.XLSX) {
-      showToast('SheetJS ?쇱씠釉뚮윭由?濡쒕뵫 以?..');
+      showToast('SheetJS 라이브러리 로딩 중...');
       const script = document.createElement('script');
       script.src = 'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js';
       script.onload = () => readXLSX(file);
@@ -2266,10 +2266,10 @@ function readXLSX(file) {
     const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
 
-    // 蹂묓빀 ? 泥섎━: ?섏쭅 蹂묓빀(媛숈? ?? ?щ윭 ??留??꾨옒濡?梨꾩? ???섑룊 蹂묓빀? 嫄대꼫?
+    // 병합 셀 처리: 수직 병합(같은 열, 여러 행)만 아래로 채움 — 수평 병합은 건너뜀
     if (ws['!merges']) {
       ws['!merges'].forEach(merge => {
-        if (merge.s.c !== merge.e.c) return; // ?섑룊 蹂묓빀 ?쒖쇅
+        if (merge.s.c !== merge.e.c) return; // 수평 병합 제외
         const srcAddr = XLSX.utils.encode_cell({r: merge.s.r, c: merge.s.c});
         const srcCell = ws[srcAddr];
         if (!srcCell) return;
@@ -2292,9 +2292,9 @@ function parseCSVToTable(text) {
 }
 
 function applyExcelData(data) {
-  if (!data || !data.length) { showToast('?곗씠?곌? ?놁뒿?덈떎.'); return; }
+  if (!data || !data.length) { showToast('데이터가 없습니다.'); return; }
 
-  // ?? 1. ?ㅻ뜑 ???먯?: 怨듬갚 ?쒓굅 ??'?쒗뿕' ????덈뒗 ????
+  // ── 1. 헤더 행 탐지: 공백 제거 후 '시험' 셀이 있는 행 ──
   let headerRowIdx = -1;
   const colIdx = { item:-1, spec:-1, category:-1, num:-1, before:-1, after:-1, change:-1, result:-1, note:-1, img:-1 };
   const norm = v => String(v ?? '').replace(/\s/g, '');
@@ -2304,22 +2304,22 @@ function applyExcelData(data) {
     let foundItem = false;
     for (let j = 0; j < row.length; j++) {
       const v = norm(row[j]);
-      if (v === '?쒗뿕')    { colIdx.item = j; foundItem = true; }
-      if (v === '湲곗?')      colIdx.spec = j;
-      if (v === '寃곌낵')      colIdx.result = j;
-      if (v.includes('鍮꾧퀬')) colIdx.note = j;
-      if (v.includes('?ъ쭊')) colIdx.img = j;
+      if (v === '시험')    { colIdx.item = j; foundItem = true; }
+      if (v === '기준')      colIdx.spec = j;
+      if (v === '결과')      colIdx.result = j;
+      if (v.includes('비고')) colIdx.note = j;
+      if (v.includes('사진')) colIdx.img = j;
     }
     if (foundItem) {
       headerRowIdx = i;
-      // 援щ텇 ???먯?
+      // 구분 열 탐지
       for (let j = 0; j < row.length; j++) {
-        if (norm(row[j]) === '援щ텇') { colIdx.category = j; break; }
+        if (norm(row[j]) === '구분') { colIdx.category = j; break; }
       }
-      // 踰덊샇 ???먯?: 援щ텇 ?ㅼ쓬 ?댁뿉 ?졻몼???먮뒗 ?レ옄媛믪씠 ?덉쑝硫?踰덊샇 ?대줈 泥섎━
+      // 번호 열 탐지: 구분 다음 열에 ①②③ 또는 숫자값이 있으면 번호 열로 처리
       if (colIdx.category >= 0) {
         const numCol = colIdx.category + 1;
-        const numPattern = /^[?졻몼?™몿?ㅲ뫁?╈뫃?ⓥ뫆]$|^\d+$/;
+        const numPattern = /^[①②③④⑤⑥⑦⑧⑨⑩]$|^\d+$/;
         const dataRows = data.slice(i + 1).filter(r => r.some(c => String(c ?? '').trim()));
         if (dataRows.some(r => numPattern.test(String(r[numCol] ?? '').trim()))) {
           colIdx.num = numCol;
@@ -2329,45 +2329,45 @@ function applyExcelData(data) {
     }
   }
 
-  if (headerRowIdx === -1) { showToast('?ㅻ뜑 ???쒗뿕 ????李얠쓣 ???놁뒿?덈떎.'); return; }
+  if (headerRowIdx === -1) { showToast('헤더 행(시험 열)을 찾을 수 없습니다.'); return; }
 
-  // ?? 2. ?꾩옱 ??+ ?댄썑 2?됯퉴吏 ?쒕툕?ㅻ뜑 ?먯?(????蹂?붾웾) ??
+  // ── 2. 현재 행 + 이후 2행까지 서브헤더 탐지(전/후/변화량) ──
   for (let si = headerRowIdx; si <= Math.min(headerRowIdx + 2, data.length - 1); si++) {
     const srow = data[si] || [];
     for (let j = 0; j < srow.length; j++) {
       const v = norm(srow[j]);
-      if (v === '??)    colIdx.before = j;
-      if (v === '??)    colIdx.after  = j;
-      if (v === '蹂?붾웾') colIdx.change = j;
+      if (v === '전')    colIdx.before = j;
+      if (v === '후')    colIdx.after  = j;
+      if (v === '변화량') colIdx.change = j;
     }
   }
 
   const hasSubResult = colIdx.before >= 0 || colIdx.after >= 0 || colIdx.change >= 0;
   const hasCategory  = colIdx.category >= 0;
 
-  // ?? 3. ?ㅻ뜑/?쒕툕?ㅻ뜑 ?쇰꺼 ?명듃 ??
-  const META = new Set(['?쒗뿕','湲곗?','援щ텇','寃곌낵','??,'??,'蹂?붾웾','踰덊샇','?ъ쭊','?쒗뿕?ъ쭊','鍮꾧퀬']);
+  // ── 3. 헤더/서브헤더 라벨 세트 ──
+  const META = new Set(['시험','기준','구분','결과','전','후','변화량','번호','사진','시험사진','비고']);
 
-  // ?곗씠???쒖옉? headerRowIdx ?댄썑??紐⑤뱺 ??以??ㅼ젣 ?곗씠?곕쭔 ?좎?
+  // 데이터 시작은 headerRowIdx 이후의 모든 행 중 실제 데이터만 유지
   const rawRows = data.slice(headerRowIdx + 1).filter(r => {
-    // 鍮????쒖쇅
+    // 빈 행 제외
     if (!r.some(c => String(c ?? '').trim())) return false;
     const nv = r.map(c => norm(c ?? ''));
-    // 紐⑤뱺 non-empty ???硫뷀? ?쇰꺼?대㈃ ?ㅻ뜑 ?????쒖쇅
+    // 모든 non-empty 셀이 메타 라벨이면 헤더 행 → 제외
     const nonempty = nv.filter(v => v);
     if (nonempty.length > 0 && nonempty.every(v => META.has(v))) return false;
-    // item 而щ읆??硫뷀? ?쇰꺼?대㈃ ?ㅻ뜑 ?????쒖쇅
+    // item 컬럼이 메타 라벨이면 헤더 행 → 제외
     if (colIdx.item >= 0 && nv[colIdx.item] && META.has(nv[colIdx.item])) return false;
-    // before 而щ읆??硫뷀? ?쇰꺼?대㈃ ?쒕툕?ㅻ뜑 ?????쒖쇅
+    // before 컬럼이 메타 라벨이면 서브헤더 행 → 제외
     if (colIdx.before >= 0 && nv[colIdx.before] && META.has(nv[colIdx.before])) return false;
     return true;
   });
-  if (!rawRows.length) { showToast('?곗씠???됱씠 ?놁뒿?덈떎.'); return; }
+  if (!rawRows.length) { showToast('데이터 행이 없습니다.'); return; }
 
-  // ?? 4. 踰덊샇 而щ읆: 蹂묓빀??援щ텇 ?ㅻ뜑(?????먯꽌留??먮룞 ?ㅼ젙????
-  // (?먮룞 ?먯? ?쒓굅 ??category+1 諛⑹떇? ?녿뒗 ?댁쓣 留뚮뱾?대궪 ???덉쓬)
+  // ── 4. 번호 컬럼: 병합된 구분 헤더(두 열)에서만 자동 설정됨 ──
+  // (자동 탐지 제거 — category+1 방식은 없는 열을 만들어낼 수 있음)
 
-  // ?? 5. carry-forward: item/spec/category留??곸슜 ??
+  // ── 5. carry-forward: item/spec/category만 적용 ──
   const carrySet = new Set([colIdx.item, colIdx.spec, colIdx.category].filter(c => c >= 0));
   const filled = rawRows.map((r, ri) => {
     return r.map((cell, ci) => {
@@ -2382,13 +2382,13 @@ function applyExcelData(data) {
     });
   });
 
-  // ?? 6. carry-forward ???쒗뿕/湲곗?/援щ텇) ???곗씠?곌? ?녿뒗 鍮????쒓굅 ??
+  // ── 6. carry-forward 열(시험/기준/구분) 외 데이터가 없는 빈 행 제거 ──
   const carryColsSet = new Set([colIdx.item, colIdx.spec, colIdx.category].filter(c => c >= 0));
   const finalRows = filled.filter(r =>
     r.some((cell, ci) => !carryColsSet.has(ci) && String(cell ?? '').trim() !== '')
   );
 
-  // ?? 7. 蹂듭옟 援ъ“ or ?⑥닚 援ъ“ 遺꾧린 ??
+  // ── 7. 복잡 구조 or 단순 구조 분기 ──
   openCertPanel();
   document.getElementById('result-tbody').innerHTML = '';
   rowCount = 0;
@@ -2405,11 +2405,11 @@ function applyExcelData(data) {
       tr.querySelector('[data-field="result"]').value = get(colIdx.result);
       tr.querySelector('[data-field="note"]').value   = get(colIdx.note);
     });
-    showToast(`?묒? ?곗씠??${finalRows.length}??媛?몄삤湲??꾨즺`);
+    showToast(`엑셀 데이터 ${finalRows.length}행 가져오기 완료`);
   }
 }
 
-/* ??? COMPLEX TABLE (?묒? 援щ텇/????蹂?붾웾 援ъ“) ??? */
+/* ─── COMPLEX TABLE (엑셀 구분/전/후/변화량 구조) ─── */
 function calculateRowspans(rows, colIndices) {
   const n = rows.length;
   const map = rows.map(() => ({}));
@@ -2436,7 +2436,7 @@ function makeImgDrop(rowSpan) {
   drop.className = 'img-drop';
   drop.tabIndex = 0;
   drop.style.cssText = 'width:100%;min-height:90px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);';
-  drop.innerHTML = '<span class="img-placeholder" style="text-align:center;line-height:1.6;">?벜<br>?대┃ ??br>Ctrl+V</span><button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest(\'.img-drop\'))" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;z-index:2;">??/button>';
+  drop.innerHTML = '<span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span><button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest(\'.img-drop\'))" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;z-index:2;">✕</button>';
   drop.addEventListener('paste', e => handleImgPaste(e, drop));
   drop.addEventListener('click', () => drop.focus());
   td.appendChild(drop);
@@ -2451,28 +2451,28 @@ function renderComplexTable(rows, ci) {
   const hasNum = ci.num >= 0;
   const hasSub = ci.before >= 0 || ci.after >= 0 || ci.change >= 0;
 
-  // ?? thead 援먯껜 ??
+  // ── thead 교체 ──
   const thead = document.getElementById('result-thead');
   thead.innerHTML = `
     <tr>
-      <th rowspan="2" style="width:90px;">?쒗뿕</th>
-      <th rowspan="2">湲곗?</th>
-      <th rowspan="2">援щ텇</th>
-      ${hasNum ? '<th rowspan="2" style="width:48px;">踰덊샇</th>' : ''}
-      ${hasSub ? '<th colspan="3">寃곌낵</th>' : '<th>寃곌낵</th>'}
-      <th rowspan="2" style="width:160px;">?쒗뿕?ъ쭊</th>
-      <th rowspan="2">鍮꾧퀬</th>
+      <th rowspan="2" style="width:90px;">시험</th>
+      <th rowspan="2">기준</th>
+      <th rowspan="2">구분</th>
+      ${hasNum ? '<th rowspan="2" style="width:48px;">번호</th>' : ''}
+      ${hasSub ? '<th colspan="3">결과</th>' : '<th>결과</th>'}
+      <th rowspan="2" style="width:160px;">시험사진</th>
+      <th rowspan="2">비고</th>
     </tr>
-    ${hasSub ? '<tr><th style="width:70px;">??/th><th style="width:70px;">??/th><th style="width:70px;">蹂?붾웾</th></tr>' : '<tr></tr>'}
+    ${hasSub ? '<tr><th style="width:70px;">전</th><th style="width:70px;">후</th><th style="width:70px;">변화량</th></tr>' : '<tr></tr>'}
   `;
 
-  // ?? rowspan 怨꾩궛: ?쒗뿕쨌湲곗?쨌援щ텇 湲곗? ??
+  // ── rowspan 계산: 시험·기준·구분 기준 ──
   const spanCols = [ci.item, ci.spec, ci.category].filter(c => c >= 0);
   const rsMap = calculateRowspans(rows, spanCols);
-  // ?쒗뿕?ъ쭊? 援щ텇(category) 洹몃９, 鍮꾧퀬???쒗뿕(item) 洹몃９
+  // 시험사진은 구분(category) 그룹, 비고는 시험(item) 그룹
   const imgGroupCol = ci.category >= 0 ? ci.category : ci.item;
 
-  // ?? tbody ?앹꽦 ??
+  // ── tbody 생성 ──
   const tbody = document.getElementById('result-tbody');
   tbody.innerHTML = '';
 
@@ -2488,22 +2488,22 @@ function renderComplexTable(rows, ci) {
       tr.appendChild(td);
     };
 
-    // ?쒗뿕
+    // 시험
     const itemRs = rsMap[ri][ci.item] ?? 1;
     if (rsMap[ri][ci.item] !== 0) addTd(get(r, ci.item), itemRs, {verticalAlign:'middle', textAlign:'center'});
 
-    // 湲곗?
+    // 기준
     if (ci.spec >= 0 && rsMap[ri][ci.spec] !== 0)
       addTd(get(r, ci.spec), rsMap[ri][ci.spec] ?? 1, {verticalAlign:'middle'});
 
-    // 援щ텇
+    // 구분
     if (ci.category >= 0 && rsMap[ri][ci.category] !== 0)
       addTd(get(r, ci.category), rsMap[ri][ci.category] ?? 1, {verticalAlign:'middle', textAlign:'center'});
 
-    // 踰덊샇
+    // 번호
     if (hasNum) addTd(get(r, ci.num), 1, {textAlign:'center'});
 
-    // 寃곌낵
+    // 결과
     if (hasSub) {
       const bv = get(r, ci.before), av = get(r, ci.after), cv = get(r, ci.change);
       const isText = bv && !av && !cv && isNaN(parseFloat(bv));
@@ -2519,18 +2519,18 @@ function renderComplexTable(rows, ci) {
       addTd(get(r, ci.result), 1, {textAlign:'center', verticalAlign:'middle'});
     }
 
-    // ?쒗뿕?ъ쭊 (援щ텇 洹몃９)
+    // 시험사진 (구분 그룹)
     if (rsMap[ri][imgGroupCol] !== 0)
       tr.appendChild(makeImgDrop(rsMap[ri][imgGroupCol] ?? 1));
 
-    // 鍮꾧퀬 (?쒗뿕 洹몃９)
+    // 비고 (시험 그룹)
     if (rsMap[ri][ci.item] !== 0)
       addTd(get(r, ci.note), itemRs, {verticalAlign:'middle', textAlign:'center'});
 
     tbody.appendChild(tr);
   });
 
-  showToast(`?묒? ?곗씠??${rows.length}??媛?몄삤湲??꾨즺`);
+  showToast(`엑셀 데이터 ${rows.length}행 가져오기 완료`);
 }
 
 function resetToSimpleTable() {
@@ -2546,12 +2546,12 @@ function resetToSimpleTable() {
   document.getElementById('result-thead').innerHTML = `
     <tr>
       <th style="width:40px;">No</th>
-      <th>?쒗뿕</th>
-      <th>湲곗?</th>
-      <th>議곌굔</th>
-      <th id="result-th" colspan="1">寃곌낵</th>
-      <th style="width:180px;">?쒗뿕?ъ쭊</th>
-      <th>鍮꾧퀬</th>
+      <th>시험</th>
+      <th>기준</th>
+      <th>조건</th>
+      <th id="result-th" colspan="1">결과</th>
+      <th style="width:180px;">시험사진</th>
+      <th>비고</th>
     </tr>`;
 }
 
@@ -2565,9 +2565,9 @@ function setItemRowCount(n) {
     const prev = Array.from(itemTd.querySelectorAll('textarea')).map(t => t.value);
     itemTd.style.padding = '0';
     if (n > 1) {
-      itemTd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="item${i+1}" placeholder="??ぉ${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`;
+      itemTd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`;
     } else {
-      itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="?쒗뿕 ??ぉ紐?>${prev[0]||''}</textarea>`;
+      itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명">${prev[0]||''}</textarea>`;
     }
   });
   const sel = document.getElementById('item-row-select'); if (sel) sel.value = String(n);
@@ -2582,9 +2582,9 @@ function setRowItemCount(rowId, n) {
   const prev = Array.from(itemTd.querySelectorAll('textarea')).map(t => t.value);
   itemTd.style.padding = '0';
   if (n > 1) {
-    itemTd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="item${i+1}" placeholder="??ぉ${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`;
+    itemTd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="item${i+1}" placeholder="항목${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`;
   } else {
-    itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="?쒗뿕 ??ぉ紐?>${prev[0]||''}</textarea>`;
+    itemTd.innerHTML = `<textarea data-field="item" style="${taStyle}" placeholder="시험 항목명">${prev[0]||''}</textarea>`;
   }
 }
 
@@ -2597,9 +2597,9 @@ function setSpecRowCount(n) {
     const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
     td.style.padding = '0';
     td.innerHTML = n > 1
-      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="湲곗?${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
-      : `<textarea data-field="spec" style="${taStyle}" placeholder="湲곗? ?댁슜">${prev[0]||''}</textarea>`;
-    // 寃곌낵移몃룄 媛숈씠 ?몃줈 遺꾪븷
+      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+      : `<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용">${prev[0]||''}</textarea>`;
+    // 결과칸도 같이 세로 분할
     syncResultRowsToCondRows(tr, n, taStyle);
   });
   const sel = document.getElementById('spec-row-select'); if (sel) sel.value = String(n);
@@ -2613,9 +2613,9 @@ function setRowSpecCount(rowId, n) {
   const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
   td.style.padding = '0';
   td.innerHTML = n > 1
-    ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="湲곗?${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
-    : `<textarea data-field="spec" style="${taStyle}" placeholder="湲곗? ?댁슜">${prev[0]||''}</textarea>`;
-  // 寃곌낵移몃룄 媛숈씠 ?몃줈 遺꾪븷
+    ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="spec${i+1}" placeholder="기준${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+    : `<textarea data-field="spec" style="${taStyle}" placeholder="기준 내용">${prev[0]||''}</textarea>`;
+  // 결과칸도 같이 세로 분할
   syncResultRowsToCondRows(tr, n, taStyle);
 }
 
@@ -2628,9 +2628,9 @@ function setCondRowCount(n) {
     const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
     td.style.padding = '0';
     td.innerHTML = n > 1
-      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="議곌굔${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
-      : `<textarea data-field="cond" style="${taStyle}" placeholder="議곌굔">${prev[0]||''}</textarea>`;
-    // 寃곌낵移몃룄 媛숈씠 ?몃줈 遺꾪븷
+      ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+      : `<textarea data-field="cond" style="${taStyle}" placeholder="조건">${prev[0]||''}</textarea>`;
+    // 결과칸도 같이 세로 분할
     syncResultRowsToCondRows(tr, n, taStyle);
   });
   const sel = document.getElementById('cond-row-select'); if (sel) sel.value = String(n);
@@ -2642,23 +2642,23 @@ function syncResultRowsToCondRows(tr, condN, taStyle) {
   const splitN = splitResultCount || 1;
   const prev = Array.from(rtd.querySelectorAll('textarea')).map(t => t.value);
   rtd.style.padding = '0';
-  rtd.colSpan = splitN; // 寃곌낵 ???섎쭔??colspan ?좎?
+  rtd.colSpan = splitN; // 결과 열 수만큼 colspan 유지
   if (condN > 1) {
-    // 議곌굔??횞 寃곌낵??洹몃━?? condN?? 媛??됱뿉 splitN媛???
+    // 조건행 × 결과열 그리드: condN행, 각 행에 splitN개 열
     const rows = Array.from({length: condN}, (_, ci) => {
       const cols = Array.from({length: splitN}, (_, ri) => {
         const idx = ci * splitN + ri;
         const fieldName = (condN === 1 && splitN === 1) ? 'result' : `result${idx + 1}`;
-        return `<textarea data-field="${fieldName}" placeholder="寃곌낵${idx+1}" style="${taStyle}${ri < splitN-1 ? 'border-right:1px solid var(--border);' : ''}flex:1;text-align:center;">${prev[idx]||''}</textarea>`;
+        return `<textarea data-field="${fieldName}" placeholder="결과${idx+1}" style="${taStyle}${ri < splitN-1 ? 'border-right:1px solid var(--border);' : ''}flex:1;text-align:center;">${prev[idx]||''}</textarea>`;
       }).join('');
       return `<div style="display:flex;flex:1;${ci < condN-1 ? 'border-bottom:1px solid var(--border);' : ''}">${cols}</div>`;
     }).join('');
     rtd.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;">${rows}</div>`;
   } else if (splitN > 1) {
-    // 議곌굔1??횞 寃곌낵N??(湲곗〈 媛濡?遺꾪븷)
-    rtd.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:splitN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="寃곌낵${i+1}" style="${taStyle}${i<splitN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
+    // 조건1행 × 결과N열 (기존 가로 분할)
+    rtd.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:splitN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<splitN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
   } else {
-    rtd.innerHTML = `<textarea data-field="result" placeholder="寃곌낵" style="${taStyle}text-align:center;">${prev[0]||''}</textarea>`;
+    rtd.innerHTML = `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;">${prev[0]||''}</textarea>`;
   }
 }
 
@@ -2670,9 +2670,9 @@ function setRowCondCount(rowId, n) {
   const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
   td.style.padding = '0';
   td.innerHTML = n > 1
-    ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="議곌굔${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
-    : `<textarea data-field="cond" style="${taStyle}" placeholder="議곌굔">${prev[0]||''}</textarea>`;
-  // 寃곌낵移몃룄 媛숈씠 ?몃줈 遺꾪븷
+    ? `<div style="display:flex;flex-direction:column;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="cond${i+1}" placeholder="조건${i+1}" style="${taStyle}${i<n-1?'border-bottom:1px solid var(--border);':''}flex:1;">${prev[i]||''}</textarea>`).join('')}</div>`
+    : `<textarea data-field="cond" style="${taStyle}" placeholder="조건">${prev[0]||''}</textarea>`;
+  // 결과칸도 같이 세로 분할
   syncResultRowsToCondRows(tr, n, taStyle);
 }
 
@@ -2686,9 +2686,9 @@ function setRowSplitCount(rowId, n) {
   const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
   td.style.padding = '0';
   if (n > 1) {
-    td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="寃곌낵${i+1}" style="${taStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
+    td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
   } else {
-    td.innerHTML = `<textarea data-field="result" placeholder="寃곌낵" style="${taStyle}text-align:center;">${prev[0]||''}</textarea>`;
+    td.innerHTML = `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;">${prev[0]||''}</textarea>`;
   }
 }
 
@@ -2715,57 +2715,57 @@ function setRowPhotoCount(rowId, n) {
 function openDetailModal(id) {
   const e = experiments.find(x => x.id === id);
   if (!e) return;
-  const statusColor = e.status==='?묒닔'?'#3b82f6':e.status==='吏꾪뻾'?'#f59e0b':'#00b890';
+  const statusColor = e.status==='접수'?'#3b82f6':e.status==='진행'?'#f59e0b':'#00b890';
   document.getElementById('detail-modal-bg').innerHTML = `
     <div style="background:var(--surface);border-radius:14px;padding:28px 32px;min-width:360px;max-width:520px;width:90vw;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;">
-      <button onclick="document.getElementById('detail-modal-bg').classList.remove('open')" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);">??/button>
+      <button onclick="document.getElementById('detail-modal-bg').classList.remove('open')" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);">✕</button>
       <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:4px;">EXPERIMENT DETAIL</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:14px;">
         <div style="grid-column:1/-1;">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">?쒗뿕紐?/div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">시험명</div>
           <input id="det-name" value="${(e.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">?섎ː 湲곌?</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">의뢰 기관</div>
           <input id="det-client" value="${(e.client||'').replace(/"/g,'&quot;')}" list="client-list" autocomplete="off" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">?대떦??/div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">담당자</div>
           <select id="det-person" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
-            <option value="">?좏깮</option>
-            <option value="諛뺥깭??${e.person==='諛뺥깭???' selected':''}>諛뺥깭??/option>
-            <option value="諛뺣룞??${e.person==='諛뺣룞???' selected':''}>諛뺣룞??/option>
+            <option value="">선택</option>
+            <option value="박태현"${e.person==='박태현'?' selected':''}>박태현</option>
+            <option value="박동현"${e.person==='박동현'?' selected':''}>박동현</option>
           </select>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">?묒닔??/div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">접수일</div>
           <input id="det-date" type="date" value="${e.date||''}" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;font-family:inherit;">
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">?곗꽑?쒖쐞</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">우선순위</div>
           <select id="det-priority" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
-            <option value="??${e.priority==='???' selected':''}>??(湲닿툒)</option>
-            <option value="以?${e.priority==='以??' selected':''}>以?(蹂댄넻)</option>
-            <option value="??${e.priority==='???' selected':''}>??(?ъ쑀)</option>
+            <option value="상"${e.priority==='상'?' selected':''}>상 (긴급)</option>
+            <option value="중"${e.priority==='중'?' selected':''}>중 (보통)</option>
+            <option value="하"${e.priority==='하'?' selected':''}>하 (여유)</option>
           </select>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">?곹깭</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">상태</div>
           <select id="det-status" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;">
-            <option value="?묒닔"${e.status==='?묒닔'?' selected':''}>?묒닔</option>
-            <option value="吏꾪뻾"${e.status==='吏꾪뻾'?' selected':''}>吏꾪뻾 以?/option>
-            <option value="?꾨즺"${e.status==='?꾨즺'?' selected':''}>?꾨즺</option>
+            <option value="접수"${e.status==='접수'?' selected':''}>접수</option>
+            <option value="진행"${e.status==='진행'?' selected':''}>진행 중</option>
+            <option value="완료"${e.status==='완료'?' selected':''}>완료</option>
           </select>
         </div>
         <div style="grid-column:1/-1;">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">鍮꾧퀬</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px;">비고</div>
           <textarea id="det-note" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);font-size:13px;outline:none;min-height:56px;resize:vertical;font-family:inherit;">${e.note||''}</textarea>
         </div>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-        <button class="btn btn-danger" style="font-size:12px;padding:5px 14px;" onclick="deleteExp('${e.id}');document.getElementById('detail-modal-bg').classList.remove('open')">??젣</button>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="document.getElementById('detail-modal-bg').classList.remove('open')">痍⑥냼</button>
-        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;" onclick="saveExpDetail('${e.id}')">???/button>
+        <button class="btn btn-danger" style="font-size:12px;padding:5px 14px;" onclick="deleteExp('${e.id}');document.getElementById('detail-modal-bg').classList.remove('open')">삭제</button>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 14px;" onclick="document.getElementById('detail-modal-bg').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px;" onclick="saveExpDetail('${e.id}')">저장</button>
       </div>
     </div>`;
   document.getElementById('detail-modal-bg').classList.add('open');
@@ -2783,7 +2783,7 @@ function saveExpDetail(id) {
   fbSaveExperiments();
   render();
   document.getElementById('detail-modal-bg').classList.remove('open');
-  showToast('??λ릺?덉뒿?덈떎.');
+  showToast('저장되었습니다.');
 }
 
 function makeImgCell(rc, pi) {
@@ -2793,18 +2793,18 @@ function makeImgCell(rc, pi) {
   td.style.cssText = 'width:180px;min-width:160px;padding:6px;';
   td.innerHTML = `<div class="img-drop" data-row="${rc}" data-photo="${pi}" tabindex="0"
     style="width:100%;height:110px;border:1px dashed var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);overflow:hidden;position:relative;background:var(--surface2);">
-    <span class="img-placeholder" style="text-align:center;line-height:1.6;">?벜<br>?대┃ ??br>Ctrl+V</span>
-    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="?ъ쭊 ??젣" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">??/button>
+    <span class="img-placeholder" style="text-align:center;line-height:1.6;">📷<br>클릭 후<br>Ctrl+V</span>
+    <button class="img-del-btn" onclick="event.stopPropagation();clearImg(this.closest('.img-drop'))" title="사진 삭제" style="display:none;position:absolute;top:4px;right:4px;background:rgba(239,68,68,.85);border:none;color:#fff;border-radius:3px;font-size:11px;padding:2px 6px;cursor:pointer;line-height:1.4;z-index:2;">✕</button>
   </div>`;
   return td;
 }
 
-// ?ㅻ뜑 ?듯빀 ?ъ깮????splitResultCount, photoColCount ????諛섏쁺
+// 헤더 통합 재생성 — splitResultCount, photoColCount 둘 다 반영
 function rebuildThead() {
   const thead = document.getElementById('result-thead');
   const inStyle = 'background:none;border:none;color:var(--text);font-family:\'Noto Sans KR\',sans-serif;font-size:12px;text-align:center;width:100%;outline:none;padding:2px;';
 
-  // 湲곗〈 ?쇰꺼 媛?蹂댁〈
+  // 기존 라벨 값 보존
   const prevResultLabels = Array.from({length:splitResultCount}, (_,i) =>
     document.getElementById('result-label'+(i+1))?.value || '');
   const prevPhotoLabels = Array.from({length:photoColCount}, (_,i) =>
@@ -2815,47 +2815,47 @@ function rebuildThead() {
   if (needTwoRows) {
     const resultLabelThs = splitResultCount > 1
       ? Array.from({length:splitResultCount}, (_,i) =>
-          `<th><input id="result-label${i+1}" placeholder="援щ텇${i+1}" style="${inStyle}font-weight:bold;"></th>`
+          `<th><input id="result-label${i+1}" placeholder="구분${i+1}" style="${inStyle}font-weight:bold;"></th>`
         ).join('')
       : '';
     const photoSubThs = photoColCount > 1
       ? Array.from({length:photoColCount}, (_,i) =>
-          `<th style="min-width:160px;"><input id="photo-label${i+1}" placeholder="?ъ쭊${i+1}" style="${inStyle}font-weight:bold;"></th>`
+          `<th style="min-width:160px;"><input id="photo-label${i+1}" placeholder="사진${i+1}" style="${inStyle}font-weight:bold;"></th>`
         ).join('')
       : '';
 
     const resultRow1 = splitResultCount > 1
-      ? `<th colspan="${splitResultCount}" id="result-th">寃곌낵</th>`
-      : `<th rowspan="2" id="result-th">寃곌낵</th>`;
+      ? `<th colspan="${splitResultCount}" id="result-th">결과</th>`
+      : `<th rowspan="2" id="result-th">결과</th>`;
     const photoRow1 = photoColCount > 1
-      ? `<th colspan="${photoColCount}">?쒗뿕?ъ쭊</th>`
-      : `<th rowspan="2" style="width:180px;">?쒗뿕?ъ쭊</th>`;
+      ? `<th colspan="${photoColCount}">시험사진</th>`
+      : `<th rowspan="2" style="width:180px;">시험사진</th>`;
 
     thead.innerHTML = `
       <tr>
         <th rowspan="2" style="width:40px;">No</th>
-        <th rowspan="2">?쒗뿕</th>
-        <th rowspan="2">湲곗?</th>
-        <th rowspan="2">議곌굔</th>
+        <th rowspan="2">시험</th>
+        <th rowspan="2">기준</th>
+        <th rowspan="2">조건</th>
         ${resultRow1}
         ${photoRow1}
-        <th rowspan="2">鍮꾧퀬</th>
+        <th rowspan="2">비고</th>
       </tr>
       <tr>${resultLabelThs}${photoSubThs}</tr>`;
   } else {
     thead.innerHTML = `
       <tr>
         <th style="width:40px;">No</th>
-        <th>?쒗뿕</th>
-        <th>湲곗?</th>
-        <th>議곌굔</th>
-        <th id="result-th" colspan="1">寃곌낵</th>
-        <th style="width:180px;">?쒗뿕?ъ쭊</th>
-        <th>鍮꾧퀬</th>
+        <th>시험</th>
+        <th>기준</th>
+        <th>조건</th>
+        <th id="result-th" colspan="1">결과</th>
+        <th style="width:180px;">시험사진</th>
+        <th>비고</th>
       </tr>`;
   }
 
-  // ?쇰꺼 媛?蹂듭썝
+  // 라벨 값 복원
   prevResultLabels.forEach((v,i) => { if (v) { const el = document.getElementById('result-label'+(i+1)); if (el) el.value = v; } });
   prevPhotoLabels.forEach((v,i) => { if (v) { const el = document.getElementById('photo-label'+(i+1)); if (el) el.value = v; } });
 }
@@ -2867,45 +2867,45 @@ function setPhotoCount(n) {
   const thead = document.getElementById('result-thead');
   let trows = thead.querySelectorAll('tr');
 
-  // 2???ㅻ뜑媛 ?놁쑝硫?媛뺤젣 ?앹꽦 (splitResultCount=1 + photoColCount>1 耳?댁뒪)
+  // 2행 헤더가 없으면 강제 생성 (splitResultCount=1 + photoColCount>1 케이스)
   if (n > 1 && trows.length === 1) {
-    // 紐⑤뱺 th??rowspan=2 異붽?
+    // 모든 th에 rowspan=2 추가
     trows[0].querySelectorAll('th').forEach(th => { th.rowSpan = 2; });
     thead.appendChild(document.createElement('tr'));
     trows = thead.querySelectorAll('tr');
   }
 
-  // 湲곗〈 photo sub-th ?쒓굅
+  // 기존 photo sub-th 제거
   trows[1] && Array.from(trows[1].querySelectorAll('th[data-photo-sub]')).forEach(th => th.remove());
 
-  // 1?됱쓽 ?쒗뿕?ъ쭊 th 李얠븘??媛깆떊
-  const photoTh = Array.from(trows[0].querySelectorAll('th')).find(th => th.textContent.trim() === '?쒗뿕?ъ쭊');
+  // 1행의 시험사진 th 찾아서 갱신
+  const photoTh = Array.from(trows[0].querySelectorAll('th')).find(th => th.textContent.trim() === '시험사진');
   if (photoTh) {
     photoTh.colSpan = n;
     photoTh.rowSpan = n > 1 ? 1 : (trows.length > 1 ? 2 : 1);
     photoTh.style.width = n === 1 ? '180px' : '';
   }
 
-  // photo sub-th ?쎌엯 (n>1????
+  // photo sub-th 삽입 (n>1일 때)
   if (n > 1 && trows[1]) {
-    // 鍮꾧퀬 th ?욎뿉 photo sub-ths ?쎌엯 (?놁쑝硫??앹뿉 append)
-    const noteSubTh = Array.from(trows[1].querySelectorAll('th')).find(th => th.textContent.trim() === '鍮꾧퀬');
+    // 비고 th 앞에 photo sub-ths 삽입 (없으면 끝에 append)
+    const noteSubTh = Array.from(trows[1].querySelectorAll('th')).find(th => th.textContent.trim() === '비고');
     Array.from({length:n}, (_,i) => {
       const th = document.createElement('th');
       th.setAttribute('data-photo-sub', '');
       th.style.minWidth = '160px';
-      th.innerHTML = `<input id="photo-label${i+1}" placeholder="?ъ쭊${i+1}" style="${inStyle}font-weight:bold;">`;
+      th.innerHTML = `<input id="photo-label${i+1}" placeholder="사진${i+1}" style="${inStyle}font-weight:bold;">`;
       noteSubTh ? trows[1].insertBefore(th, noteSubTh) : trows[1].appendChild(th);
     });
   }
 
-  // 2?됱씠 鍮꾩뼱 ?덉쑝硫??쒓굅
+  // 2행이 비어 있으면 제거
   if (trows[1] && trows[1].children.length === 0) {
     trows[1].remove();
     trows[0].querySelectorAll('th').forEach(th => { th.removeAttribute('rowspan'); });
   }
 
-  // 湲곗〈 ??photo 移??숆린??
+  // 기존 행 photo 칸 동기화
   document.querySelectorAll('#result-tbody tr').forEach(tr => {
     const imgCells = Array.from(tr.querySelectorAll('td.img-cell'));
     const noteCell = tr.querySelector('[data-field="note"]')?.closest('td');
@@ -2926,10 +2926,10 @@ function setPhotoCount(n) {
 
 function splitSelectHTML(current) {
   return `<select onchange="setSplitCount(this.value)" style="font-size:10px;padding:1px 3px;margin-left:4px;border:1px solid var(--border);border-radius:3px;background:var(--surface2);color:var(--text);cursor:pointer;">
-    <option value="1"${current===1?' selected':''}>遺꾪븷?놁쓬</option>
-    <option value="2"${current===2?' selected':''}>2??/option>
-    <option value="3"${current===3?' selected':''}>3??/option>
-    <option value="4"${current===4?' selected':''}>4??/option>
+    <option value="1"${current===1?' selected':''}>분할없음</option>
+    <option value="2"${current===2?' selected':''}>2열</option>
+    <option value="3"${current===3?' selected':''}>3열</option>
+    <option value="4"${current===4?' selected':''}>4열</option>
   </select>`;
 }
 
@@ -2947,7 +2947,7 @@ function setSplitCount(n) {
       const prev = Array.from(td.querySelectorAll('textarea')).map(t => t.value);
       td.colSpan = n;
       td.style.padding = '0';
-      td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="寃곌낵${i+1}" style="${inStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
+      td.innerHTML = `<div style="display:flex;height:100%;">${Array.from({length:n},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${inStyle}${i<n-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;">${prev[i]||''}</textarea>`).join('')}</div>`;
     });
   } else {
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
@@ -2956,7 +2956,7 @@ function setSplitCount(n) {
       const v = td.querySelector('textarea')?.value || '';
       td.colSpan = 1;
       td.style.padding = '';
-      td.innerHTML = `<textarea data-field="result" placeholder="寃곌낵" style="${inStyle}text-align:center;">${v}</textarea>`;
+      td.innerHTML = `<textarea data-field="result" placeholder="결과" style="${inStyle}text-align:center;">${v}</textarea>`;
     });
   }
 }
@@ -2969,15 +2969,15 @@ function save() {
   fbSaveExperiments();
 }
 
-/* ??? CERT IMAGE COPY ??? */
+/* ─── CERT IMAGE COPY ─── */
 async function copyCertImage(btn) {
   const orig = btn.innerHTML;
-  btn.textContent = '罹≪쿂 以?..';
+  btn.textContent = '캡처 중...';
   btn.disabled = true;
   try {
     const target = document.getElementById('result-table').closest('.result-table-wrap');
 
-    // ?? 1a. 遺꾪븷 寃곌낵 ????ㅼ젣 N媛쒖쓽 <td>濡?援먯껜 (DOM?먯꽌 ?꾩쟾 ?쒓굅) ??
+    // ── 1a. 분할 결과 셀을 실제 N개의 <td>로 교체 (DOM에서 완전 제거) ──
     const splitRestores = [];
     target.querySelectorAll('td[data-result-cell]').forEach(td => {
       const textareas = Array.from(td.querySelectorAll('textarea'));
@@ -2999,7 +2999,7 @@ async function copyCertImage(btn) {
       parent.removeChild(td);
       splitRestores.push({ td, newCells, parent, nextSib });
     });
-    // ?ㅻ뜑 label th?먮룄 ?숈씪 ?덈퉬 ?곸슜
+    // 헤더 label th에도 동일 너비 적용
     const resultTh = target.querySelector('#result-th');
     if (resultTh && splitResultCount > 1) {
       const thTotalW = resultTh.getBoundingClientRect().width;
@@ -3012,7 +3012,7 @@ async function copyCertImage(btn) {
       if (labelThs.length) splitRestores.push({ cleanup: () => labelThs.forEach(({el, orig}) => el.style.cssText = orig) });
     }
 
-    // ?? 1a-2. ?댁슜 ?녿뒗 ???④린湲???
+    // ── 1a-2. 내용 없는 행 숨기기 ──
     const hiddenRows = [];
     document.querySelectorAll('#result-tbody tr').forEach(tr => {
       const hasContent = Array.from(tr.querySelectorAll('textarea, input[type="text"]'))
@@ -3021,7 +3021,7 @@ async function copyCertImage(btn) {
       if (!hasContent) { tr.style.display = 'none'; hiddenRows.push(tr); }
     });
 
-    // ?? 1b. textarea/input???꾩껜 ?댁슜??蹂댁씠??<div>濡?援먯껜 (th input ?ы븿) ??
+    // ── 1b. textarea/input을 전체 내용이 보이는 <div>로 교체 (th input 포함) ──
     const replaced = [];
     target.querySelectorAll('td textarea, td input, th input').forEach(el => {
       const div = document.createElement('div');
@@ -3032,7 +3032,7 @@ async function copyCertImage(btn) {
       replaced.push({ el, div });
     });
 
-    // ?? 1c. ?몃줈 遺꾪븷 ?(flex-column) ??block?쇰줈 蹂?섑빐 html2canvas媛 ?щ컮瑜닿쾶 ?뚮뜑留???
+    // ── 1c. 세로 분할 셀(flex-column) → block으로 변환해 html2canvas가 올바르게 렌더링 ──
     const flexRestores = [];
     target.querySelectorAll('td > div').forEach(flexDiv => {
       const style = flexDiv.getAttribute('style') || '';
@@ -3054,7 +3054,7 @@ async function copyCertImage(btn) {
       flexRestores.push({ flexDiv, origStyle, capDivs });
     });
 
-    // ?? 1d. 議곌굔 ?댁씠 紐⑤몢 鍮꾩뼱?덉쑝硫?罹≪쿂 以??④린湲???
+    // ── 1d. 조건 열이 모두 비어있으면 캡처 중 숨기기 ──
     const hiddenCondCells = [];
     const visibleRows = Array.from(target.querySelectorAll('#result-tbody tr')).filter(tr => tr.style.display !== 'none');
     const allCondDivs = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('.__cap-text')).filter(d => {
@@ -3062,7 +3062,7 @@ async function copyCertImage(btn) {
       const field = (d.previousSibling?.dataset?.field || d.nextSibling?.dataset?.field || '');
       return field.startsWith('cond');
     }));
-    // data-field媛 cond*???④꺼吏?textarea濡??뺤씤
+    // data-field가 cond*인 숨겨진 textarea로 확인
     const allCondTas = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('[data-field^="cond"]')));
     const condIsEmpty = allCondTas.length > 0 && allCondTas.every(ta => !ta.value.trim());
     if (condIsEmpty) {
@@ -3070,11 +3070,11 @@ async function copyCertImage(btn) {
         const condTd = Array.from(tr.querySelectorAll('td')).find(td => td.querySelector('[data-field^="cond"]'));
         if (condTd) { condTd.style.display = 'none'; hiddenCondCells.push(condTd); }
       });
-      const condTh = Array.from(target.querySelectorAll('th')).find(th => th.textContent.trim() === '議곌굔');
+      const condTh = Array.from(target.querySelectorAll('th')).find(th => th.textContent.trim() === '조건');
       if (condTh) { condTh.style.display = 'none'; hiddenCondCells.push(condTh); }
     }
 
-    // ?? 2. 罹≪쿂???ㅽ????쎌엯 ??
+    // ── 2. 캡처용 스타일 삽입 ──
     const styleEl = document.createElement('style');
     styleEl.id = 'cert-capture-style';
     styleEl.textContent = `
@@ -3121,10 +3121,10 @@ async function copyCertImage(btn) {
     `;
     document.head.appendChild(styleEl);
 
-    // ?? 2.5. 釉뚮씪?곗? ?덉씠?꾩썐 ?꾨즺 ?湲???
+    // ── 2.5. 브라우저 레이아웃 완료 대기 ──
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    // ?? 3. 罹≪쿂 ??
+    // ── 3. 캡처 ──
     const fullH = target.scrollHeight;
     const canvas = await html2canvas(target, {
       backgroundColor: '#ffffff',
@@ -3138,7 +3138,7 @@ async function copyCertImage(btn) {
       scrollY: 0
     });
 
-    // ?? 4. 蹂듭썝 ??
+    // ── 4. 복원 ──
     styleEl.remove();
     hiddenRows.forEach(tr => { tr.style.display = ''; });
     replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
@@ -3157,23 +3157,23 @@ async function copyCertImage(btn) {
     canvas.toBlob(async blob => {
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        showToast('?깆쟻???대?吏媛 ?대┰蹂대뱶??蹂듭궗?섏뿀?듬땲?? Ctrl+V濡?遺숈뿬?ｊ린 ?섏꽭??');
+        showToast('성적서 이미지가 클립보드에 복사되었습니다. Ctrl+V로 붙여넣기 하세요.');
       } catch(e) {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'certificate.png';
         a.click();
-        showToast('?대┰蹂대뱶 蹂듭궗 遺덇? ???대?吏濡???ν뻽?듬땲??');
+        showToast('클립보드 복사 불가 — 이미지로 저장했습니다.');
       }
       btn.innerHTML = orig; btn.disabled = false;
     }, 'image/png');
   } catch(e) {
-    showToast('?대?吏 罹≪쿂 ?ㅽ뙣: ' + e.message);
+    showToast('이미지 캡처 실패: ' + e.message);
     btn.innerHTML = orig; btn.disabled = false;
   }
 }
 
-/* ??? IMAGE MODAL ??? */
+/* ─── IMAGE MODAL ─── */
 function openImgModal(src) {
   document.getElementById('img-modal-img').src = src;
   document.getElementById('img-modal').classList.add('open');
@@ -3183,19 +3183,19 @@ function closeImgModal() {
   document.getElementById('img-modal-img').src = '';
 }
 
-/* ??? MULTI-SELECT COMBO ??? */
+/* ─── MULTI-SELECT COMBO ─── */
 const MC_OPTIONS = {
-  'cf-item': ['?섏쭅 ?섏쨷','?곹뙋 痢〓갑 ?섏쨷','?덉젙??,'?숉븯以?,'吏???섏쭅??,'?뺤쟻 ?섑룊??,
-    '?꾨룄(?섏쭅??諛??섑룊?μ뿉 ????덉젙??','吏묒쨷蹂댁쬆遺??,'吏묒쨷湲곕뒫遺??,'?섑룊??,'異⑷꺽??,
-    '?대쭏紐⑥꽦','?ㅽ겕?섏튂','?댁삤?쇱꽦','?닿킅??,'?щ옓','諛뺣━','??삩??뒿(CYCLE)','援닿끝??寃곕갑??',
-    'SCUFF(寃곕갑??','?댁땐寃⑹꽦','?꾨룄(?섏쭅?μ뿉 ????덉젙??','?댁삤?쇱꽦(怨쇱궛?붿닔?뚯닔)',
-    '?댁삤?쇱꽦(?쒕꼫 ?몄쿃)','?묒갑??,'?꾩뼱 媛쒗룓 ?쒗뿕','吏???섏쭅??異?遺?? 異??쒓굅)','?곹뙋 諛붾떏?먯쓽 吏?랁븯以?,'?곹뙋 諛붾떏?먯쓽 ?뺥븯以?,
-    '?ㅻ━遺??媛뺣룄?쒗뿕(b?뺤떇)','?먰븨?덉씪 ?닿뎄??],
-  'cf-spec': ['KS G 4009(媛?뺤슜 紐⑹젣 ?앺긽 諛??섏옄)','ANSI/BIFMA X 5.5(Desk/Table Products)',
-    'KS G 4203(?щТ??梨낆긽 諛??뚯씠釉?','湲곗?-?덇?21. HPM ?쒗뿕 湲곗???,'湲곗?-?덇?19.湲고?移섏옣?먯쓽臾쇱꽦?쒗뿕 湲곗???,'湲곗?-?덇?22. LPM ?쒗뿕 湲곗???,
-    '湲곗?-?덇?-0025 ?ｌ?, ?ル찞??諛??섏꽦?묒갑???쒗뿕湲곗?','?ｌ??ル찞???섏젙?묒갑???쒗뿕 諛⑸쾿 ?묒슜',
-    'KS G ISO 7170:2005','KS G 7170 (?섎궔媛援ъ쓽 媛뺣룄 諛??닿뎄???쒗뿕諛⑸쾿)','?섎ː???붿껌???섑븳 ?쒗뿕 諛?湲곗?',
-    '湲곗?-?덇?34.??삩??뒿湲??쒗뿕湲곗???,'KS G 4300','湲곗?-?덇?23. ?덉씪瑜섏떆??]
+  'cf-item': ['수직 하중','상판 측방 하중','안정성','동하중','지속 수직력','정적 수평력',
+    '전도(수직력 및 수평력에 대한 안정성)','집중보증부하','집중기능부하','수평력','충격성',
+    '내마모성','스크래치','내오염성','내광성','크랙','박리','항온항습(CYCLE)','굴곡성(결방향)',
+    'SCUFF(결방향)','내충격성','전도(수직력에 대한 안정성)','내오염성(과산화수소수)',
+    '내오염성(시너 세척)','접착력','도어 개폐 시험','지속 수직력(추 부하, 추 제거)','상판 바닥판의 지속하중','상판 바닥판의 정하중',
+    '다리부의 강도시험(b형식)','댐핑레일 내구성'],
+  'cf-spec': ['KS G 4009(가정용 목제 식탁 및 의자)','ANSI/BIFMA X 5.5(Desk/Table Products)',
+    'KS G 4203(사무용 책상 및 테이블)','기준-품관21. HPM 시험 기준서','기준-품관19.기타치장판의물성시험 기준서','기준-품관22. LPM 시험 기준서',
+    '기준-품관-0025 엣지, 핫멜트 및 수성접착제 시험기준','엣지핫멜트 수정접착제 시험 방법 응용',
+    'KS G ISO 7170:2005','KS G 7170 (수납가구의 강도 및 내구성 시험방법)','의뢰자 요청에 의한 시험 및 기준',
+    '기준-품관34.항온항습기 시험기준서','KS G 4300','기준-품관23. 레일류시험']
 };
 const mcState = {}; // { id: Set<string> }
 
@@ -3265,7 +3265,7 @@ function mcRenderTags(id) {
   const container = document.getElementById(`mc-${id}-tags`);
   const sel = mcState[id] || new Set();
   container.innerHTML = [...sel].map(v =>
-    `<span class="mc-tag">${v}<span class="mc-tag-del" onclick="event.stopPropagation();mcRemoveOpt('${id}','${v.replace(/'/g,"\\'")}')">??/span></span>`
+    `<span class="mc-tag">${v}<span class="mc-tag-del" onclick="event.stopPropagation();mcRemoveOpt('${id}','${v.replace(/'/g,"\\'")}')">✕</span></span>`
   ).join('');
 }
 
@@ -3274,7 +3274,7 @@ function syncHiddenInput(id) {
 }
 
 function getMultiComboValue(id) {
-  // ?낅젰李쎌뿉 ?⑥븘?덈뒗 ?띿뒪?몃룄 ?ы븿
+  // 입력창에 남아있는 텍스트도 포함
   const input = document.getElementById(`${id}-input`);
   if (input && input.value.trim()) {
     mcAddOpt(id, input.value.trim());
@@ -3320,4 +3320,3 @@ document.getElementById('modal-bg').addEventListener('click', e => {
 </script>
 </body>
 </html>
-
