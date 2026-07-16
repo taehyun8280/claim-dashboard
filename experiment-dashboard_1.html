@@ -1522,13 +1522,63 @@ function render() {
   document.getElementById('k-cnt-prog').textContent = prog.length;
   document.getElementById('k-cnt-done').textContent = done.length;
 
-  renderCol('col-wait', wait, '접수', true);
+  renderWaitCol(wait);
   renderCol('col-prog', prog, '진행', false);
   const doneQ = (document.getElementById('done-search')?.value||'').trim().toLowerCase();
   const doneFilt = doneQ ? done.filter(e=>(e.name||'').toLowerCase().includes(doneQ)||(e.client||'').toLowerCase().includes(doneQ)||(e.person||'').toLowerCase().includes(doneQ)) : done;
   renderCol('col-done', doneFilt, '완료', false);
 
   save();
+}
+
+function renderWaitCol(items) {
+  const el = document.getElementById('col-wait');
+  const pending = items.filter(e => e.sampleStatus !== '인계완료');
+  const handed  = items.filter(e => e.sampleStatus === '인계완료');
+  const cardHtml = (e) => {
+    const pClass = e.priority==='상'?'p-high':e.priority==='중'?'p-mid':'p-low';
+    const isHanded = e.sampleStatus === '인계완료';
+    return `<div class="exp-card" onclick="openDetailModal('${e.id}')">
+      <div class="exp-card-top">
+        <span class="priority-badge ${pClass}">${e.priority}</span>
+        <span style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;${isHanded?'background:#d1fae5;color:#065f46;':'background:#fef3c7;color:#92400e;'}">${isHanded?'시료 인계 완료':'시료 인계 대기중'}</span>
+      </div>
+      <div class="exp-name">${e.name}</div>
+      <div class="exp-meta">
+        <span>📋 ${e.client||'—'}</span>
+        <span>👤 ${e.person||'—'}</span>
+        <span>📅 ${e.date}</span>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();toggleSampleStatus('${e.id}')">${isHanded?'↩ 대기중으로':'✔ 인계 완료'}</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();moveStatus('${e.id}','진행')">→ 진행</button>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="event.stopPropagation();deleteExp('${e.id}')">삭제</button>
+      </div>
+    </div>`;
+  };
+  let html = '';
+  // 섹션1: 시료 인계 대기중
+  html += `<div style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:4px 10px;border-radius:6px;margin-bottom:6px;">🕐 시료 인계 대기중 <span style="font-weight:500;">(${pending.length})</span></div>`;
+  if (pending.length) pending.forEach(e => { html += cardHtml(e); });
+  else html += '<p style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0 12px;">없음</p>';
+  // 구분선
+  html += `<div style="border-top:1px solid var(--border);margin:10px 0 8px;"></div>`;
+  // 섹션2: 시료 인계 완료
+  html += `<div style="font-size:11px;font-weight:700;color:#065f46;background:#d1fae5;padding:4px 10px;border-radius:6px;margin-bottom:6px;">✅ 시료 인계 완료 <span style="font-weight:500;">(${handed.length})</span></div>`;
+  if (handed.length) handed.forEach(e => { html += cardHtml(e); });
+  else html += '<p style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0 12px;">없음</p>';
+  // 접수 버튼
+  html += `<button class="add-btn" onclick="openModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>시험 접수</button>`;
+  el.innerHTML = html;
+}
+
+function toggleSampleStatus(id) {
+  const e = experiments.find(x=>x.id===id); if (!e) return;
+  e.sampleStatus = e.sampleStatus === '인계완료' ? '대기중' : '인계완료';
+  render();
 }
 
 function renderCol(id, items, status, showAdd) {
