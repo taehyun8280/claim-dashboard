@@ -2164,6 +2164,7 @@ function saveCert() {
     pf: pfState,
     splitResultCount, photoColCount, itemRowCount, specRowCount, condRowCount,
     splitLabels: splitResultCount > 1 ? Array.from({length: splitResultCount}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || '') : [],
+    photoLabels: photoColCount > 1 ? Array.from({length: photoColCount}, (_,i) => document.getElementById(`photo-label${i+1}`)?.value || '') : [],
     rows,
     status: pfState === 'pass' ? '완료' : pfState === 'fail' ? '완료(불합격)' : '진행',
     savedAt: new Date().toISOString()
@@ -2352,7 +2353,15 @@ async function loadCert(no) {
       }
     }
     // setSplitCount이 thead를 재생성하므로 반드시 그 후에 setPhotoCount 호출
-    if (raw.photoColCount && raw.photoColCount > 1) setPhotoCount(raw.photoColCount);
+    if (raw.photoColCount && raw.photoColCount > 1) {
+      setPhotoCount(raw.photoColCount);
+      if (raw.photoLabels) {
+        raw.photoLabels.forEach((lv, i) => {
+          const el = document.getElementById(`photo-label${i+1}`);
+          if (el) el.value = lv;
+        });
+      }
+    }
     // Firebase DB 이미지 미리 로드 (await로 행 렌더 전에 확보)
     window.__loadingFbImgRows = await fbLoadCertImgs(no) || [];
     renderRows.forEach((r, i) => {
