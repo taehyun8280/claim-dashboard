@@ -1240,10 +1240,10 @@
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
       </svg>이미지 복사
     </button>
-    <button class="btn btn-outline" onclick="downloadCertCSV()">
+    <button class="btn btn-outline" onclick="downloadCertPDF()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>CSV 다운로드
+      </svg>PDF 다운로드
     </button>
     <button class="btn btn-primary" onclick="saveCert()">성적서 저장</button>
   </div>
@@ -1865,6 +1865,103 @@ function setPF(v) {
   pfState = v;
   document.getElementById('pf-pass').className = 'pf-btn' + (v==='pass'?' pass-sel':'');
   document.getElementById('pf-fail').className = 'pf-btn' + (v==='fail'?' fail-sel':'');
+}
+
+function downloadCertPDF() {
+  const title = (document.getElementById('cf-title')?.value || '').trim() || '시험성적서';
+  const splitN = splitResultCount || 1;
+  const resultLabels = splitN > 1
+    ? Array.from({length: splitN}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || `결과${i+1}`)
+    : ['결과'];
+
+  const firstTr = document.querySelector('#result-tbody tr');
+  const photoCount = firstTr ? firstTr.querySelectorAll('.img-drop').length : 0;
+
+  const thStyle = 'border:1px solid #888;background:#f0f0f0;padding:6px 10px;font-size:12px;text-align:center;white-space:pre-wrap;';
+  const tdStyle = 'border:1px solid #ccc;padding:6px 10px;font-size:12px;vertical-align:middle;white-space:pre-wrap;';
+  const tdcStyle = tdStyle + 'text-align:center;';
+
+  // 헤더
+  let thead = '<tr>';
+  thead += `<th style="${thStyle}">No</th><th style="${thStyle}">시험</th><th style="${thStyle}">기준</th><th style="${thStyle}">조건</th>`;
+  if (splitN > 1) {
+    thead += `<th colspan="${splitN}" style="${thStyle}">결과</th>`;
+  } else {
+    thead += `<th style="${thStyle}">결과</th>`;
+  }
+  if (photoCount > 0) thead += `<th colspan="${photoCount}" style="${thStyle}">시험사진</th>`;
+  thead += `<th style="${thStyle}">비고</th></tr>`;
+
+  if (splitN > 1) {
+    thead += '<tr><th style="' + thStyle + '"></th><th style="' + thStyle + '"></th><th style="' + thStyle + '"></th><th style="' + thStyle + '"></th>';
+    resultLabels.forEach(l => { thead += `<th style="${thStyle}">${l}</th>`; });
+    if (photoCount > 0) Array.from({length:photoCount},(_,i) => { thead += `<th style="${thStyle}">사진${i+1}</th>`; });
+    thead += `<th style="${thStyle}"></th></tr>`;
+  }
+
+  // 본문
+  let tbody = '';
+  document.querySelectorAll('#result-tbody tr').forEach((tr, idx) => {
+    const getField = (...names) => {
+      for (const n of names) {
+        const el = tr.querySelector(`[data-field="${n}"]`);
+        if (el) return (el.value !== undefined ? el.value : el.innerText || '').trim();
+      }
+      return '';
+    };
+    const itemVal = getField('item') || Array.from({length:10},(_,i)=>getField(`item${i+1}`)).filter(Boolean).join('\n');
+    const specVal = getField('spec') || Array.from({length:10},(_,i)=>getField(`spec${i+1}`)).filter(Boolean).join('\n');
+    const condVal = getField('cond') || Array.from({length:10},(_,i)=>getField(`cond${i+1}`)).filter(Boolean).join('\n');
+
+    let results = [];
+    if (splitN > 1) {
+      results = Array.from({length:splitN},(_,i)=>getField(`result${i+1}`));
+    } else {
+      let rIdx = 1;
+      while (tr.querySelector(`[data-field="result${rIdx}"]`)) rIdx++;
+      results = rIdx > 1 ? [Array.from({length:rIdx-1},(_,i)=>getField(`result${i+1}`)).join('\n')] : [getField('result')];
+    }
+
+    const imgTds = Array.from(tr.querySelectorAll('.img-drop')).map(drop => {
+      const img = drop.querySelector('img');
+      return img ? `<td style="${tdcStyle}"><img src="${img.src}" style="max-width:110px;max-height:90px;"></td>`
+                 : `<td style="${tdcStyle}"></td>`;
+    }).join('');
+
+    const noteEl = tr.querySelector('[data-field="note"]');
+    const noteVal = noteEl ? (noteEl.getAttribute('contenteditable') ? noteEl.innerHTML : noteEl.value) : '';
+
+    tbody += `<tr>
+      <td style="${tdcStyle}">${idx+1}</td>
+      <td style="${tdStyle}">${itemVal}</td>
+      <td style="${tdStyle}">${specVal}</td>
+      <td style="${tdStyle}">${condVal}</td>
+      ${results.map(r=>`<td style="${tdcStyle}">${r}</td>`).join('')}
+      ${imgTds}
+      <td style="${tdStyle}">${noteVal}</td>
+    </tr>`;
+  });
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+  <style>
+    @page { size: A4 landscape; margin: 15mm; }
+    body { font-family: '맑은 고딕', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
+    h2 { font-size: 16px; margin-bottom: 12px; }
+    table { border-collapse: collapse; width: 100%; }
+    @media print { button { display: none; } }
+  </style></head>
+  <body>
+    <h2>${title}</h2>
+    <table><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+    <br>
+    <button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;background:#0ea5e9;color:#fff;border:none;border-radius:6px;">🖨️ PDF로 저장</button>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 800);
 }
 
 function downloadCertCSV() {
