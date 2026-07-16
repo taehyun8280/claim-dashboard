@@ -1868,87 +1868,115 @@ function setPF(v) {
 }
 
 function downloadCertCSV() {
-  const esc = v => '"' + String(v||'').replace(/"/g,'""').replace(/\n/g,' ') + '"';
-
-  // 헤더 정보
-  const no     = document.getElementById('cf-no')?.value || '';
-  const title  = document.getElementById('cf-title')?.value || '';
-  const date   = document.getElementById('cf-date')?.value || '';
-  const client = document.getElementById('cf-client')?.value || '';
-  const req    = document.getElementById('cf-requester')?.value || '';
-  const person = document.getElementById('cf-person')?.value || '';
-  const item   = getMultiComboValue('cf-item');
-  const spec   = getMultiComboValue('cf-spec');
-  const sample = document.getElementById('cf-sample')?.value || '';
-  const cond   = document.getElementById('cf-cond')?.value || '';
-  const start  = document.getElementById('cf-start')?.value || '';
-  const end    = document.getElementById('cf-end')?.value || '';
-  const note   = document.getElementById('cf-note')?.value || '';
-  const pf     = pfState === 'pass' ? '합격' : pfState === 'fail' ? '불합격' : '';
-
-  const lines = [];
-
-  // 성적서 기본 정보 섹션
-  lines.push(['성적서번호', '제목', '발행일자', '시험의뢰기관', '의뢰자', '담당자', '시험항목', '시험규격/방법', '시험시료', '시험조건', '시험시작일', '시험종료일', '판정', '특이사항'].map(esc).join(','));
-  lines.push([no, title, date, client, req, person, item, spec, sample, cond, start, end, pf, note].map(esc).join(','));
-  lines.push('');
-
-  // 시험 결과 행 섹션
-  const resultHeaders = ['No', '시험 항목', '기준', '조건'];
+  const title = (document.getElementById('cf-title')?.value || '').trim();
+  const date  = document.getElementById('cf-date')?.value || '';
   const splitN = splitResultCount || 1;
-  if (splitN > 1) {
-    const labels = Array.from({length: splitN}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || `결과${i+1}`);
-    labels.forEach(l => resultHeaders.push(l));
-  } else {
-    resultHeaders.push('결과');
-  }
-  resultHeaders.push('비고');
-  lines.push(resultHeaders.map(esc).join(','));
 
+  // 결과 헤더 레이블
+  const resultLabels = splitN > 1
+    ? Array.from({length: splitN}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || `결과${i+1}`)
+    : ['결과'];
+
+  const h = v => `<th style="border:1px solid #888;background:#f0f0f0;padding:6px 10px;font-size:13px;white-space:pre-wrap;text-align:center;">${v}</th>`;
+  const td = (v, extra='') => `<td style="border:1px solid #ccc;padding:6px 10px;font-size:13px;vertical-align:middle;white-space:pre-wrap;${extra}">${v}</td>`;
+  const tdc = (v, extra='') => td(v, 'text-align:center;' + extra);
+
+  // 사진 카운트 감지
+  const firstTr = document.querySelector('#result-tbody tr');
+  const photoCount = firstTr ? firstTr.querySelectorAll('.img-drop').length : 0;
+
+  // 헤더 행 구성
+  let thead = '<tr>';
+  thead += h('No') + h('시험') + h('기준') + h('조건');
+  if (splitN > 1) {
+    thead += `<th colspan="${splitN}" style="border:1px solid #888;background:#f0f0f0;padding:6px 10px;font-size:13px;text-align:center;">결과</th>`;
+  } else {
+    thead += h('결과');
+  }
+  if (photoCount > 0) {
+    thead += `<th colspan="${photoCount}" style="border:1px solid #888;background:#f0f0f0;padding:6px 10px;font-size:13px;text-align:center;">시험사진</th>`;
+  }
+  thead += h('비고') + '</tr>';
+
+  // 결과 서브헤더 (splitN > 1일 때)
+  if (splitN > 1) {
+    thead += '<tr>' + h('') + h('') + h('') + h('');
+    resultLabels.forEach(l => { thead += h(l); });
+    if (photoCount > 0) Array.from({length: photoCount}, (_,i) => { thead += h(`사진${i+1}`); });
+    thead += h('') + '</tr>';
+  } else if (photoCount > 1) {
+    thead += '<tr>' + h('') + h('') + h('') + h('') + h('');
+    Array.from({length: photoCount}, (_,i) => { thead += h(`사진${i+1}`); });
+    thead += h('') + '</tr>';
+  }
+
+  // 본문 행 구성
+  let tbody = '';
   document.querySelectorAll('#result-tbody tr').forEach((tr, idx) => {
     const getField = (...names) => {
       for (const n of names) {
         const el = tr.querySelector(`[data-field="${n}"]`);
-        if (el) return el.value !== undefined ? el.value : el.innerText || '';
+        if (el) return (el.value !== undefined ? el.value : el.innerText || '').trim();
       }
       return '';
     };
-    const rowNo = idx + 1;
-    const itemVal = getField('item') || Array.from({length:10},(_,i)=>getField(`item${i+1}`)).filter(Boolean).join(' / ');
-    const specVal = getField('spec') || Array.from({length:10},(_,i)=>getField(`spec${i+1}`)).filter(Boolean).join(' / ');
-    const condVal = getField('cond') || Array.from({length:10},(_,i)=>getField(`cond${i+1}`)).filter(Boolean).join(' / ');
 
-    // 결과 수집 (세로 행 × 가로 열 그리드 포함)
+    const itemVal = getField('item') || Array.from({length:10},(_,i)=>getField(`item${i+1}`)).filter(Boolean).join('\n');
+    const specVal = getField('spec') || Array.from({length:10},(_,i)=>getField(`spec${i+1}`)).filter(Boolean).join('\n');
+    const condVal = getField('cond') || Array.from({length:10},(_,i)=>getField(`cond${i+1}`)).filter(Boolean).join('\n');
+
+    // 결과값 수집 (그리드 포함)
     let results = [];
     if (splitN > 1) {
       results = Array.from({length: splitN}, (_,i) => getField(`result${i+1}`));
     } else {
-      // 세로 분할 확인
       let rIdx = 1;
       while (tr.querySelector(`[data-field="result${rIdx}"]`)) rIdx++;
-      if (rIdx > 1) {
-        results = [Array.from({length: rIdx-1}, (_,i) => getField(`result${i+1}`)).join(' / ')];
-      } else {
-        results = [getField('result')];
-      }
+      results = rIdx > 1
+        ? [Array.from({length: rIdx-1}, (_,i) => getField(`result${i+1}`)).join('\n')]
+        : [getField('result')];
     }
 
-    const noteVal = (() => { const el = tr.querySelector('[data-field="note"]'); return el ? (el.getAttribute('contenteditable') ? el.innerText : el.value) : ''; })();
-    const row = [rowNo, itemVal, specVal, condVal, ...results, noteVal];
-    lines.push(row.map(esc).join(','));
+    // 이미지 수집
+    const imgTds = Array.from(tr.querySelectorAll('.img-drop')).map(drop => {
+      const img = drop.querySelector('img');
+      const src = img ? img.src : '';
+      return src ? `<td style="border:1px solid #ccc;padding:4px;text-align:center;vertical-align:middle;"><img src="${src}" style="max-width:120px;max-height:100px;"></td>`
+                 : `<td style="border:1px solid #ccc;padding:4px;"></td>`;
+    }).join('');
+
+    const noteEl = tr.querySelector('[data-field="note"]');
+    const noteVal = noteEl ? (noteEl.getAttribute('contenteditable') ? noteEl.innerHTML : noteEl.value) : '';
+
+    tbody += '<tr>';
+    tbody += tdc(idx+1);
+    tbody += td(itemVal);
+    tbody += td(specVal);
+    tbody += td(condVal);
+    results.forEach(r => { tbody += tdc(r); });
+    tbody += imgTds;
+    tbody += td(noteVal);
+    tbody += '</tr>';
   });
 
-  // BOM + CSV 다운로드
-  const bom = '﻿';
-  const csvContent = bom + lines.join('\r\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${title||'시험성적서'}</title></head>
+<body style="font-family:'맑은 고딕',sans-serif;padding:20px;">
+<h3 style="margin-bottom:12px;">${title||'시험성적서'}</h3>
+<table style="border-collapse:collapse;width:100%;">
+<thead>${thead}</thead>
+<tbody>${tbody}</tbody>
+</table>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `성적서_${no || title || '다운로드'}_${date || new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `${title || '시험성적서'}_${date || new Date().toISOString().split('T')[0]}.html`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('CSV 파일이 다운로드됐습니다.');
+  showToast('파일이 다운로드됐습니다. (브라우저 또는 엑셀에서 열 수 있습니다)');
 }
 
 function saveCert() {
