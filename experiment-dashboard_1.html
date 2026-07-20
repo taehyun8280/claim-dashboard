@@ -1942,15 +1942,16 @@ function downloadCertPDF() {
     const noteEl = tr.querySelector('[data-field="note"]');
     const noteVal = noteEl ? (noteEl.getAttribute('contenteditable') ? noteEl.innerHTML : noteEl.value) : '';
 
-    const tdNoWrap = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;white-space:nowrap;';
+    const tdNoWrap = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;';
+    const noteText = noteVal.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     tbody += `<tr>
-      <td style="${tdcStyle}white-space:nowrap;">${idx+1}</td>
-      <td style="${tdNoWrap}">${itemVal}</td>
+      <td style="${tdcStyle}"><nobr>${idx+1}</nobr></td>
+      <td style="${tdNoWrap}"><nobr>${itemVal.replace(/\n/g,' ')}</nobr></td>
       <td style="${tdStyle}">${specVal}</td>
       <td style="${tdStyle}">${condVal}</td>
       ${results.map(r=>`<td style="${tdcStyle}">${r}</td>`).join('')}
       ${imgTds}
-      <td style="${tdNoWrap}">${noteVal.replace(/<br\s*\/?>/gi,' ')}</td>
+      <td style="${tdNoWrap}"><nobr>${noteText}</nobr></td>
     </tr>`;
   });
 
