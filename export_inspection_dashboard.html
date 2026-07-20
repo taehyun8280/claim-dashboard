@@ -807,6 +807,19 @@ document.getElementById('notePhotoInput').addEventListener('change',function(){
   this.value='';
 });
 
+// 공휴일 목록 (YYYY-MM-DD) — 빨간날이면 하루 더 앞으로
+const HOLIDAYS=['2026-07-17'];
+function getReportDate(baseDate){
+  const d=new Date(baseDate);
+  const day=d.getDay();
+  const offset=day===1?3:1;
+  d.setDate(d.getDate()-offset);
+  while(HOLIDAYS.includes(d.toISOString().slice(0,10))){
+    d.setDate(d.getDate()-1);
+  }
+  return d;
+}
+
 function applyAll(){
   const v=id=>document.getElementById(id)?.value||'';
   const committedRows=commitTodayToCumulative();
@@ -817,19 +830,13 @@ function applyAll(){
   // 보고서 표시 날짜: 월요일이면 -3일(직전 금요일), 나머지는 -1일
   let reportDate='';
   if(v('in_date')){
-    const d=new Date(v('in_date'));
-    const day=d.getDay(); // 0=일, 1=월 ... 6=토
-    const offset=day===1?4:1;
-    d.setDate(d.getDate()-offset);
+    const d=getReportDate(v('in_date'));
     reportDate=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
     document.getElementById('pv_date').textContent=reportDate;
   }
 
   const todayLbl=v('in_date')?(()=>{
-    const d=new Date(v('in_date'));
-    const day=d.getDay();
-    const offset=day===1?4:1;
-    d.setDate(d.getDate()-offset);
+    const d=getReportDate(v('in_date'));
     return `${d.getMonth()+1}월 ${d.getDate()}일`;
   })():'금일';
   const monthLbl=v('in_date')?(()=>{const d=new Date(v('in_date'));return `${d.getMonth()+1}월 누적`;})():(window._lbl_month||'월 누적');
@@ -855,10 +862,7 @@ function applyAll(){
 
   // KPI 카드1 - 금일 (보고서와 동일한 날짜 기준)
   const todayLbl2=v('in_date')?(()=>{
-    const d=new Date(v('in_date'));
-    const day=d.getDay();
-    const offset=day===1?4:1;
-    d.setDate(d.getDate()-offset);
+    const d=getReportDate(v('in_date'));
     return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   })():'금일';
   syncClaimKpis();
@@ -944,10 +948,7 @@ function applyAll_silent(){
   document.getElementById('pvOrg').textContent='충주공장 품질보증팀';
   syncClaimKpis();
   if(v('in_date')){
-    const d=new Date(v('in_date'));
-    const day=d.getDay();
-    const offset=day===1?4:1;
-    d.setDate(d.getDate()-offset);
+    const d=getReportDate(v('in_date'));
     document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
     document.getElementById('pv_lbl_today').textContent=`${d.getMonth()+1}월 ${d.getDate()}일`;
     document.getElementById('pv_lbl_month').textContent=`${new Date(v('in_date')).getMonth()+1}월 누적`;
