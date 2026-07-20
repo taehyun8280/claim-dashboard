@@ -819,7 +819,7 @@ function applyAll(){
   if(v('in_date')){
     const d=new Date(v('in_date'));
     const day=d.getDay(); // 0=일, 1=월 ... 6=토
-    const offset=day===1?3:1;
+    const offset=day===1?4:1;
     d.setDate(d.getDate()-offset);
     reportDate=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
     document.getElementById('pv_date').textContent=reportDate;
@@ -828,7 +828,7 @@ function applyAll(){
   const todayLbl=v('in_date')?(()=>{
     const d=new Date(v('in_date'));
     const day=d.getDay();
-    const offset=day===1?3:1;
+    const offset=day===1?4:1;
     d.setDate(d.getDate()-offset);
     return `${d.getMonth()+1}월 ${d.getDate()}일`;
   })():'금일';
@@ -857,7 +857,7 @@ function applyAll(){
   const todayLbl2=v('in_date')?(()=>{
     const d=new Date(v('in_date'));
     const day=d.getDay();
-    const offset=day===1?3:1;
+    const offset=day===1?4:1;
     d.setDate(d.getDate()-offset);
     return `금일 (${d.getMonth()+1}월 ${d.getDate()}일)`;
   })():'금일';
@@ -946,7 +946,7 @@ function applyAll_silent(){
   if(v('in_date')){
     const d=new Date(v('in_date'));
     const day=d.getDay();
-    const offset=day===1?3:1;
+    const offset=day===1?4:1;
     d.setDate(d.getDate()-offset);
     document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
     document.getElementById('pv_lbl_today').textContent=`${d.getMonth()+1}월 ${d.getDate()}일`;
