@@ -1049,8 +1049,15 @@ function saveToken(){
 
 async function ghFetch(){
   try{
-    const r=await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/${GH_FILE}?t=${Date.now()}`);
-    return r.ok?await r.json():null;
+    // GitHub API로 직접 읽기 (CDN 캐시 우회)
+    const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
+      headers:{'Accept':'application/vnd.github+json'},
+      cache:'no-store'
+    });
+    if(!r.ok) return null;
+    const meta=await r.json();
+    const content=decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
+    return JSON.parse(content);
   }catch(e){return null;}
 }
 async function ghPush(data){
@@ -1073,13 +1080,19 @@ async function ghPush(data){
   }catch(e){return false;}
 }
 function buildStateData(){
+  const token=getGHToken();
   return {
     month:window._current_month_key,
-    rows:[0,1,2].map(i=>({mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq')}))
+    rows:[0,1,2].map(i=>({mi:getS(i,'mi'),mq:getS(i,'mq'),yi:getS(i,'yi'),yq:getS(i,'yq')})),
+    _tk:token?btoa(token):undefined
   };
 }
 function applyStateData(data){
   if(!data||!Array.isArray(data.rows)) return;
+  // 다른 기기에서 저장한 토큰 자동 수신
+  if(data._tk&&!getGHToken()){
+    try{localStorage.setItem('gh_write_token',atob(data._tk));}catch(e){}
+  }
   const monthChanged=(data.month||0)!==window._current_month_key;
   [0,1,2].forEach(i=>{
     const row=data.rows[i]||{};
