@@ -26,6 +26,8 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
 .preview-topbar{display:flex;gap:10px;align-items:center;margin-bottom:16px}
 .btn-img-copy{background:#166534;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px}
 .btn-img-copy:hover{background:#14532d}
+.btn-token-setting{background:#fff;color:#555;border:1px solid #ddd;padding:6px 12px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;}
+.btn-token-setting:hover{background:#f5f5f5}
 .sync-pill{background:#fff;color:#666;border:1px solid #ddd;padding:6px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px}
 .sync-pill .dot{width:7px;height:7px;background:#d4a017;border-radius:50%}
 .sync-pill.synced{color:#16a34a;border-color:#86efac}
@@ -176,6 +178,20 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
   <div class="preview-topbar no-print">
     <button class="btn-img-copy" id="copyBtn" onclick="copyDashboard()">📋 대시보드 이미지 복사</button>
     <div class="sync-pill" id="syncStatus"><span class="dot"></span><span id="syncText">최신 데이터 확인 중</span></div>
+    <button class="btn-token-setting" id="tokenSettingBtn" onclick="openTokenModal()" title="GitHub 토큰 설정">⚙️ 토큰 설정</button>
+  </div>
+
+  <!-- 토큰 입력 모달 -->
+  <div id="tokenModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:28px 32px;width:420px;max-width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+      <h3 style="margin:0 0 8px;font-size:16px;color:#1a1a1a;">GitHub 토큰 설정</h3>
+      <p style="margin:0 0 16px;font-size:13px;color:#666;">GitHub Personal Access Token을 입력하면 다기기 동기화가 활성화됩니다.<br>토큰은 이 브라우저에만 저장되며 소스코드에 포함되지 않습니다.</p>
+      <input id="tokenInput" type="password" placeholder="ghp_..." style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:16px;"/>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeTokenModal()" style="padding:8px 18px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:14px;">취소</button>
+        <button onclick="saveToken()" style="padding:8px 18px;border:none;border-radius:8px;background:#2d6a4f;color:#fff;cursor:pointer;font-size:14px;">저장</button>
+      </div>
+    </div>
   </div>
 
   <div class="report-paper">
@@ -554,8 +570,8 @@ function saveInspectionState(){
     if(ok){
       if(pill) pill.classList.add('synced');
       if(text) text.textContent='동기화됨';
-    } else if(!GH_WRITE_TOKEN){
-      if(text) text.textContent='오프라인 (로컬 저장)';
+    } else if(!getGHToken()){
+      if(text) text.textContent='토큰 미설정 (⚙️ 토큰 설정 클릭)';
     } else {
       if(pill) pill.classList.remove('synced');
       if(text) text.textContent='GitHub 저장 실패';
@@ -1015,7 +1031,21 @@ document.addEventListener('change',function(e){
 // ── GitHub 공유 동기화 ──
 const GH_REPO='wtiger988280/claim-dashboard';
 const GH_FILE='state.json';
-const GH_WRITE_TOKEN='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';
+function getGHToken(){return localStorage.getItem('gh_write_token')||'';}
+function openTokenModal(){
+  const m=document.getElementById('tokenModal');
+  m.style.display='flex';
+  document.getElementById('tokenInput').value=getGHToken();
+}
+function closeTokenModal(){document.getElementById('tokenModal').style.display='none';}
+function saveToken(){
+  const v=document.getElementById('tokenInput').value.trim();
+  if(v) localStorage.setItem('gh_write_token',v);
+  else localStorage.removeItem('gh_write_token');
+  closeTokenModal();
+  const text=document.getElementById('syncText');
+  if(text) text.textContent=v?'토큰 저장됨 — 저장 버튼을 눌러 동기화':'토큰 삭제됨';
+}
 
 async function ghFetch(){
   try{
@@ -1024,10 +1054,11 @@ async function ghFetch(){
   }catch(e){return null;}
 }
 async function ghPush(data){
-  if(!GH_WRITE_TOKEN) return false;
+  const token=getGHToken();
+  if(!token) return false;
   try{
     const infoR=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
-      headers:{'Authorization':`token ${GH_WRITE_TOKEN}`,'Accept':'application/vnd.github+json'}
+      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'}
     });
     let sha='';
     if(infoR.ok) sha=(await infoR.json()).sha;
@@ -1035,7 +1066,7 @@ async function ghPush(data){
     if(!sha) delete body.sha;
     const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
       method:'PUT',
-      headers:{'Authorization':`token ${GH_WRITE_TOKEN}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
       body:JSON.stringify(body)
     });
     return r.ok;
