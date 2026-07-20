@@ -1877,8 +1877,8 @@ function downloadCertPDF() {
   const firstTr = document.querySelector('#result-tbody tr');
   const photoCount = firstTr ? firstTr.querySelectorAll('.img-drop').length : 0;
 
-  const thStyle = 'border:1px solid #888;background:#f0f0f0;padding:6px 10px;font-size:12px;text-align:center;white-space:pre-wrap;';
-  const tdStyle = 'border:1px solid #ccc;padding:6px 10px;font-size:12px;vertical-align:middle;white-space:pre-wrap;';
+  const thStyle = 'border:1px solid #888;background:#f0f0f0;padding:6px 8px;font-size:11px;text-align:center;white-space:nowrap;';
+  const tdStyle = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;white-space:pre-wrap;word-break:keep-all;';
   const tdcStyle = tdStyle + 'text-align:center;';
 
   // 헤더 (2행 필요 여부 판단)
@@ -1942,14 +1942,15 @@ function downloadCertPDF() {
     const noteEl = tr.querySelector('[data-field="note"]');
     const noteVal = noteEl ? (noteEl.getAttribute('contenteditable') ? noteEl.innerHTML : noteEl.value) : '';
 
+    const tdNoWrap = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;white-space:nowrap;';
     tbody += `<tr>
-      <td style="${tdcStyle}">${idx+1}</td>
-      <td style="${tdStyle}">${itemVal}</td>
+      <td style="${tdcStyle}white-space:nowrap;">${idx+1}</td>
+      <td style="${tdNoWrap}">${itemVal}</td>
       <td style="${tdStyle}">${specVal}</td>
       <td style="${tdStyle}">${condVal}</td>
       ${results.map(r=>`<td style="${tdcStyle}">${r}</td>`).join('')}
       ${imgTds}
-      <td style="${tdStyle}">${noteVal}</td>
+      <td style="${tdNoWrap}">${noteVal.replace(/<br\s*\/?>/gi,' ')}</td>
     </tr>`;
   });
 
