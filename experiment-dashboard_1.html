@@ -3328,13 +3328,29 @@ async function copyCertImage(btn) {
       if (condTh) { condTh.style.display = 'none'; hiddenCondCells.push(condTh); }
     }
 
+    // ── 2. 열 너비 고정 (렌더된 실제 px 값을 인라인으로 고정) ──
+    const colWidthRestores = [];
+    const tableEl = target.querySelector('.result-table');
+    if (tableEl) {
+      tableEl.querySelectorAll('tr').forEach(tr => {
+        Array.from(tr.children).forEach(cell => {
+          const w = cell.getBoundingClientRect().width;
+          const origW = cell.style.width;
+          cell.style.width = w + 'px';
+          cell.style.minWidth = w + 'px';
+          cell.style.maxWidth = w + 'px';
+          colWidthRestores.push({ cell, origW });
+        });
+      });
+    }
+
     // ── 2. 캡처용 스타일 삽입 ──
     const styleEl = document.createElement('style');
     styleEl.id = 'cert-capture-style';
     styleEl.textContent = `
       .result-table-wrap { background: #fff !important; }
       .result-table-wrap .result-table {
-        table-layout: auto !important; width: 100% !important;
+        table-layout: fixed !important;
         border-collapse: collapse !important; background: #fff !important;
       }
       .result-table-wrap .result-table th {
@@ -3342,14 +3358,14 @@ async function copyCertImage(btn) {
         font-size: 14px !important; font-weight: bold !important;
         text-align: center !important; padding: 8px 6px !important;
         border: 1.5px solid #99b !important;
-        word-break: keep-all !important; white-space: normal !important;
+        word-break: keep-all !important; white-space: pre-wrap !important;
         overflow: visible !important; vertical-align: middle !important;
       }
       .result-table-wrap .result-table td {
         font-size: 13px !important; color: #111 !important; background: #fff !important;
         text-align: center !important; vertical-align: middle !important;
         padding: 8px 6px !important; border: 1.5px solid #ccc !important;
-        word-break: normal !important; white-space: normal !important; overflow: visible !important;
+        word-break: keep-all !important; white-space: pre-wrap !important; overflow: visible !important;
       }
       .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; min-width:0 !important; max-width:0 !important; padding:0 !important; margin:0 !important; border:0 !important; overflow:hidden !important; visibility:hidden !important; opacity:0 !important; }
       .result-table-wrap #split-btn { display: none !important; }
@@ -3401,6 +3417,7 @@ async function copyCertImage(btn) {
       capDivs.forEach(div => { div.style.display = ''; div.style.width = ''; div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
     });
     hiddenCondCells.forEach(el => { el.style.display = ''; });
+    colWidthRestores.forEach(({ cell, origW }) => { cell.style.width = origW; cell.style.minWidth = ''; cell.style.maxWidth = ''; });
     splitRestores.forEach(item => {
       if (item.cleanup) { item.cleanup(); return; }
       const { td, newCells, parent, nextSib } = item;
