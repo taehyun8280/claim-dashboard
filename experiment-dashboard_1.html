@@ -1913,15 +1913,43 @@ function downloadCertPDF() {
     };
     const itemVal = getField('item') || Array.from({length:10},(_,i)=>getField(`item${i+1}`)).filter(Boolean).join('\n');
     const specVal = getField('spec') || Array.from({length:10},(_,i)=>getField(`spec${i+1}`)).filter(Boolean).join('\n');
-    const condVal = getField('cond') || Array.from({length:10},(_,i)=>getField(`cond${i+1}`)).filter(Boolean).join('\n');
 
-    let results = [];
-    if (splitN > 1) {
-      results = Array.from({length:splitN},(_,i)=>getField(`result${i+1}`));
+    // 조건 서브행 감지
+    let condN = 0;
+    for (let ci = 1; ci <= 20; ci++) { if (tr.querySelector(`[data-field="cond${ci}"]`)) condN = ci; else break; }
+    const condVals = condN > 0 ? Array.from({length:condN},(_,i)=>getField(`cond${i+1}`)) : [getField('cond')];
+    if (condN === 0) condN = 1;
+
+    // 전체 결과 수집 (condN × splitN)
+    const totalR = condN * splitN;
+    let allResultVals = [];
+    if (totalR > 1) {
+      for (let ri = 1; ri <= totalR; ri++) allResultVals.push(tr.querySelector(`[data-field="result${ri}"]`) ? getField(`result${ri}`) : '');
     } else {
-      let rIdx = 1;
-      while (tr.querySelector(`[data-field="result${rIdx}"]`)) rIdx++;
-      results = rIdx > 1 ? [Array.from({length:rIdx-1},(_,i)=>getField(`result${i+1}`)).join('\n')] : [getField('result')];
+      allResultVals = [getField('result')];
+    }
+
+    const miniInner = 'border-collapse:collapse;width:100%;';
+    const inBd = i => i > 0 ? 'border-top:1px solid #ddd;' : '';
+
+    // 조건 셀 (서브행 있으면 미니테이블)
+    const condCellInner = condN > 1
+      ? `<table style="${miniInner}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="padding:4px 6px;font-size:11px;white-space:pre-wrap;word-break:keep-all;${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table>`
+      : (condVals[0]||'');
+    const condTd = `<td style="${tdStyle}padding:0;">${condCellInner}</td>`;
+
+    // 결과 셀 (splitN 열, 각각 condN 미니행)
+    let resultTds;
+    if (condN > 1) {
+      resultTds = Array.from({length:splitN},(_,ri) => {
+        const innerRows = Array.from({length:condN},(_,ci) => {
+          const v = allResultVals[ci * splitN + ri] || '';
+          return `<tr><td style="padding:4px 6px;font-size:11px;text-align:center;${inBd(ci)}">${v}</td></tr>`;
+        }).join('');
+        return `<td style="${tdStyle}padding:0;"><table style="${miniInner}"><tbody>${innerRows}</tbody></table></td>`;
+      }).join('');
+    } else {
+      resultTds = allResultVals.map(r=>`<td style="${tdcStyle}">${r}</td>`).join('');
     }
 
     const imgTds = Array.from(tr.querySelectorAll('.img-drop')).map(drop => {
@@ -1932,15 +1960,14 @@ function downloadCertPDF() {
 
     const noteEl = tr.querySelector('[data-field="note"]');
     const noteVal = noteEl ? (noteEl.getAttribute('contenteditable') ? noteEl.innerHTML : noteEl.value) : '';
-
     const tdNoWrap = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;';
     const noteText = noteVal.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     tbody += `<tr>
       <td style="${tdcStyle}"><nobr>${idx+1}</nobr></td>
       <td style="${tdNoWrap}"><nobr>${itemVal.replace(/\n/g,' ')}</nobr></td>
       <td style="${tdStyle}">${specVal}</td>
-      <td style="${tdStyle}">${condVal}</td>
-      ${results.map(r=>`<td style="${tdcStyle}">${r}</td>`).join('')}
+      ${condTd}
+      ${resultTds}
       ${imgTds}
       <td style="${tdNoWrap}"><nobr>${noteText}</nobr></td>
     </tr>`;
