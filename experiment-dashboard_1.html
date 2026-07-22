@@ -1385,6 +1385,7 @@
     <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">사용자</label><input id="eq-queue-user" type="text" placeholder="사용자 이름" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
     <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">시험명 (선택)</label><input id="eq-queue-test" type="text" placeholder="시험명" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
     <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">총 사용 시간 (시간)</label><input id="eq-queue-totalhours" type="number" min="0.5" step="0.5" placeholder="예: 8" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">시작일시 (선택 — 미입력 시 사용 시작 버튼 누른 시각)</label><input id="eq-queue-startdt" type="datetime-local" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
   </div>
   <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
     <button onclick="closeQueueForm()" style="padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:none;color:var(--text);font-size:13px;cursor:pointer;">취소</button>
@@ -4058,7 +4059,7 @@ function deleteEquipment(id) {
 
 // ── 대기 큐 ──
 function openQueueForm() {
-  ['eq-queue-device','eq-queue-user','eq-queue-test','eq-queue-totalhours'].forEach(id => { document.getElementById(id).value = ''; });
+  ['eq-queue-device','eq-queue-user','eq-queue-test','eq-queue-totalhours','eq-queue-startdt'].forEach(id => { document.getElementById(id).value = ''; });
   document.getElementById('eq-queue-overlay').style.display = 'block';
   document.getElementById('eq-queue-modal').style.display = 'block';
 }
@@ -4074,19 +4075,26 @@ function saveQueue() {
   const totalHours = parseFloat(document.getElementById('eq-queue-totalhours').value);
   if (!user) { alert('사용자를 입력하세요.'); return; }
   if (!totalHours || totalHours <= 0) { alert('총 사용 시간을 입력하세요.'); return; }
-  fbQueueRef().push({
+  const startDtVal = document.getElementById('eq-queue-startdt').value;
+  const startedAt = startDtVal ? new Date(startDtVal).getTime() : null;
+  const data = {
     device,
     user,
     test: document.getElementById('eq-queue-test').value.trim(),
     totalHours,
-    status: '대기중',
+    status: startedAt ? '사용중' : '대기중',
     createdAt: Date.now()
-  });
+  };
+  if (startedAt) data.startedAt = startedAt;
+  fbQueueRef().push(data);
   closeQueueForm();
 }
 
 function startQueue(id) {
-  fbQueueRef().child(id).update({ status: '사용중', startedAt: Date.now() });
+  const q = equipmentQueue.find(e => e.id === id);
+  // 등록 시 시작일시가 지정된 경우 그 값 유지, 없으면 현재 시각
+  const startedAt = (q && q.startedAt) ? q.startedAt : Date.now();
+  fbQueueRef().child(id).update({ status: '사용중', startedAt });
 }
 
 function moveQueue(id, status) {
