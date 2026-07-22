@@ -3267,6 +3267,33 @@ async function copyCertImage(btn) {
       tr.querySelector('.img-drop img')
     );
 
+    // 기준/조건 열 전체가 비어있으면 해당 열 숨김
+    const hasSpec = visRows.some(tr => {
+      const el = tr.querySelector('[data-field="spec"]') || tr.querySelector('[data-field="spec1"]');
+      return el && (el.value || el.innerText || '').trim();
+    });
+    const hasCond = visRows.some(tr => {
+      const el = tr.querySelector('[data-field="cond"]') || tr.querySelector('[data-field="cond1"]');
+      return el && (el.value || el.innerText || '').trim();
+    });
+
+    // 헤더 재구성 (기준/조건 포함 여부 반영)
+    let thead2 = '<tr>';
+    thead2 += thM('No') + thM('시험');
+    if (hasSpec) thead2 += thM('기준');
+    if (hasCond) thead2 += thM('조건');
+    thead2 += splitN > 1 ? `<th colspan="${splitN}" style="${TH}">결과</th>` : thM('결과');
+    if (photoCount > 1) thead2 += `<th colspan="${photoCount}" style="${TH}">시험사진</th>`;
+    else if (photoCount === 1) thead2 += thM('시험사진');
+    thead2 += thM('비고') + '</tr>';
+    if (needTwo) {
+      thead2 += '<tr>';
+      if (splitN > 1) resultLabels.forEach(l => { thead2 += `<th style="${TH}">${l}</th>`; });
+      if (photoCount > 1) photoLabels.forEach(l => { thead2 += `<th style="${TH}">${l}</th>`; });
+      thead2 += '</tr>';
+    }
+    thead = thead2;
+
     let tbody = '';
     visRows.forEach((tr, idx) => {
       const gf = (...ns) => { for (const n of ns) { const el = tr.querySelector(`[data-field="${n}"]`); if (el) return (el.value !== undefined ? el.value : el.innerText || '').trim(); } return ''; };
@@ -3301,8 +3328,9 @@ async function copyCertImage(btn) {
       tbody += `<tr>
         <td style="${TD}">${idx+1}</td>
         <td style="${TD}text-align:left;">${itemVal}</td>
-        <td style="${TDL}">${specVal}</td>
-        ${condCell}${resCells}${imgCells}
+        ${hasSpec ? `<td style="${TDL}">${specVal}</td>` : ''}
+        ${hasCond ? condCell : ''}
+        ${resCells}${imgCells}
         <td style="${TD}text-align:left;">${noteRaw}</td>
       </tr>`;
     });
