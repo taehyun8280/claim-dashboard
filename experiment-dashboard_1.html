@@ -1376,8 +1376,9 @@
 <!-- 사용 등록 모달 -->
 <div id="eq-queue-overlay" onclick="closeQueueForm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;"></div>
 <div id="eq-queue-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,95vw);background:var(--surface);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.25);z-index:3001;padding:28px 32px 24px;">
+  <input type="hidden" id="eq-queue-edit-id">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-    <div style="font-size:15px;font-weight:700;">사용 등록</div>
+    <div style="font-size:15px;font-weight:700;" id="eq-queue-modal-title">사용 등록</div>
     <button onclick="closeQueueForm()" style="background:none;border:none;cursor:pointer;color:var(--text);font-size:20px;">✕</button>
   </div>
   <div style="display:flex;flex-direction:column;gap:12px;">
@@ -3940,7 +3941,7 @@ function renderQueueKanban() {
     <div style="font-size:12px;color:var(--text3);">👤 ${q.user||''}</div>
     ${q.test ? `<div style="font-size:11px;color:var(--text3);">📋 ${q.test}</div>` : ''}
     ${q.totalHours ? `<div style="font-size:11px;color:var(--text3);">⏱ 총 ${q.totalHours}시간</div>` : ''}
-    <div style="display:flex;gap:6px;margin-top:8px;">${btn('사용 시작','#3b82f6',`startQueue('${q.id}')`)+btn('삭제','#ef4444',`deleteQueue('${q.id}')`)}</div>
+    <div style="display:flex;gap:6px;margin-top:8px;">${btn('사용 시작','#3b82f6',`startQueue('${q.id}')`)+btn('수정','var(--text3)',`openQueueEditForm('${q.id}')`)+btn('삭제','#ef4444',`deleteQueue('${q.id}')`)}</div>
   </div>`;
 
   const usingCard = q => {
@@ -3954,14 +3955,16 @@ function renderQueueKanban() {
     return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div style="font-weight:700;font-size:13px;">${q.device||''}</div>
-        <div style="font-size:13px;font-weight:800;color:${barColor};">${pct}%</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="openQueueEditForm('${q.id}')" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:none;color:var(--text3);font-size:11px;cursor:pointer;">수정</button>
+          <div style="font-size:13px;font-weight:800;color:${barColor};">${pct}%</div>
+        </div>
       </div>
       <div style="background:var(--border);border-radius:99px;height:6px;margin-bottom:6px;">
         <div style="width:${pct}%;height:6px;border-radius:99px;background:${barColor};transition:width .3s;"></div>
       </div>
       <div style="font-size:11px;color:var(--text3);">👤 ${q.user||''} · 경과 ${elapsedStr} / 총 ${q.totalHours||'?'}시간</div>
       ${q.test ? `<div style="font-size:11px;color:var(--text3);">📋 ${q.test}</div>` : ''}
-      <div style="display:flex;gap:6px;margin-top:8px;">${btn('수동 완료','#10b981',`moveQueue('${q.id}','사용완료')`)}</div>
     </div>`;
   };
 
@@ -4059,7 +4062,30 @@ function deleteEquipment(id) {
 
 // ── 대기 큐 ──
 function openQueueForm() {
+  document.getElementById('eq-queue-edit-id').value = '';
+  document.getElementById('eq-queue-modal-title').textContent = '사용 등록';
   ['eq-queue-device','eq-queue-user','eq-queue-test','eq-queue-totalhours','eq-queue-startdt'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('eq-queue-overlay').style.display = 'block';
+  document.getElementById('eq-queue-modal').style.display = 'block';
+}
+
+function openQueueEditForm(id) {
+  const q = equipmentQueue.find(e => e.id === id);
+  if (!q) return;
+  document.getElementById('eq-queue-edit-id').value = id;
+  document.getElementById('eq-queue-modal-title').textContent = '사용 수정';
+  document.getElementById('eq-queue-device').value = q.device || '';
+  document.getElementById('eq-queue-user').value = q.user || '';
+  document.getElementById('eq-queue-test').value = q.test || '';
+  document.getElementById('eq-queue-totalhours').value = q.totalHours || '';
+  if (q.startedAt) {
+    const d = new Date(q.startedAt);
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('eq-queue-startdt').value =
+      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } else {
+    document.getElementById('eq-queue-startdt').value = '';
+  }
   document.getElementById('eq-queue-overlay').style.display = 'block';
   document.getElementById('eq-queue-modal').style.display = 'block';
 }
@@ -4070,6 +4096,7 @@ function closeQueueForm() {
 }
 
 function saveQueue() {
+  const editId = document.getElementById('eq-queue-edit-id').value;
   const device = document.getElementById('eq-queue-device').value;
   const user = document.getElementById('eq-queue-user').value.trim();
   const totalHours = parseFloat(document.getElementById('eq-queue-totalhours').value);
@@ -4077,16 +4104,32 @@ function saveQueue() {
   if (!totalHours || totalHours <= 0) { alert('총 사용 시간을 입력하세요.'); return; }
   const startDtVal = document.getElementById('eq-queue-startdt').value;
   const startedAt = startDtVal ? new Date(startDtVal).getTime() : null;
-  const data = {
-    device,
-    user,
-    test: document.getElementById('eq-queue-test').value.trim(),
-    totalHours,
-    status: startedAt ? '사용중' : '대기중',
-    createdAt: Date.now()
-  };
-  if (startedAt) data.startedAt = startedAt;
-  fbQueueRef().push(data);
+
+  if (editId) {
+    // 수정
+    const existing = equipmentQueue.find(e => e.id === editId);
+    const update = {
+      device,
+      user,
+      test: document.getElementById('eq-queue-test').value.trim(),
+      totalHours,
+      startedAt: startedAt || (existing && existing.startedAt) || null,
+    };
+    if (!update.startedAt) delete update.startedAt;
+    fbQueueRef().child(editId).update(update);
+  } else {
+    // 신규 등록
+    const data = {
+      device,
+      user,
+      test: document.getElementById('eq-queue-test').value.trim(),
+      totalHours,
+      status: startedAt ? '사용중' : '대기중',
+      createdAt: Date.now()
+    };
+    if (startedAt) data.startedAt = startedAt;
+    fbQueueRef().push(data);
+  }
   closeQueueForm();
 }
 
