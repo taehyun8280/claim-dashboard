@@ -882,9 +882,11 @@
   </div>
 </div>
 
-<div class="tab-nav" style="display:flex;gap:4px;padding:16px 32px 0;border-bottom:2px solid var(--border);background:var(--bg);">
-  <button class="tab-btn active" onclick="switchTab('tab-experiment')" id="tab-btn-experiment">📋 시험 현황</button>
-  <button class="tab-btn" onclick="switchTab('tab-equipment')" id="tab-btn-equipment">🔧 장비 관리</button>
+<div style="background:var(--surface);border-bottom:2px solid var(--border);">
+  <div style="max-width:1400px;margin:0 auto;padding:0 32px;display:flex;gap:4px;">
+    <button class="tab-btn active" onclick="switchTab('tab-experiment')" id="tab-btn-experiment">📋 시험 현황</button>
+    <button class="tab-btn" onclick="switchTab('tab-equipment')" id="tab-btn-equipment">🔧 장비 관리</button>
+  </div>
 </div>
 
 <div class="wrap" id="tab-experiment">
