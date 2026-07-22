@@ -1869,8 +1869,8 @@ function downloadCertPDF() {
   const photoCount = firstTr ? firstTr.querySelectorAll('.img-drop').length : 0;
 
   const thStyle = 'border:1px solid #888;background:#f0f0f0;padding:6px 8px;font-size:11px;text-align:center;white-space:nowrap;';
-  const tdStyle = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;white-space:pre-wrap;word-break:keep-all;';
-  const tdcStyle = tdStyle + 'text-align:center;';
+  const tdStyle = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;white-space:pre-wrap;word-break:keep-all;text-align:center;';
+  const tdcStyle = tdStyle;
 
   // 기준/조건 열 전체 비어있는지 확인
   const allBodyTrs = Array.from(document.querySelectorAll('#result-tbody tr'));
@@ -1947,7 +1947,7 @@ function downloadCertPDF() {
 
     // 조건 셀 (서브행 있으면 미니테이블)
     const condCellInner = condN > 1
-      ? `<table style="${miniInner}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="padding:4px 6px;font-size:11px;white-space:pre-wrap;word-break:keep-all;${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table>`
+      ? `<table style="${miniInner}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="padding:4px 6px;font-size:11px;white-space:pre-wrap;word-break:keep-all;text-align:center;${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table>`
       : (condVals[0]||'');
     const condTd = `<td style="${tdStyle}padding:0;">${condCellInner}</td>`;
 
@@ -1973,7 +1973,7 @@ function downloadCertPDF() {
 
     const noteEl = tr.querySelector('[data-field="note"]');
     const noteVal = noteEl ? (noteEl.getAttribute('contenteditable') ? noteEl.innerHTML : noteEl.value) : '';
-    const tdNoWrap = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;';
+    const tdNoWrap = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;text-align:center;';
     const noteText = noteVal.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     tbody += `<tr>
       <td style="${tdcStyle}"><nobr>${idx+1}</nobr></td>
