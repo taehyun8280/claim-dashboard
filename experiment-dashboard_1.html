@@ -3934,14 +3934,19 @@ function renderQueueKanban() {
   document.getElementById('eq-cnt-using').textContent = using.length;
   document.getElementById('eq-cnt-done').textContent = done.length;
 
-  const btn = (label, color, fn) => `<button onclick="${fn}" style="flex:1;padding:4px;border:1px solid ${color};border-radius:5px;background:none;color:${color};font-size:11px;cursor:pointer;">${label}</button>`;
+  const smallBtn = (label, color, fn) => `<button onclick="${fn}" style="padding:2px 8px;border:1px solid ${color};border-radius:4px;background:none;color:${color};font-size:11px;cursor:pointer;">${label}</button>`;
+  const delBtn = fn => `<button onclick="${fn}" style="padding:2px 6px;border:1px solid #ef444466;border-radius:4px;background:none;color:#ef4444;font-size:11px;cursor:pointer;">✕</button>`;
 
   const waitCard = q => `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
     <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${q.device||''}</div>
     <div style="font-size:12px;color:var(--text3);">👤 ${q.user||''}</div>
     ${q.test ? `<div style="font-size:11px;color:var(--text3);">📋 ${q.test}</div>` : ''}
     ${q.totalHours ? `<div style="font-size:11px;color:var(--text3);">⏱ 총 ${q.totalHours}시간</div>` : ''}
-    <div style="display:flex;gap:6px;margin-top:8px;">${btn('사용 시작','#3b82f6',`startQueue('${q.id}')`)+btn('수정','var(--text3)',`openQueueEditForm('${q.id}')`)+btn('삭제','#ef4444',`deleteQueue('${q.id}')`)}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+      <button onclick="startQueue('${q.id}')" style="flex:1;padding:4px;border:1px solid #3b82f6;border-radius:5px;background:none;color:#3b82f6;font-size:11px;cursor:pointer;">사용 시작</button>
+      ${smallBtn('수정','var(--text3)',`openQueueEditForm('${q.id}')`)}
+      ${delBtn(`deleteQueue('${q.id}')`)}
+    </div>
   </div>`;
 
   const usingCard = q => {
@@ -3955,8 +3960,9 @@ function renderQueueKanban() {
     return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div style="font-weight:700;font-size:13px;">${q.device||''}</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button onclick="openQueueEditForm('${q.id}')" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:none;color:var(--text3);font-size:11px;cursor:pointer;">수정</button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${smallBtn('수정','var(--text3)',`openQueueEditForm('${q.id}')`)}
+          ${delBtn(`deleteQueue('${q.id}')`)}
           <div style="font-size:13px;font-weight:800;color:${barColor};">${pct}%</div>
         </div>
       </div>
@@ -3965,7 +3971,6 @@ function renderQueueKanban() {
       </div>
       <div style="font-size:11px;color:var(--text3);">👤 ${q.user||''} · 경과 ${elapsedStr} / 총 ${q.totalHours||'?'}시간</div>
       ${q.test ? `<div style="font-size:11px;color:var(--text3);">📋 ${q.test}</div>` : ''}
-      <div style="display:flex;gap:6px;margin-top:8px;">${btn('삭제','#ef4444',`deleteQueue('${q.id}')`)}</div>
     </div>`;
   };
 
@@ -3973,7 +3978,10 @@ function renderQueueKanban() {
     <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${q.device||''}</div>
     <div style="font-size:11px;color:var(--text3);">👤 ${q.user||''}</div>
     ${q.test ? `<div style="font-size:11px;color:var(--text3);">📋 ${q.test}</div>` : ''}
-    <div style="display:flex;gap:6px;margin-top:8px;">${btn('수정','var(--text3)',`openQueueEditForm('${q.id}')`)+btn('삭제','#888',`deleteQueue('${q.id}')`)}</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+      ${smallBtn('수정','var(--text3)',`openQueueEditForm('${q.id}')`)}
+      ${delBtn(`deleteQueue('${q.id}')`)}
+    </div>
   </div>`;
 
   waitCol.innerHTML = waiting.length ? waiting.map(waitCard).join('') : '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">대기 없음</p>';
