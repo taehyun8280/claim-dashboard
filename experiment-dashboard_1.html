@@ -3229,154 +3229,7 @@ async function copyCertImage(btn) {
   btn.textContent = '캡처 중...';
   btn.disabled = true;
   try {
-    // ── 데이터 수집 ──
-    const splitN = splitResultCount || 1;
-    const resultLabels = splitN > 1
-      ? Array.from({length: splitN}, (_,i) => document.getElementById(`result-label${i+1}`)?.value || `결과${i+1}`)
-      : ['결과'];
-    const firstTr = document.querySelector('#result-tbody tr');
-    const photoCount = firstTr ? firstTr.querySelectorAll('.img-drop').length : 0;
-    const photoLabels = Array.from({length: photoCount}, (_,i) => document.getElementById(`photo-label${i+1}`)?.value || `사진${i+1}`);
-
-    const TH = 'background:#dce8ff;color:#222;font-size:13px;font-weight:bold;text-align:center;padding:8px 10px;border:1.5px solid #99b;vertical-align:middle;word-break:keep-all;white-space:pre-wrap;';
-    const TD = 'background:#fff;color:#111;font-size:12px;text-align:center;padding:8px 8px;border:1.5px solid #ccc;vertical-align:middle;word-break:keep-all;white-space:pre-wrap;';
-    const TDL = TD + 'text-align:left;';
-    const MINI = 'width:100%;border-collapse:collapse;';
-
-    const needTwo = splitN > 1 || photoCount > 1;
-    const rs = needTwo ? ' rowspan="2"' : '';
-    const thM = v => `<th${rs} style="${TH}">${v}</th>`;
-
-    let thead = '<tr>';
-    thead += thM('No') + thM('시험') + thM('기준') + thM('조건');
-    thead += splitN > 1 ? `<th colspan="${splitN}" style="${TH}">결과</th>` : thM('결과');
-    if (photoCount > 1) thead += `<th colspan="${photoCount}" style="${TH}">시험사진</th>`;
-    else if (photoCount === 1) thead += thM('시험사진');
-    thead += thM('비고') + '</tr>';
-    if (needTwo) {
-      thead += '<tr>';
-      if (splitN > 1) resultLabels.forEach(l => { thead += `<th style="${TH}">${l}</th>`; });
-      if (photoCount > 1) photoLabels.forEach(l => { thead += `<th style="${TH}">${l}</th>`; });
-      thead += '</tr>';
-    }
-
-    // 내용 있는 행만
-    const allTrs = Array.from(document.querySelectorAll('#result-tbody tr'));
-    const visRows = allTrs.filter(tr =>
-      Array.from(tr.querySelectorAll('textarea,[contenteditable]')).some(el => (el.value || el.innerText || '').trim()) ||
-      tr.querySelector('.img-drop img')
-    );
-
-    // 기준/조건 열 전체가 비어있으면 해당 열 숨김
-    const hasSpec = visRows.some(tr => {
-      const el = tr.querySelector('[data-field="spec"]') || tr.querySelector('[data-field="spec1"]');
-      return el && (el.value || el.innerText || '').trim();
-    });
-    const hasCond = visRows.some(tr => {
-      const el = tr.querySelector('[data-field="cond"]') || tr.querySelector('[data-field="cond1"]');
-      return el && (el.value || el.innerText || '').trim();
-    });
-
-    // 헤더 재구성 (기준/조건 포함 여부 반영)
-    let thead2 = '<tr>';
-    thead2 += thM('No') + thM('시험');
-    if (hasSpec) thead2 += thM('기준');
-    if (hasCond) thead2 += thM('조건');
-    thead2 += splitN > 1 ? `<th colspan="${splitN}" style="${TH}">결과</th>` : thM('결과');
-    if (photoCount > 1) thead2 += `<th colspan="${photoCount}" style="${TH}">시험사진</th>`;
-    else if (photoCount === 1) thead2 += thM('시험사진');
-    thead2 += thM('비고') + '</tr>';
-    if (needTwo) {
-      thead2 += '<tr>';
-      if (splitN > 1) resultLabels.forEach(l => { thead2 += `<th style="${TH}">${l}</th>`; });
-      if (photoCount > 1) photoLabels.forEach(l => { thead2 += `<th style="${TH}">${l}</th>`; });
-      thead2 += '</tr>';
-    }
-    thead = thead2;
-
-    let tbody = '';
-    visRows.forEach((tr, idx) => {
-      const gf = (...ns) => { for (const n of ns) { const el = tr.querySelector(`[data-field="${n}"]`); if (el) return (el.value !== undefined ? el.value : el.innerText || '').trim(); } return ''; };
-      const itemVal = gf('item') || Array.from({length:10},(_,i)=>gf(`item${i+1}`)).filter(Boolean).join('\n');
-      const specVal = gf('spec') || Array.from({length:10},(_,i)=>gf(`spec${i+1}`)).filter(Boolean).join('\n');
-
-      let condN = 0;
-      for (let ci = 1; ci <= 20; ci++) { if (tr.querySelector(`[data-field="cond${ci}"]`)) condN = ci; else break; }
-      const condVals = condN > 0 ? Array.from({length:condN},(_,i)=>gf(`cond${i+1}`)) : [gf('cond')];
-      if (condN === 0) condN = 1;
-
-      const totalR = condN * splitN;
-      const allR = totalR > 1 ? Array.from({length:totalR},(_,ri)=>gf(`result${ri+1}`)) : [gf('result')];
-
-      const imgCells = Array.from(tr.querySelectorAll('.img-drop')).map(drop => {
-        const img = drop.querySelector('img');
-        return `<td style="${TD}">${img ? `<img src="${img.src}" style="max-width:130px;max-height:110px;display:block;margin:auto;">` : ''}</td>`;
-      }).join('');
-
-      const noteEl = tr.querySelector('[data-field="note"]');
-      const noteRaw = noteEl ? (noteEl.getAttribute('contenteditable') !== null ? noteEl.innerText : noteEl.value) : '';
-
-      const inBd = i => i > 0 ? 'border-top:1px solid #ddd;' : '';
-      const condCell = condN > 1
-        ? `<td style="${TDL}padding:0;"><table style="${MINI}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="padding:5px 8px;font-size:12px;word-break:keep-all;white-space:pre-wrap;${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table></td>`
-        : `<td style="${TDL}">${condVals[0]||''}</td>`;
-
-      const resCells = condN > 1
-        ? Array.from({length:splitN},(_,ri)=>`<td style="${TD}padding:0;"><table style="${MINI}"><tbody>${Array.from({length:condN},(_,ci)=>`<tr><td style="padding:5px 8px;font-size:12px;text-align:center;${inBd(ci)}">${allR[ci*splitN+ri]||''}</td></tr>`).join('')}</tbody></table></td>`).join('')
-        : allR.map(r=>`<td style="${TD}">${r}</td>`).join('');
-
-      tbody += `<tr>
-        <td style="${TD}">${idx+1}</td>
-        <td style="${TD}text-align:left;">${itemVal}</td>
-        ${hasSpec ? `<td style="${TDL}">${specVal}</td>` : ''}
-        ${hasCond ? condCell : ''}
-        ${resCells}${imgCells}
-        <td style="${TD}text-align:left;">${noteRaw}</td>
-      </tr>`;
-    });
-
-    const titleVal = (document.getElementById('cf-title')?.value || '').trim();
-    const tableHtml = `
-      ${titleVal ? `<div style="font-size:15px;font-weight:bold;margin-bottom:10px;color:#222;">${titleVal}</div>` : ''}
-      <table style="border-collapse:collapse;width:100%;">
-        <thead>${thead}</thead>
-        <tbody>${tbody}</tbody>
-      </table>
-      <p style="font-size:12px;margin-top:14px;text-align:center;color:#333;font-weight:bold;">※ 위 성적서는 국제표준 및 한국인정기구(KOLAS)의 인정과 관련이 없는 성적서 입니다.※</p>`;
-
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;background:#fff;padding:24px 28px;font-family:'맑은 고딕','Noto Sans KR',sans-serif;min-width:900px;box-sizing:border-box;";
-    wrapper.innerHTML = tableHtml;
-    document.body.appendChild(wrapper);
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-    const canvas = await html2canvas(wrapper, {
-      backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false,
-      width: wrapper.scrollWidth, height: wrapper.scrollHeight,
-    });
-    document.body.removeChild(wrapper);
-
-    canvas.toBlob(async blob => {
-      try {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        showToast('성적서 이미지가 클립보드에 복사되었습니다. Ctrl+V로 붙여넣기 하세요.');
-      } catch(e) {
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'certificate.png'; a.click();
-        showToast('클립보드 복사 불가 — 이미지로 저장했습니다.');
-      }
-      btn.innerHTML = orig; btn.disabled = false;
-    }, 'image/png');
-    return; // 구버전 코드 실행 방지
-  } catch(e_new) {
-    document.querySelectorAll('.__cap-offscreen').forEach(el => el.remove());
-    // fallback to legacy approach if needed
-    showToast('이미지 캡처 오류: ' + e_new.message);
-    btn.innerHTML = orig; btn.disabled = false;
-    return;
-  }
-
-  // ── 아래 코드는 더 이상 실행되지 않음 (레거시 보존) ──
-  const target_legacy = document.getElementById('result-table').closest('.result-table-wrap');
+    const target = document.getElementById('result-table').closest('.result-table-wrap');
 
     // ── 1a. 분할 결과 셀을 실제 N개의 <td>로 교체 (DOM에서 완전 제거) ──
     const splitRestores = [];
@@ -3475,29 +3328,13 @@ async function copyCertImage(btn) {
       if (condTh) { condTh.style.display = 'none'; hiddenCondCells.push(condTh); }
     }
 
-    // ── 2. 열 너비 고정 (렌더된 실제 px 값을 인라인으로 고정) ──
-    const colWidthRestores = [];
-    const tableEl = target.querySelector('.result-table');
-    if (tableEl) {
-      tableEl.querySelectorAll('tr').forEach(tr => {
-        Array.from(tr.children).forEach(cell => {
-          const w = cell.getBoundingClientRect().width;
-          const origW = cell.style.width;
-          cell.style.width = w + 'px';
-          cell.style.minWidth = w + 'px';
-          cell.style.maxWidth = w + 'px';
-          colWidthRestores.push({ cell, origW });
-        });
-      });
-    }
-
     // ── 2. 캡처용 스타일 삽입 ──
     const styleEl = document.createElement('style');
     styleEl.id = 'cert-capture-style';
     styleEl.textContent = `
       .result-table-wrap { background: #fff !important; }
       .result-table-wrap .result-table {
-        table-layout: fixed !important;
+        table-layout: auto !important; width: 100% !important;
         border-collapse: collapse !important; background: #fff !important;
       }
       .result-table-wrap .result-table th {
@@ -3505,14 +3342,14 @@ async function copyCertImage(btn) {
         font-size: 14px !important; font-weight: bold !important;
         text-align: center !important; padding: 8px 6px !important;
         border: 1.5px solid #99b !important;
-        word-break: keep-all !important; white-space: pre-wrap !important;
+        word-break: keep-all !important; white-space: normal !important;
         overflow: visible !important; vertical-align: middle !important;
       }
       .result-table-wrap .result-table td {
         font-size: 13px !important; color: #111 !important; background: #fff !important;
         text-align: center !important; vertical-align: middle !important;
         padding: 8px 6px !important; border: 1.5px solid #ccc !important;
-        word-break: keep-all !important; white-space: pre-wrap !important; overflow: visible !important;
+        word-break: normal !important; white-space: normal !important; overflow: visible !important;
       }
       .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; min-width:0 !important; max-width:0 !important; padding:0 !important; margin:0 !important; border:0 !important; overflow:hidden !important; visibility:hidden !important; opacity:0 !important; }
       .result-table-wrap #split-btn { display: none !important; }
@@ -3564,7 +3401,6 @@ async function copyCertImage(btn) {
       capDivs.forEach(div => { div.style.display = ''; div.style.width = ''; div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
     });
     hiddenCondCells.forEach(el => { el.style.display = ''; });
-    colWidthRestores.forEach(({ cell, origW }) => { cell.style.width = origW; cell.style.minWidth = ''; cell.style.maxWidth = ''; });
     splitRestores.forEach(item => {
       if (item.cleanup) { item.cleanup(); return; }
       const { td, newCells, parent, nextSib } = item;
