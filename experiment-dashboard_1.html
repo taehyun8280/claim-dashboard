@@ -824,6 +824,10 @@
   @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
   .divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+  .tab-btn { padding:8px 18px;border:none;border-radius:6px 6px 0 0;background:none;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s; }
+  .tab-btn.active { background:var(--surface);color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px; }
+  .tab-btn:hover:not(.active) { background:var(--surface2,rgba(0,0,0,.04)); }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -878,7 +882,12 @@
   </div>
 </div>
 
-<div class="wrap">
+<div class="tab-nav" style="display:flex;gap:4px;padding:16px 32px 0;border-bottom:2px solid var(--border);background:var(--bg);">
+  <button class="tab-btn active" onclick="switchTab('tab-experiment')" id="tab-btn-experiment">📋 시험 현황</button>
+  <button class="tab-btn" onclick="switchTab('tab-equipment')" id="tab-btn-equipment">🔧 장비 관리</button>
+</div>
+
+<div class="wrap" id="tab-experiment">
 
   <!-- KANBAN -->
   <div class="kanban-wrap">
@@ -961,6 +970,79 @@
   </div>
 
 </div><!-- /wrap -->
+
+<div id="tab-equipment" style="display:none;" class="wrap">
+  <!-- 장비 현황 테이블 -->
+  <div class="list-section" style="margin-bottom:24px;">
+    <div class="list-header">
+      <div>
+        <div class="section-eyebrow">EQUIPMENT</div>
+        <div style="font-size:15px;font-weight:700;">시험장비 현황 · 규격제원</div>
+      </div>
+      <button onclick="openEquipmentForm()" style="padding:7px 16px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">+ 장비 추가</button>
+    </div>
+    <div class="list-table-wrap">
+      <table class="list-table" id="equipment-table">
+        <thead>
+          <tr>
+            <th>장비명</th>
+            <th>모델명 / 제조사</th>
+            <th>측정범위</th>
+            <th>상태</th>
+            <th>담당자</th>
+            <th>위치</th>
+            <th>교정일</th>
+            <th>만료일</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="equipment-tbody">
+          <tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">등록된 장비가 없습니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 대기시간 칸반 -->
+  <div class="list-section">
+    <div class="list-header">
+      <div>
+        <div class="section-eyebrow">QUEUE</div>
+        <div style="font-size:15px;font-weight:700;">시험장비 대기시간</div>
+      </div>
+      <button onclick="openQueueForm()" style="padding:7px 16px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">+ 대기 등록</button>
+    </div>
+    <div class="kanban-wrap" style="margin-top:0;">
+      <div class="kanban-col">
+        <div class="kanban-header">
+          <div class="kanban-title"><span style="color:#f59e0b;">●</span> 대기중</div>
+          <div class="kanban-count" id="eq-cnt-wait">0</div>
+        </div>
+        <div class="kanban-body" id="eq-col-wait">
+          <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">대기 없음</p>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-header">
+          <div class="kanban-title"><span style="color:#3b82f6;">●</span> 사용중</div>
+          <div class="kanban-count" id="eq-cnt-using">0</div>
+        </div>
+        <div class="kanban-body" id="eq-col-using">
+          <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">사용중인 장비 없음</p>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-header">
+          <div class="kanban-title"><span style="color:#10b981;">●</span> 사용완료</div>
+          <div class="kanban-count" id="eq-cnt-done">0</div>
+        </div>
+        <div class="kanban-body" id="eq-col-done">
+          <p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료 없음</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ─── IMAGE ZOOM MODAL ─── -->
 <div class="img-modal-overlay" id="img-modal" onclick="closeImgModal()">
@@ -1239,6 +1321,50 @@
   </div>
 </div>
 
+<!-- 장비 폼 모달 -->
+<div id="eq-modal-overlay" onclick="closeEquipmentForm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;"></div>
+<div id="eq-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(580px,95vw);max-height:90vh;overflow-y:auto;background:var(--surface);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.25);z-index:3001;padding:28px 32px 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+    <div style="font-size:15px;font-weight:700;" id="eq-modal-title">장비 추가</div>
+    <button onclick="closeEquipmentForm()" style="background:none;border:none;cursor:pointer;color:var(--text);font-size:20px;">✕</button>
+  </div>
+  <input type="hidden" id="eq-edit-id">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;">
+    <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">장비명 *</label><input id="eq-name" type="text" placeholder="장비명" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">모델명</label><input id="eq-model" type="text" placeholder="모델명" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">제조사</label><input id="eq-maker" type="text" placeholder="제조사" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">측정범위</label><input id="eq-range" type="text" placeholder="예: 0 ~ 500N, ±0.1mm" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">상태</label><select id="eq-status" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"><option value="대기중">대기중</option><option value="가동중">가동중</option><option value="점검중">점검중</option></select></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">담당자</label><input id="eq-manager" type="text" placeholder="담당자" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div style="grid-column:1/-1;"><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">위치</label><input id="eq-location" type="text" placeholder="장비 위치" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">교정일</label><input id="eq-calib" type="date" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">교정 만료일</label><input id="eq-calib-exp" type="date" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+    <button onclick="closeEquipmentForm()" style="padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:none;color:var(--text);font-size:13px;cursor:pointer;">취소</button>
+    <button onclick="saveEquipment()" style="padding:8px 18px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;font-weight:600;">저장</button>
+  </div>
+</div>
+
+<!-- 대기시간 등록 모달 -->
+<div id="eq-queue-overlay" onclick="closeQueueForm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;"></div>
+<div id="eq-queue-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,95vw);background:var(--surface);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.25);z-index:3001;padding:28px 32px 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+    <div style="font-size:15px;font-weight:700;">대기 등록</div>
+    <button onclick="closeQueueForm()" style="background:none;border:none;cursor:pointer;color:var(--text);font-size:20px;">✕</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">장비</label><select id="eq-queue-device" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></select></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">사용자</label><input id="eq-queue-user" type="text" placeholder="사용자 이름" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">시험명 (선택)</label><input id="eq-queue-test" type="text" placeholder="시험명" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">예상 사용 시간</label><input id="eq-queue-time" type="text" placeholder="예: 2시간, 오후 3시까지" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+    <button onclick="closeQueueForm()" style="padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:none;color:var(--text);font-size:13px;cursor:pointer;">취소</button>
+    <button onclick="saveQueue()" style="padding:8px 18px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;font-weight:600;">등록</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1478,6 +1604,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('exp_data', JSON.stringify(experiments));
     render();
   });
+  initEquipment();
   fbDb.ref('certificates').on('value', snapshot => {
     try {
       const val = snapshot.val();
@@ -3592,6 +3719,198 @@ function showToast(msg) {
 document.getElementById('modal-bg').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-bg')) closeModal();
 });
+
+// ─── 장비 관리 ───
+let equipmentList = [];
+let equipmentQueue = [];
+
+function switchTab(tabId) {
+  ['tab-experiment','tab-equipment'].forEach(id => {
+    const el = document.getElementById(id);
+    const btn = document.getElementById('tab-btn-' + id.replace('tab-',''));
+    if (el) el.style.display = id === tabId ? '' : 'none';
+    if (btn) btn.classList.toggle('active', id === tabId);
+  });
+}
+
+// ── Firebase 연동 ──
+function fbEquipmentRef() { return firebase.database().ref('equipment'); }
+function fbQueueRef() { return firebase.database().ref('equipmentQueue'); }
+
+function initEquipment() {
+  fbEquipmentRef().on('value', snap => {
+    const val = snap.val() || {};
+    equipmentList = Object.entries(val).map(([id, d]) => ({id, ...d}));
+    renderEquipmentTable();
+  });
+  fbQueueRef().on('value', snap => {
+    const val = snap.val() || {};
+    equipmentQueue = Object.entries(val).map(([id, d]) => ({id, ...d}));
+    renderQueueKanban();
+  });
+}
+
+function renderEquipmentTable() {
+  const tbody = document.getElementById('equipment-tbody');
+  if (!tbody) return;
+  if (!equipmentList.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:28px;">등록된 장비가 없습니다</td></tr>';
+    return;
+  }
+  const statusColor = { '대기중':'#f59e0b','가동중':'#10b981','점검중':'#ef4444' };
+  tbody.innerHTML = equipmentList.map(eq => {
+    const expDate = eq.calibExp ? new Date(eq.calibExp) : null;
+    const today = new Date();
+    const expSoon = expDate && (expDate - today) < 30*24*3600*1000;
+    const expPast = expDate && expDate < today;
+    const expStyle = expPast ? 'color:#ef4444;font-weight:600;' : expSoon ? 'color:#f59e0b;font-weight:600;' : '';
+    return `<tr>
+      <td style="font-weight:600;">${eq.name||''}</td>
+      <td>${[eq.model,eq.maker].filter(Boolean).join(' / ')}</td>
+      <td>${eq.range||''}</td>
+      <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${statusColor[eq.status]||'#888'}22;color:${statusColor[eq.status]||'#888'};">${eq.status||'대기중'}</span></td>
+      <td>${eq.manager||''}</td>
+      <td>${eq.location||''}</td>
+      <td>${eq.calib||''}</td>
+      <td style="${expStyle}">${eq.calibExp||''}${expPast?' ⚠️만료':''}${(!expPast&&expSoon)?' ⚠️임박':''}</td>
+      <td style="white-space:nowrap;">
+        <button onclick="openEquipmentForm('${eq.id}')" style="padding:3px 10px;border:1px solid var(--border);border-radius:5px;background:none;color:var(--text);font-size:11px;cursor:pointer;margin-right:4px;">편집</button>
+        <button onclick="deleteEquipment('${eq.id}')" style="padding:3px 10px;border:1px solid #ef4444;border-radius:5px;background:none;color:#ef4444;font-size:11px;cursor:pointer;">삭제</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderQueueKanban() {
+  const waitCol = document.getElementById('eq-col-wait');
+  const usingCol = document.getElementById('eq-col-using');
+  const doneCol = document.getElementById('eq-col-done');
+  if (!waitCol) return;
+
+  const waiting = equipmentQueue.filter(q => q.status === '대기중');
+  const using = equipmentQueue.filter(q => q.status === '사용중');
+  const done = equipmentQueue.filter(q => q.status === '사용완료');
+
+  document.getElementById('eq-cnt-wait').textContent = waiting.length;
+  document.getElementById('eq-cnt-using').textContent = using.length;
+  document.getElementById('eq-cnt-done').textContent = done.length;
+
+  const card = (q, btns) => `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+    <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${q.device||''}</div>
+    <div style="font-size:12px;color:var(--text3);">👤 ${q.user||''}</div>
+    ${q.test ? `<div style="font-size:11px;color:var(--text3);">📋 ${q.test}</div>` : ''}
+    ${q.time ? `<div style="font-size:11px;color:var(--text3);">⏱ ${q.time}</div>` : ''}
+    <div style="display:flex;gap:6px;margin-top:8px;">${btns}</div>
+  </div>`;
+
+  const btn = (label, color, fn) => `<button onclick="${fn}" style="flex:1;padding:4px;border:1px solid ${color};border-radius:5px;background:none;color:${color};font-size:11px;cursor:pointer;">${label}</button>`;
+
+  waitCol.innerHTML = waiting.length ? waiting.map(q => card(q,
+    btn('사용 시작', '#3b82f6', `moveQueue('${q.id}','사용중')`) +
+    btn('삭제', '#ef4444', `deleteQueue('${q.id}')`)
+  )).join('') : '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">대기 없음</p>';
+
+  usingCol.innerHTML = using.length ? using.map(q => card(q,
+    btn('완료', '#10b981', `moveQueue('${q.id}','사용완료')`)
+  )).join('') : '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">사용중인 장비 없음</p>';
+
+  doneCol.innerHTML = done.length ? done.map(q => card(q,
+    btn('삭제', '#888', `deleteQueue('${q.id}')`)
+  )).join('') : '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0;">완료 없음</p>';
+}
+
+// ── CRUD ──
+function openEquipmentForm(id) {
+  document.getElementById('eq-edit-id').value = id || '';
+  document.getElementById('eq-modal-title').textContent = id ? '장비 편집' : '장비 추가';
+  ['name','model','maker','range','status','manager','location','calib','calib-exp'].forEach(f => {
+    const el = document.getElementById('eq-' + f);
+    if (el) el.value = '';
+  });
+  if (id) {
+    const eq = equipmentList.find(e => e.id === id);
+    if (eq) {
+      document.getElementById('eq-name').value = eq.name||'';
+      document.getElementById('eq-model').value = eq.model||'';
+      document.getElementById('eq-maker').value = eq.maker||'';
+      document.getElementById('eq-range').value = eq.range||'';
+      document.getElementById('eq-status').value = eq.status||'대기중';
+      document.getElementById('eq-manager').value = eq.manager||'';
+      document.getElementById('eq-location').value = eq.location||'';
+      document.getElementById('eq-calib').value = eq.calib||'';
+      document.getElementById('eq-calib-exp').value = eq.calibExp||'';
+    }
+  }
+  document.getElementById('eq-modal-overlay').style.display = 'block';
+  document.getElementById('eq-modal').style.display = 'block';
+}
+
+function closeEquipmentForm() {
+  document.getElementById('eq-modal-overlay').style.display = 'none';
+  document.getElementById('eq-modal').style.display = 'none';
+}
+
+function saveEquipment() {
+  const name = document.getElementById('eq-name').value.trim();
+  if (!name) { alert('장비명을 입력하세요.'); return; }
+  const data = {
+    name,
+    model: document.getElementById('eq-model').value.trim(),
+    maker: document.getElementById('eq-maker').value.trim(),
+    range: document.getElementById('eq-range').value.trim(),
+    status: document.getElementById('eq-status').value,
+    manager: document.getElementById('eq-manager').value.trim(),
+    location: document.getElementById('eq-location').value.trim(),
+    calib: document.getElementById('eq-calib').value,
+    calibExp: document.getElementById('eq-calib-exp').value,
+  };
+  const id = document.getElementById('eq-edit-id').value;
+  const ref = id ? fbEquipmentRef().child(id) : fbEquipmentRef().push();
+  ref.set(data);
+  closeEquipmentForm();
+}
+
+function deleteEquipment(id) {
+  if (!confirm('장비를 삭제하시겠습니까?')) return;
+  fbEquipmentRef().child(id).remove();
+}
+
+// ── 대기 큐 ──
+function openQueueForm() {
+  const sel = document.getElementById('eq-queue-device');
+  sel.innerHTML = equipmentList.map(eq => `<option value="${eq.name}">${eq.name}</option>`).join('');
+  ['eq-queue-user','eq-queue-test','eq-queue-time'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('eq-queue-overlay').style.display = 'block';
+  document.getElementById('eq-queue-modal').style.display = 'block';
+}
+
+function closeQueueForm() {
+  document.getElementById('eq-queue-overlay').style.display = 'none';
+  document.getElementById('eq-queue-modal').style.display = 'none';
+}
+
+function saveQueue() {
+  const device = document.getElementById('eq-queue-device').value;
+  const user = document.getElementById('eq-queue-user').value.trim();
+  if (!user) { alert('사용자를 입력하세요.'); return; }
+  fbQueueRef().push({
+    device,
+    user,
+    test: document.getElementById('eq-queue-test').value.trim(),
+    time: document.getElementById('eq-queue-time').value.trim(),
+    status: '대기중',
+    createdAt: Date.now()
+  });
+  closeQueueForm();
+}
+
+function moveQueue(id, status) {
+  fbQueueRef().child(id).update({ status });
+}
+
+function deleteQueue(id) {
+  fbQueueRef().child(id).remove();
+}
 </script>
 </body>
 </html>
