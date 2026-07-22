@@ -3308,15 +3308,11 @@ async function copyCertImage(btn) {
       flexRestores.push({ flexDiv, origStyle, capDivs });
     });
 
-    // ── 1d. 조건 열이 모두 비어있으면 캡처 중 숨기기 ──
+    // ── 1d. 기준/조건 열이 모두 비어있으면 캡처 중 숨기기 ──
     const hiddenCondCells = [];
     const visibleRows = Array.from(target.querySelectorAll('#result-tbody tr')).filter(tr => tr.style.display !== 'none');
-    const allCondDivs = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('.__cap-text')).filter(d => {
-      const ta = d.previousSibling || d.nextSibling;
-      const field = (d.previousSibling?.dataset?.field || d.nextSibling?.dataset?.field || '');
-      return field.startsWith('cond');
-    }));
-    // data-field가 cond*인 숨겨진 textarea로 확인
+
+    // 조건 열
     const allCondTas = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('[data-field^="cond"]')));
     const condIsEmpty = allCondTas.length > 0 && allCondTas.every(ta => !ta.value.trim());
     if (condIsEmpty) {
@@ -3326,6 +3322,18 @@ async function copyCertImage(btn) {
       });
       const condTh = Array.from(target.querySelectorAll('th')).find(th => th.textContent.trim() === '조건');
       if (condTh) { condTh.style.display = 'none'; hiddenCondCells.push(condTh); }
+    }
+
+    // 기준 열
+    const allSpecTas = visibleRows.flatMap(tr => Array.from(tr.querySelectorAll('[data-field^="spec"]')));
+    const specIsEmpty = allSpecTas.length > 0 && allSpecTas.every(ta => !ta.value.trim());
+    if (specIsEmpty) {
+      visibleRows.forEach(tr => {
+        const specTd = Array.from(tr.querySelectorAll('td')).find(td => td.querySelector('[data-field^="spec"]'));
+        if (specTd) { specTd.style.display = 'none'; hiddenCondCells.push(specTd); }
+      });
+      const specTh = Array.from(target.querySelectorAll('th')).find(th => th.textContent.trim() === '기준');
+      if (specTh) { specTh.style.display = 'none'; hiddenCondCells.push(specTh); }
     }
 
     // ── 2. 캡처용 스타일 삽입 ──
