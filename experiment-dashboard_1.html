@@ -1872,13 +1872,26 @@ function downloadCertPDF() {
   const tdStyle = 'border:1px solid #ccc;padding:6px 8px;font-size:11px;vertical-align:middle;white-space:pre-wrap;word-break:keep-all;';
   const tdcStyle = tdStyle + 'text-align:center;';
 
+  // 기준/조건 열 전체 비어있는지 확인
+  const allBodyTrs = Array.from(document.querySelectorAll('#result-tbody tr'));
+  const hasSpec = allBodyTrs.some(tr => {
+    const el = tr.querySelector('[data-field="spec"]') || tr.querySelector('[data-field="spec1"]');
+    return el && (el.value||'').trim();
+  });
+  const hasCond = allBodyTrs.some(tr => {
+    const el = tr.querySelector('[data-field="cond"]') || tr.querySelector('[data-field="cond1"]');
+    return el && (el.value||'').trim();
+  });
+
   // 헤더 (2행 필요 여부 판단)
   const needTwoHeaderRows = splitN > 1 || photoCount > 1;
   const rs = needTwoHeaderRows ? ' rowspan="2"' : '';
   const thMerge = v => `<th${rs} style="${thStyle}vertical-align:middle;">${v}</th>`;
 
   let thead = '<tr>';
-  thead += thMerge('No') + thMerge('시험') + thMerge('기준') + thMerge('조건');
+  thead += thMerge('No') + thMerge('시험');
+  if (hasSpec) thead += thMerge('기준');
+  if (hasCond) thead += thMerge('조건');
   if (splitN > 1) {
     thead += `<th colspan="${splitN}" style="${thStyle}">결과</th>`;
   } else {
@@ -1965,8 +1978,8 @@ function downloadCertPDF() {
     tbody += `<tr>
       <td style="${tdcStyle}"><nobr>${idx+1}</nobr></td>
       <td style="${tdNoWrap}"><nobr>${itemVal.replace(/\n/g,' ')}</nobr></td>
-      <td style="${tdStyle}">${specVal}</td>
-      ${condTd}
+      ${hasSpec ? `<td style="${tdStyle}">${specVal}</td>` : ''}
+      ${hasCond ? condTd : ''}
       ${resultTds}
       ${imgTds}
       <td style="${tdNoWrap}"><nobr>${noteText}</nobr></td>
