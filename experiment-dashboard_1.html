@@ -2105,11 +2105,18 @@ function downloadCertPDF() {
     const condVals = condN > 0 ? Array.from({length:condN},(_,i)=>getField(`cond${i+1}`)) : [getField('cond')];
     if (condN === 0) condN = 1;
 
-    // 전체 결과 수집 (condN × splitN)
-    const totalR = condN * splitN;
+    // 결과 textarea 개수 직접 감지 (condN 감지 오류 보완)
+    let resCount = 0;
+    for (let ri = 1; ri <= 40; ri++) { if (tr.querySelector(`[data-field="result${ri}"]`)) resCount = ri; else break; }
+    // resCount가 condN*splitN보다 크면 effectiveCondN 재계산
+    const effectiveCondN = resCount > splitN ? Math.round(resCount / splitN) : condN;
+
+    // 전체 결과 수집
     let allResultVals = [];
-    if (totalR > 1) {
-      for (let ri = 1; ri <= totalR; ri++) allResultVals.push(tr.querySelector(`[data-field="result${ri}"]`) ? getField(`result${ri}`) : '');
+    if (resCount > 1) {
+      allResultVals = Array.from({length: resCount}, (_, ri) => tr.querySelector(`[data-field="result${ri+1}"]`)?.value || '');
+    } else if (resCount === 1) {
+      allResultVals = [tr.querySelector('[data-field="result1"]')?.value || ''];
     } else {
       allResultVals = [getField('result')];
     }
@@ -2125,11 +2132,11 @@ function downloadCertPDF() {
       : `<div style="text-align:center;padding:6px 8px;white-space:pre-wrap;word-break:keep-all;font-size:11px;">${condVals[0]||''}</div>`;
     const condTd = `<td style="${tdStyle}padding:0;">${condCellInner}</td>`;
 
-    // 결과 셀 (splitN 열, 각각 condN 미니행)
+    // 결과 셀 (splitN 열, 각각 effectiveCondN 미니행)
     let resultTds;
-    if (condN > 1) {
+    if (effectiveCondN > 1) {
       resultTds = Array.from({length:splitN},(_,ri) => {
-        const innerRows = Array.from({length:condN},(_,ci) => {
+        const innerRows = Array.from({length:effectiveCondN},(_,ci) => {
           const v = allResultVals[ci * splitN + ri] || '';
           return `<tr><td style="${miniTdStyle}${inBd(ci)}">${v}</td></tr>`;
         }).join('');
