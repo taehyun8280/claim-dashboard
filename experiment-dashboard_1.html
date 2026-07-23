@@ -3477,22 +3477,42 @@ async function copyCertImage(btn) {
     const flexRestores = [];
     target.querySelectorAll('td > div').forEach(flexDiv => {
       const style = flexDiv.getAttribute('style') || '';
-      if (!style.includes('flex-direction')) return;
-      const capDivs = Array.from(flexDiv.querySelectorAll('.__cap-text'));
-      if (capDivs.length < 2) return;
+      if (!style.includes('flex-direction:column') && !style.includes('flex-direction: column')) return;
       const origStyle = flexDiv.getAttribute('style');
       flexDiv.style.display = 'block';
       flexDiv.style.height = 'auto';
-      capDivs.forEach((div, i) => {
-        div.style.display = 'block';
-        div.style.width = '100%';
-        if (i < capDivs.length - 1) {
-          div.style.borderBottom = '1.5px solid #ccc';
-          div.style.paddingBottom = '8px';
-          div.style.marginBottom = '8px';
-        }
-      });
-      flexRestores.push({ flexDiv, origStyle, capDivs });
+
+      // 내부 행(조건별 row) 처리
+      const condRows = Array.from(flexDiv.children).filter(el => el.tagName === 'DIV');
+      const condRowRestores = [];
+      if (condRows.length >= 2) {
+        condRows.forEach((row, i) => {
+          const origRowStyle = row.getAttribute('style') || '';
+          const capTexts = Array.from(row.querySelectorAll('.__cap-text'));
+          if (capTexts.length > 1) {
+            // sN>1: 가로 분할 → flex 유지하되 너비 확보
+            row.style.display = 'flex';
+            row.style.width = '100%';
+            row.style.boxSizing = 'border-box';
+            capTexts.forEach(ct => { ct.style.flex = '1'; ct.style.textAlign = 'center'; });
+          } else {
+            capTexts.forEach(ct => { ct.style.display = 'block'; ct.style.width = '100%'; });
+          }
+          if (i < condRows.length - 1) {
+            row.style.borderBottom = '1.5px solid #ccc';
+            row.style.paddingBottom = '6px';
+            row.style.marginBottom = '6px';
+          }
+          condRowRestores.push({ row, origRowStyle, capTexts });
+        });
+      } else {
+        // condN=1이면서 flex-direction:column인 경우 (거의 없지만 방어)
+        const capDivs = Array.from(flexDiv.querySelectorAll('.__cap-text'));
+        capDivs.forEach(div => { div.style.display = 'block'; div.style.width = '100%'; });
+        flexRestores.push({ flexDiv, origStyle, condRowRestores: [], capDivs });
+        return;
+      }
+      flexRestores.push({ flexDiv, origStyle, condRowRestores });
     });
 
     // ── 1d. 기준/조건 열이 모두 비어있으면 캡처 중 숨기기 ──
@@ -3562,9 +3582,11 @@ async function copyCertImage(btn) {
         overflow-wrap: normal !important;
       }
       .result-table-wrap .img-drop {
-        border: none !important; background: transparent !important; overflow: visible !important;
+        border: none !important; background: transparent !important; overflow: hidden !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        height: auto !important; min-height: unset !important;
       }
-      .result-table-wrap .img-drop img { max-width: 100% !important; height: auto !important; display: block !important; }
+      .result-table-wrap .img-drop img { max-width: 100% !important; max-height: 120px !important; width: auto !important; height: auto !important; display: block !important; margin: 0 auto !important; }
       .result-table-wrap .img-del-btn { display: none !important; }
       .result-table-wrap .img-placeholder { display: none !important; }
     `;
@@ -3591,9 +3613,17 @@ async function copyCertImage(btn) {
     styleEl.remove();
     hiddenRows.forEach(tr => { tr.style.display = ''; });
     replaced.forEach(({ el, div }) => { el.style.display = ''; div.remove(); });
-    flexRestores.forEach(({ flexDiv, origStyle, capDivs }) => {
+    flexRestores.forEach(({ flexDiv, origStyle, condRowRestores, capDivs }) => {
       flexDiv.setAttribute('style', origStyle);
-      capDivs.forEach(div => { div.style.display = ''; div.style.width = ''; div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
+      if (condRowRestores && condRowRestores.length) {
+        condRowRestores.forEach(({ row, origRowStyle, capTexts }) => {
+          row.setAttribute('style', origRowStyle);
+          capTexts.forEach(ct => { ct.style.flex = ''; ct.style.textAlign = ''; ct.style.display = ''; ct.style.width = ''; });
+        });
+      }
+      if (capDivs) {
+        capDivs.forEach(div => { div.style.display = ''; div.style.width = ''; div.style.borderBottom = ''; div.style.paddingBottom = ''; div.style.marginBottom = ''; });
+      }
     });
     hiddenCondCells.forEach(el => { el.style.display = ''; });
     splitRestores.forEach(item => {
