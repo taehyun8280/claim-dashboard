@@ -3416,10 +3416,13 @@ async function copyCertImage(btn) {
     const target = document.getElementById('result-table').closest('.result-table-wrap');
 
     // ── 1a. 분할 결과 셀을 실제 N개의 <td>로 교체 (DOM에서 완전 제거) ──
+    // 조건 다중행(flex-direction:column)인 경우는 step 1c에서 처리하므로 여기서 건너뜀
     const splitRestores = [];
     target.querySelectorAll('td[data-result-cell]').forEach(td => {
       const textareas = Array.from(td.querySelectorAll('textarea'));
       if (textareas.length < 2) return;
+      const topDiv = td.querySelector('div');
+      if (topDiv && (topDiv.getAttribute('style')||'').includes('flex-direction:column')) return;
       const n = textareas.length;
       const totalW = td.getBoundingClientRect().width;
       const perW = Math.floor(totalW / n);
