@@ -2101,10 +2101,12 @@ function downloadCertPDF() {
     const miniInner = 'border-collapse:collapse;width:100%;';
     const inBd = i => i > 0 ? 'border-top:1px solid #ddd;' : '';
 
-    // 조건 셀 (서브행 있으면 미니테이블)
+    const miniTdStyle = 'padding:4px 6px;font-size:11px;white-space:pre-wrap;word-break:keep-all;text-align:center;vertical-align:middle;width:100%;';
+
+    // 조건 셀 (서브행 있으면 미니테이블, 단일이면 div로 중앙정렬)
     const condCellInner = condN > 1
-      ? `<table style="${miniInner}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="padding:4px 6px;font-size:11px;white-space:pre-wrap;word-break:keep-all;text-align:center;${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table>`
-      : (condVals[0]||'');
+      ? `<table style="${miniInner}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="${miniTdStyle}${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table>`
+      : `<div style="text-align:center;padding:6px 8px;white-space:pre-wrap;word-break:keep-all;font-size:11px;">${condVals[0]||''}</div>`;
     const condTd = `<td style="${tdStyle}padding:0;">${condCellInner}</td>`;
 
     // 결과 셀 (splitN 열, 각각 condN 미니행)
@@ -2113,7 +2115,7 @@ function downloadCertPDF() {
       resultTds = Array.from({length:splitN},(_,ri) => {
         const innerRows = Array.from({length:condN},(_,ci) => {
           const v = allResultVals[ci * splitN + ri] || '';
-          return `<tr><td style="padding:4px 6px;font-size:11px;text-align:center;${inBd(ci)}">${v}</td></tr>`;
+          return `<tr><td style="${miniTdStyle}${inBd(ci)}">${v}</td></tr>`;
         }).join('');
         return `<td style="${tdStyle}padding:0;"><table style="${miniInner}"><tbody>${innerRows}</tbody></table></td>`;
       }).join('');
