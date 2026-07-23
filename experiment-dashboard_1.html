@@ -2087,15 +2087,28 @@ function downloadCertPDF() {
   }
 
   // 본문
+  // 괄호가 단독 줄에 있는 경우를 합쳐서 "(10.41mm)" 형태로 정규화
+  const normPdfText = v => (v||'')
+    .split('\n').map(l => l.trim()).join('\n')
+    .replace(/\(\s*\n\s*/g, '(')
+    .replace(/\s*\n\s*\)/g, ')')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
   let tbody = '';
-  document.querySelectorAll('#result-tbody tr').forEach((tr, idx) => {
+  let pdfRowIdx = 0;
+  document.querySelectorAll('#result-tbody tr').forEach(tr => {
     const getField = (...names) => {
       for (const n of names) {
         const el = tr.querySelector(`[data-field="${n}"]`);
-        if (el) return (el.value !== undefined ? el.value : el.innerText || '').trim();
+        if (el) return normPdfText(el.value !== undefined ? el.value : el.innerText || '');
       }
       return '';
     };
+    // 내용 없는 행 건너뜀
+    const hasAnyContent = Array.from(tr.querySelectorAll('textarea,[contenteditable]')).some(el => (el.value||el.innerText||'').trim()) || tr.querySelector('.img-drop img');
+    if (!hasAnyContent) return;
+    const idx = pdfRowIdx++;
     const itemVal = getField('item') || Array.from({length:10},(_,i)=>getField(`item${i+1}`)).filter(Boolean).join('\n');
     const specVal = getField('spec') || Array.from({length:10},(_,i)=>getField(`spec${i+1}`)).filter(Boolean).join('\n');
 
@@ -2173,6 +2186,7 @@ function downloadCertPDF() {
     body { font-family: '맑은 고딕', 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
     h2 { font-size: 16px; margin-bottom: 12px; }
     table { border-collapse: collapse; width: 100%; }
+    td, th { text-align: center !important; vertical-align: middle !important; }
     @media print { button { display: none; } }
   </style></head>
   <body>
