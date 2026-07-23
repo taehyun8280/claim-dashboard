@@ -1387,6 +1387,19 @@
     <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">시험명 (선택)</label><input id="eq-queue-test" type="text" placeholder="시험명" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
     <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">총 사용 시간 (시간)</label><input id="eq-queue-totalhours" type="number" min="0.5" step="0.5" placeholder="예: 8" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
     <div><label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">시작일시 (선택 — 미입력 시 사용 시작 버튼 누른 시각)</label><input id="eq-queue-startdt" type="datetime-local" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font-size:13px;"></div>
+    <div>
+      <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:6px;">시험사진</label>
+      <div id="eq-queue-drop-zone" style="border:2px dashed var(--border);border-radius:8px;padding:12px;min-height:48px;transition:border-color .15s;">
+        <div id="eq-queue-img-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;color:var(--text3);background:var(--bg);">
+            📎 파일 선택
+            <input type="file" id="eq-queue-img-input" accept="image/*" multiple style="display:none;" onchange="eqQueueImgAdd(this)">
+          </label>
+          <span style="font-size:11px;color:var(--text3);">또는 드래그하거나 Ctrl+V로 붙여넣기</span>
+        </div>
+      </div>
+    </div>
   </div>
   <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
     <button onclick="closeQueueForm()" style="padding:8px 18px;border:1px solid var(--border);border-radius:7px;background:none;color:var(--text);font-size:13px;cursor:pointer;">취소</button>
@@ -4071,18 +4084,79 @@ function deleteEquipment(id) {
   fbEquipmentRef().child(id).remove();
 }
 
+// ── 대기 큐 이미지 ──
+let _eqQueueImgFiles = [];
+
+function eqQueueImgAdd(input) {
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => { _eqQueueImgFiles.push(e.target.result); _renderEqQueueImgPreview(); };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+function _renderEqQueueImgPreview() {
+  const box = document.getElementById('eq-queue-img-preview');
+  if (!box) return;
+  box.innerHTML = _eqQueueImgFiles.map((src, i) =>
+    `<div style="position:relative;display:inline-block;">
+      <img src="${src}" style="width:72px;height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--border);">
+      <button onclick="_eqQueueImgRemove(${i})" style="position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:11px;cursor:pointer;line-height:1;">✕</button>
+    </div>`
+  ).join('');
+}
+function _eqQueueImgRemove(i) { _eqQueueImgFiles.splice(i,1); _renderEqQueueImgPreview(); }
+
+function _eqQueueImgPasteHandler(e) {
+  const items = (e.clipboardData || {}).items || [];
+  Array.from(items).forEach(item => {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const reader = new FileReader();
+      reader.onload = ev => { _eqQueueImgFiles.push(ev.target.result); _renderEqQueueImgPreview(); };
+      reader.readAsDataURL(item.getAsFile());
+    }
+  });
+}
+function _eqQueueImgSetupDrop() {
+  const box = document.getElementById('eq-queue-drop-zone');
+  if (!box || box._dropReady) return;
+  box._dropReady = true;
+  box.addEventListener('dragover', e => { e.preventDefault(); box.style.borderColor='var(--accent)'; });
+  box.addEventListener('dragleave', () => { box.style.borderColor='var(--border)'; });
+  box.addEventListener('drop', e => {
+    e.preventDefault(); box.style.borderColor='var(--border)';
+    Array.from(e.dataTransfer.files).forEach(f => {
+      if (!f.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = ev => { _eqQueueImgFiles.push(ev.target.result); _renderEqQueueImgPreview(); };
+      reader.readAsDataURL(f);
+    });
+  });
+}
+
 // ── 대기 큐 ──
+function _openQueueModal() {
+  document.getElementById('eq-queue-overlay').style.display = 'block';
+  document.getElementById('eq-queue-modal').style.display = 'block';
+  document.addEventListener('paste', _eqQueueImgPasteHandler);
+  setTimeout(_eqQueueImgSetupDrop, 50);
+}
+
 function openQueueForm() {
+  _eqQueueImgFiles = [];
+  _renderEqQueueImgPreview();
   document.getElementById('eq-queue-edit-id').value = '';
   document.getElementById('eq-queue-modal-title').textContent = '사용 등록';
   ['eq-queue-device','eq-queue-user','eq-queue-test','eq-queue-totalhours','eq-queue-startdt'].forEach(id => { document.getElementById(id).value = ''; });
-  document.getElementById('eq-queue-overlay').style.display = 'block';
-  document.getElementById('eq-queue-modal').style.display = 'block';
+  _openQueueModal();
 }
 
 function openQueueEditForm(id) {
   const q = equipmentQueue.find(e => e.id === id);
   if (!q) return;
+  _eqQueueImgFiles = [];
+  _renderEqQueueImgPreview();
   document.getElementById('eq-queue-edit-id').value = id;
   document.getElementById('eq-queue-modal-title').textContent = '사용 수정';
   document.getElementById('eq-queue-device').value = q.device || '';
@@ -4097,16 +4171,24 @@ function openQueueEditForm(id) {
   } else {
     document.getElementById('eq-queue-startdt').value = '';
   }
-  document.getElementById('eq-queue-overlay').style.display = 'block';
-  document.getElementById('eq-queue-modal').style.display = 'block';
+  // 기존 이미지 로드
+  const cnt = q.imgCount || 0;
+  if (cnt > 0) {
+    Promise.all(Array.from({length:cnt},(_,i)=>idbGet('eq-queue-img-'+id+'-'+i))).then(imgs => {
+      _eqQueueImgFiles = imgs.filter(Boolean);
+      _renderEqQueueImgPreview();
+    });
+  }
+  _openQueueModal();
 }
 
 function closeQueueForm() {
   document.getElementById('eq-queue-overlay').style.display = 'none';
   document.getElementById('eq-queue-modal').style.display = 'none';
+  document.removeEventListener('paste', _eqQueueImgPasteHandler);
 }
 
-function saveQueue() {
+async function saveQueue() {
   const editId = document.getElementById('eq-queue-edit-id').value;
   const device = document.getElementById('eq-queue-device').value;
   const user = document.getElementById('eq-queue-user').value.trim();
@@ -4117,29 +4199,33 @@ function saveQueue() {
   const startedAt = startDtVal ? new Date(startDtVal).getTime() : null;
 
   if (editId) {
-    // 수정
     const existing = equipmentQueue.find(e => e.id === editId);
+    const oldCnt = existing ? (existing.imgCount || 0) : 0;
+    await Promise.all(_eqQueueImgFiles.map((src,i) => idbPut('eq-queue-img-'+editId+'-'+i, src)));
+    for (let i = _eqQueueImgFiles.length; i < oldCnt; i++) idbDel('eq-queue-img-'+editId+'-'+i);
     const update = {
-      device,
-      user,
+      device, user,
       test: document.getElementById('eq-queue-test').value.trim(),
       totalHours,
+      imgCount: _eqQueueImgFiles.length,
       startedAt: startedAt || (existing && existing.startedAt) || null,
     };
     if (!update.startedAt) delete update.startedAt;
     fbQueueRef().child(editId).update(update);
   } else {
-    // 신규 등록
+    const ref = fbQueueRef().push();
+    const newId = ref.key;
+    await Promise.all(_eqQueueImgFiles.map((src,i) => idbPut('eq-queue-img-'+newId+'-'+i, src)));
     const data = {
-      device,
-      user,
+      device, user,
       test: document.getElementById('eq-queue-test').value.trim(),
       totalHours,
+      imgCount: _eqQueueImgFiles.length,
       status: startedAt ? '사용중' : '대기중',
       createdAt: Date.now()
     };
     if (startedAt) data.startedAt = startedAt;
-    fbQueueRef().push(data);
+    ref.set(data);
   }
   closeQueueForm();
 }
