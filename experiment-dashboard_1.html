@@ -2087,13 +2087,16 @@ function downloadCertPDF() {
   }
 
   // 본문
-  // 괄호가 단독 줄에 있는 경우를 합쳐서 "(10.41mm)" 형태로 정규화
+  // 텍스트 정규화: 괄호 단독 줄 병합, \n → <br> 변환
   const normPdfText = v => (v||'')
     .split('\n').map(l => l.trim()).join('\n')
     .replace(/\(\s*\n\s*/g, '(')
     .replace(/\s*\n\s*\)/g, ')')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+  const toHtmlBr = v => normPdfText(v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
 
   let tbody = '';
   let pdfRowIdx = 0;
@@ -2101,7 +2104,7 @@ function downloadCertPDF() {
     const getField = (...names) => {
       for (const n of names) {
         const el = tr.querySelector(`[data-field="${n}"]`);
-        if (el) return normPdfText(el.value !== undefined ? el.value : el.innerText || '');
+        if (el) return toHtmlBr(el.value !== undefined ? el.value : el.innerText || '');
       }
       return '';
     };
@@ -2124,12 +2127,12 @@ function downloadCertPDF() {
     // resCount가 condN*splitN보다 크면 effectiveCondN 재계산
     const effectiveCondN = resCount > splitN ? Math.round(resCount / splitN) : condN;
 
-    // 전체 결과 수집 (normPdfText 적용)
+    // 전체 결과 수집 (toHtmlBr 적용)
     let allResultVals = [];
     if (resCount > 1) {
-      allResultVals = Array.from({length: resCount}, (_, ri) => normPdfText(tr.querySelector(`[data-field="result${ri+1}"]`)?.value || ''));
+      allResultVals = Array.from({length: resCount}, (_, ri) => toHtmlBr(tr.querySelector(`[data-field="result${ri+1}"]`)?.value || ''));
     } else if (resCount === 1) {
-      allResultVals = [normPdfText(tr.querySelector('[data-field="result1"]')?.value || '')];
+      allResultVals = [toHtmlBr(tr.querySelector('[data-field="result1"]')?.value || '')];
     } else {
       allResultVals = [getField('result')];
     }
@@ -2137,12 +2140,12 @@ function downloadCertPDF() {
     const miniInner = 'border-collapse:collapse;width:100%;';
     const inBd = i => i > 0 ? 'border-top:1px solid #ddd;' : '';
 
-    const miniTdStyle = 'padding:4px 6px;font-size:11px;white-space:pre-wrap;word-break:keep-all;text-align:center;vertical-align:middle;width:100%;';
+    const miniTdStyle = 'padding:4px 6px;font-size:11px;word-break:keep-all;text-align:center;vertical-align:middle;width:100%;';
 
     // 조건 셀 (서브행 있으면 미니테이블, 단일이면 div로 중앙정렬)
     const condCellInner = condN > 1
       ? `<table style="${miniInner}"><tbody>${condVals.map((cv,ci)=>`<tr><td style="${miniTdStyle}${inBd(ci)}">${cv||''}</td></tr>`).join('')}</tbody></table>`
-      : `<div style="text-align:center;padding:6px 8px;white-space:pre-wrap;word-break:keep-all;font-size:11px;">${condVals[0]||''}</div>`;
+      : `<div style="text-align:center;padding:6px 8px;word-break:keep-all;font-size:11px;">${condVals[0]||''}</div>`;
     const condTd = `<td style="${tdStyle}padding:0;">${condCellInner}</td>`;
 
     // 결과 셀 (splitN 열, 각각 effectiveCondN 미니행)
