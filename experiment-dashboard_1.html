@@ -2124,12 +2124,12 @@ function downloadCertPDF() {
     // resCount가 condN*splitN보다 크면 effectiveCondN 재계산
     const effectiveCondN = resCount > splitN ? Math.round(resCount / splitN) : condN;
 
-    // 전체 결과 수집
+    // 전체 결과 수집 (normPdfText 적용)
     let allResultVals = [];
     if (resCount > 1) {
-      allResultVals = Array.from({length: resCount}, (_, ri) => tr.querySelector(`[data-field="result${ri+1}"]`)?.value || '');
+      allResultVals = Array.from({length: resCount}, (_, ri) => normPdfText(tr.querySelector(`[data-field="result${ri+1}"]`)?.value || ''));
     } else if (resCount === 1) {
-      allResultVals = [tr.querySelector('[data-field="result1"]')?.value || ''];
+      allResultVals = [normPdfText(tr.querySelector('[data-field="result1"]')?.value || '')];
     } else {
       allResultVals = [getField('result')];
     }
