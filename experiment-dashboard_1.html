@@ -3502,12 +3502,16 @@ async function copyCertImage(btn) {
           } else {
             capTexts.forEach(ct => { ct.style.display = 'block'; ct.style.width = '100%'; });
           }
+          // 조건 행 사이: margin+명시적 구분선 div 삽입 (html2canvas 호환)
+          let sepDiv = null;
           if (i < condRows.length - 1) {
-            row.style.borderBottom = '1.5px solid #ccc';
-            row.style.paddingBottom = '6px';
-            row.style.marginBottom = '6px';
+            row.style.paddingBottom = '4px';
+            sepDiv = document.createElement('div');
+            sepDiv.className = '__cap-sep';
+            sepDiv.style.cssText = 'width:100%;height:1px;background:#99b;margin:4px 0;display:block;';
+            flexDiv.insertBefore(sepDiv, row.nextSibling);
           }
-          condRowRestores.push({ row, origRowStyle, capTexts });
+          condRowRestores.push({ row, origRowStyle, capTexts, sepDiv });
         });
       } else {
         // condN=1이면서 flex-direction:column인 경우 (거의 없지만 방어)
@@ -3567,23 +3571,23 @@ async function copyCertImage(btn) {
       .result-table-wrap .result-table td {
         font-size: 13px !important; color: #111 !important; background: #fff !important;
         text-align: center !important; vertical-align: middle !important;
-        padding: 8px 6px !important; border: 1.5px solid #ccc !important;
-        word-break: normal !important; white-space: normal !important; overflow: visible !important;
+        padding: 8px 6px !important; border: 1.5px solid #99b !important;
+        word-break: keep-all !important; white-space: normal !important; overflow: visible !important;
       }
       .result-table-wrap [data-no-cap] { display: none !important; width:0 !important; min-width:0 !important; max-width:0 !important; padding:0 !important; margin:0 !important; border:0 !important; overflow:hidden !important; visibility:hidden !important; opacity:0 !important; }
       .result-table-wrap #split-btn { display: none !important; }
       .result-table-wrap .__cap-text {
         font-size: 13px !important; color: #111 !important; background: transparent !important;
         text-align: center !important; white-space: pre-wrap !important;
-        word-break: normal !important; line-height: 1.6 !important;
-        overflow-wrap: normal !important;
+        word-break: keep-all !important; line-height: 1.6 !important;
+        overflow-wrap: break-word !important;
       }
       .result-table-wrap .__split-cap-td {
         font-size: 13px !important; color: #111 !important; background: #fff !important;
         text-align: center !important; vertical-align: middle !important;
-        padding: 8px 6px !important; border: 1.5px solid #ccc !important;
-        word-break: normal !important; white-space: pre-wrap !important;
-        overflow-wrap: normal !important;
+        padding: 8px 6px !important; border: 1.5px solid #99b !important;
+        word-break: keep-all !important; white-space: pre-wrap !important;
+        overflow-wrap: break-word !important;
       }
       .result-table-wrap .img-drop {
         border: none !important; background: transparent !important; overflow: hidden !important;
@@ -3620,9 +3624,10 @@ async function copyCertImage(btn) {
     flexRestores.forEach(({ flexDiv, origStyle, condRowRestores, capDivs }) => {
       flexDiv.setAttribute('style', origStyle);
       if (condRowRestores && condRowRestores.length) {
-        condRowRestores.forEach(({ row, origRowStyle, capTexts }) => {
+        condRowRestores.forEach(({ row, origRowStyle, capTexts, sepDiv }) => {
           row.setAttribute('style', origRowStyle);
           capTexts.forEach(ct => { ct.style.flex = ''; ct.style.textAlign = ''; ct.style.display = ''; ct.style.width = ''; });
+          if (sepDiv && sepDiv.parentNode) sepDiv.parentNode.removeChild(sepDiv);
         });
       }
       if (capDivs) {
