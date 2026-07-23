@@ -754,6 +754,9 @@
     text-align: center;
     vertical-align: middle;
   }
+  /* 결과 셀 내부 분할선: 가로/세로 모두 명확하게 */
+  .result-table [data-result-cell] textarea { border-color: #aab !important; }
+  .result-table [data-result-cell] > div > div { border-color: #aab !important; }
   .result-table td input {
     background: none;
     border: none;
@@ -1854,13 +1857,13 @@ function addResultRow() {
         const rows = Array.from({length:cN},(_,ci)=>{
           const cols = Array.from({length:sN},(_,ri)=>{
             const idx=ci*sN+ri;
-            return `<textarea data-field="result${idx+1}" placeholder="결과${idx+1}" style="${taStyle}${ri<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`;
+            return `<textarea data-field="result${idx+1}" placeholder="결과${idx+1}" style="${taStyle}${ri<sN-1?'border-right:1.5px solid #aab;':''}flex:1;text-align:center;"></textarea>`;
           }).join('');
-          return `<div style="display:flex;flex:1;${ci<cN-1?'border-bottom:1px solid var(--border);':''}">${cols}</div>`;
+          return `<div style="display:flex;flex:1;${ci<cN-1?'border-bottom:1.5px solid #aab;':''}">${cols}</div>`;
         }).join('');
         return `<div style="display:flex;flex-direction:column;height:100%;">${rows}</div>`;
       } else if (sN > 1) {
-        return `<div style="display:flex;height:100%;">${Array.from({length:sN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<sN-1?'border-right:1px solid var(--border);':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`;
+        return `<div style="display:flex;height:100%;">${Array.from({length:sN},(_,i)=>`<textarea data-field="result${i+1}" placeholder="결과${i+1}" style="${taStyle}${i<sN-1?'border-right:1.5px solid #aab;':''}flex:1;text-align:center;"></textarea>`).join('')}</div>`;
       } else {
         return `<textarea data-field="result" placeholder="결과" style="${taStyle}text-align:center;"></textarea>`;
       }
