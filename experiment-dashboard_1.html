@@ -3485,6 +3485,7 @@ async function copyCertImage(btn) {
       const origStyle = flexDiv.getAttribute('style');
       flexDiv.style.display = 'block';
       flexDiv.style.height = 'auto';
+      flexDiv.style.width = '100%';
 
       // 내부 행(조건별 row) 처리
       const condRows = Array.from(flexDiv.children).filter(el => el.tagName === 'DIV');
@@ -3494,21 +3495,28 @@ async function copyCertImage(btn) {
           const origRowStyle = row.getAttribute('style') || '';
           const capTexts = Array.from(row.querySelectorAll('.__cap-text'));
           if (capTexts.length > 1) {
-            // sN>1: 가로 분할 → flex 유지하되 너비 확보
+            // sN>1: 가로 분할 → flex 유지, 세로선 명시적으로 추가
             row.style.display = 'flex';
             row.style.width = '100%';
             row.style.boxSizing = 'border-box';
-            capTexts.forEach(ct => { ct.style.flex = '1'; ct.style.textAlign = 'center'; });
+            capTexts.forEach((ct, ci) => {
+              ct.style.flex = '1';
+              ct.style.textAlign = 'center';
+              ct.style.padding = '2px 4px';
+              if (ci < capTexts.length - 1) {
+                ct.style.borderRight = '1px solid #99b'; // 세로 구분선
+              }
+            });
           } else {
             capTexts.forEach(ct => { ct.style.display = 'block'; ct.style.width = '100%'; });
           }
-          // 조건 행 사이: margin+명시적 구분선 div 삽입 (html2canvas 호환)
+          // 가로 구분선: 명시적 div 삽입 (html2canvas에서 border-bottom보다 확실)
           let sepDiv = null;
           if (i < condRows.length - 1) {
-            row.style.paddingBottom = '4px';
+            row.style.paddingBottom = '3px';
             sepDiv = document.createElement('div');
             sepDiv.className = '__cap-sep';
-            sepDiv.style.cssText = 'width:100%;height:1px;background:#99b;margin:4px 0;display:block;';
+            sepDiv.style.cssText = 'display:block;width:100%;height:1.5px;background:#99b;margin:3px 0 3px 0;line-height:0;font-size:0;';
             flexDiv.insertBefore(sepDiv, row.nextSibling);
           }
           condRowRestores.push({ row, origRowStyle, capTexts, sepDiv });
