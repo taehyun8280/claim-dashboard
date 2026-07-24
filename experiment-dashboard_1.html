@@ -3527,9 +3527,12 @@ async function copyCertImage(btn) {
       const div = document.createElement('div');
       div.className = '__cap-text';
       const cleanVal = (el.value || '')
-        .split('\n').map(l => l.trimEnd()).join('\n')  // 각 줄 끝 공백 제거
-        .replace(/\n{3,}/g, '\n\n')                   // 연속 빈줄 2개 이상 → 1개
-        .trim();                                        // 전체 앞뒤 공백·줄바꿈 제거
+        .replace(/\r\n/g,'\n').replace(/\r/g,'\n')
+        .split('\n').map(l => l.trim()).join('\n')
+        .replace(/\(\s*\n\s*/g, '(')
+        .replace(/\s*\n\s*\)/g, ')')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
       div.innerHTML = cleanVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
       el.parentNode.insertBefore(div, el);
       el.style.display = 'none';
