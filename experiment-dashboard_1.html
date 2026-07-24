@@ -2177,7 +2177,7 @@ function downloadCertPDF() {
 
     const imgTds = Array.from(tr.querySelectorAll('.img-drop')).map(drop => {
       const img = drop.querySelector('img');
-      return img ? `<td style="${tdcStyle}"><img src="${img.src}" style="max-width:110px;max-height:90px;"></td>`
+      return img ? `<td style="${tdcStyle}overflow:hidden;padding:4px;"><img src="${img.src}" style="max-width:100%;max-height:90px;width:auto;height:auto;display:block;margin:0 auto;"></td>`
                  : `<td style="${tdcStyle}"></td>`;
     }).join('');
 
@@ -2188,7 +2188,7 @@ function downloadCertPDF() {
     const noteHtml = noteText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     tbody += `<tr>
       <td style="${tdcStyle}">${idx+1}</td>
-      <td style="${tdWrap}">${toHtmlBr(itemVal)}</td>
+      <td style="${tdWrap}">${itemVal.replace(/\n/g,'<br>')}</td>
       ${hasSpec ? `<td style="${tdStyle}">${specVal}</td>` : ''}
       ${hasCond ? condTd : ''}
       ${resultTds}
