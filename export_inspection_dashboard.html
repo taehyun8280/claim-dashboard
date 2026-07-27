@@ -1049,11 +1049,10 @@ function saveToken(){
 
 async function ghFetch(){
   try{
-    // GitHub API로 직접 읽기 (CDN 캐시 우회)
-    const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
-      headers:{'Accept':'application/vnd.github+json'},
-      cache:'no-store'
-    });
+    const token=getGHToken();
+    const headers={'Accept':'application/vnd.github+json'};
+    if(token) headers['Authorization']=`token ${token}`;
+    const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{headers,cache:'no-store'});
     if(!r.ok) return null;
     const meta=await r.json();
     const content=decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
