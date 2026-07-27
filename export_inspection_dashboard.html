@@ -1068,15 +1068,27 @@ async function ghPush(data){
     });
     let sha='';
     if(infoR.ok) sha=(await infoR.json()).sha;
+    else{
+      const text=document.getElementById('syncText');
+      if(text) text.textContent=`SHA조회실패(${infoR.status})`;
+      return false;
+    }
     const body={message:'sync',content:btoa(unescape(encodeURIComponent(JSON.stringify(data)))),sha};
-    if(!sha) delete body.sha;
     const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
       method:'PUT',
       headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
       body:JSON.stringify(body)
     });
+    if(!r.ok){
+      const text=document.getElementById('syncText');
+      if(text) text.textContent=`저장실패(${r.status})`;
+    }
     return r.ok;
-  }catch(e){return false;}
+  }catch(e){
+    const text=document.getElementById('syncText');
+    if(text) text.textContent=`오류:${e.message}`;
+    return false;
+  }
 }
 function buildStateData(){
   const token=getGHToken();
