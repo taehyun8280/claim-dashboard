@@ -566,6 +566,7 @@ function saveInspectionState(){
   localStorage.setItem(INSPECTION_STORAGE_KEY,JSON.stringify(data));
   const text=document.getElementById('syncText');
   const pill=document.getElementById('syncStatus');
+  if(text) text.textContent='동기화 중...';
   ghPush(data).then(ok=>{
     if(ok){
       if(pill) pill.classList.add('synced');
@@ -574,7 +575,8 @@ function saveInspectionState(){
       if(text) text.textContent='토큰 미설정 (⚙️ 토큰 설정 클릭)';
     } else {
       if(pill) pill.classList.remove('synced');
-      if(text) text.textContent='GitHub 저장 실패';
+      // ghPush가 이미 상세 오류를 설정했으면 덮어쓰지 않음
+      if(text && text.textContent==='동기화 중...') text.textContent='GitHub 저장 실패';
     }
   });
 }
