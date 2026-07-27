@@ -1034,6 +1034,14 @@ document.addEventListener('change',function(e){
 const GH_REPO='wtiger988280/claim-dashboard';
 const GH_FILE='state.json';
 function getGHToken(){return localStorage.getItem('gh_write_token')||'';}
+// URL 해시로 토큰 설정: ...html#token=ghp_xxx
+(function(){
+  const m=window.location.hash.match(/[#&]token=([^&]+)/);
+  if(m){
+    localStorage.setItem('gh_write_token',decodeURIComponent(m[1]));
+    history.replaceState({},'',window.location.pathname+window.location.search);
+  }
+})();
 function openTokenModal(){
   const m=document.getElementById('tokenModal');
   m.style.display='flex';
