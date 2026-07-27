@@ -1063,11 +1063,13 @@ async function ghFetch(){
 }
 async function ghPush(data){
   const token=getGHToken();
+  console.log('[ghPush] token length:', token.length, 'prefix:', token.slice(0,8));
   if(!token) return false;
   try{
     const infoR=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
       headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'}
     });
+    console.log('[ghPush] SHA fetch status:', infoR.status);
     let sha='';
     if(infoR.ok) sha=(await infoR.json()).sha;
     else{
