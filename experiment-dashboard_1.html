@@ -1270,6 +1270,7 @@
         <button class="btn btn-outline" style="padding:3px 10px;font-size:10px;color:#e55;" onclick="deleteSelectedRow()">− 행 삭제</button>
       </div>
     </div>
+    <div id="cert-table-capture">
     <div class="result-table-wrap">
       <table class="result-table" id="result-table">
         <thead id="result-thead">
@@ -1286,6 +1287,10 @@
         <tbody id="result-tbody"></tbody>
       </table>
     </div>
+    <div id="cert-kolas-footer" style="margin-top:10px;padding:8px 12px;border:1px solid var(--border);border-radius:4px;font-size:12px;color:var(--text2);text-align:center;background:var(--surface2);">
+      ※ 위 성적서는 국제표준 및 한국인정기구(KOLAS)의 인정과 관련이 없는 성적서 입니다.※
+    </div>
+    </div><!-- /cert-table-capture -->
 
   </div><!-- /cert-capture-area -->
 
@@ -2227,6 +2232,9 @@ function downloadCertPDF() {
         + `<col style="width:${noteW}%">`
         + '</colgroup>';
     })()}<thead>${thead}</thead><tbody>${tbody}</tbody></table>
+    <div style="margin-top:10px;padding:7px 12px;border:1px solid #ccc;font-size:10px;color:#444;text-align:center;">
+      ※ 위 성적서는 국제표준 및 한국인정기구(KOLAS)의 인정과 관련이 없는 성적서 입니다.※
+    </div>
     <br>
     <button onclick="window.print()" style="padding:8px 20px;font-size:14px;cursor:pointer;background:#0ea5e9;color:#fff;border:none;border-radius:6px;">🖨️ PDF로 저장</button>
   </body></html>`;
@@ -3472,7 +3480,7 @@ async function copyCertImage(btn) {
   btn.textContent = '캡처 중...';
   btn.disabled = true;
   try {
-    const target = document.getElementById('result-table').closest('.result-table-wrap');
+    const target = document.getElementById('cert-table-capture');
 
     // ── 1a. 분할 결과 셀을 실제 N개의 <td>로 교체 (DOM에서 완전 제거) ──
     // 조건 다중행(flex-direction:column)인 경우는 step 1c에서 처리하므로 여기서 건너뜀
