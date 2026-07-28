@@ -1063,38 +1063,32 @@ async function ghFetch(){
     return r.ok?await r.json():null;
   }catch(e){return null;}
 }
+async function ghGetSha(token){
+  const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}?t=${Date.now()}`,{
+    headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'},
+    cache:'no-store'
+  });
+  if(!r.ok) return null;
+  return (await r.json()).sha;
+}
 async function ghPush(data){
   const token=getGHToken();
-  console.log('[ghPush] token length:', token.length, 'prefix:', token.slice(0,8));
   if(!token) return false;
   try{
-    const infoR=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
-      headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github+json'}
-    });
-    console.log('[ghPush] SHA fetch status:', infoR.status);
-    let sha='';
-    if(infoR.ok) sha=(await infoR.json()).sha;
-    else{
-      const text=document.getElementById('syncText');
-      if(text) text.textContent=`SHA조회실패(${infoR.status})`;
-      return false;
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    for(let i=0;i<3;i++){
+      const sha=await ghGetSha(token);
+      if(!sha) return false;
+      const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
+        method:'PUT',
+        headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+        body:JSON.stringify({message:'sync',content,sha})
+      });
+      if(r.ok) return true;
+      if(r.status!==409) return false; // 409면 재시도
     }
-    const body={message:'sync',content:btoa(unescape(encodeURIComponent(JSON.stringify(data)))),sha};
-    const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{
-      method:'PUT',
-      headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
-      body:JSON.stringify(body)
-    });
-    if(!r.ok){
-      const text=document.getElementById('syncText');
-      if(text) text.textContent=`저장실패(${r.status})`;
-    }
-    return r.ok;
-  }catch(e){
-    const text=document.getElementById('syncText');
-    if(text) text.textContent=`오류:${e.message}`;
     return false;
-  }
+  }catch(e){return false;}
 }
 function buildStateData(){
   const token=getGHToken();
