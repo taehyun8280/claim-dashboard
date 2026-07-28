@@ -1059,14 +1059,8 @@ function saveToken(){
 
 async function ghFetch(){
   try{
-    const token=getGHToken();
-    const headers={'Accept':'application/vnd.github+json'};
-    if(token) headers['Authorization']=`token ${token}`;
-    const r=await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`,{headers,cache:'no-store'});
-    if(!r.ok) return null;
-    const meta=await r.json();
-    const content=decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
-    return JSON.parse(content);
+    const r=await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/${GH_FILE}?t=${Date.now()}`,{cache:'no-store'});
+    return r.ok?await r.json():null;
   }catch(e){return null;}
 }
 async function ghPush(data){
