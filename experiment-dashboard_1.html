@@ -890,6 +890,9 @@
       <div class="card-sub">성적서 발행 완료</div>
     </div>
   </div>
+  <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+    <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.7);">⏳ 서버 연결 중...</span>
+  </div>
 </div>
 
 <div style="background:var(--surface);border-bottom:2px solid var(--border);">
@@ -1696,11 +1699,19 @@ document.addEventListener('DOMContentLoaded', () => {
   render();
   renderCertList();
 
+  // ── Firebase 연결 상태 감시 ──
+  const setSyncStatus = (ok, msg) => {
+    const el = document.getElementById('sync-status');
+    if (el) { el.textContent = ok ? '✅ ' + msg : '⚠️ ' + msg; el.style.color = ok ? 'rgba(255,255,255,.85)' : '#fca5a5'; }
+  };
+  fbDb.ref('.info/connected').on('value', snap => {
+    setSyncStatus(snap.val(), snap.val() ? '서버 연결됨 (실시간 동기화 중)' : '오프라인 - 로컬 데이터 사용 중');
+  });
+
   // ── Firebase 실시간 동기화 리스너 ──
   fbDb.ref('experiments').on('value', snapshot => {
     const val = snapshot.val();
     let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-    // Firebase가 비어있으면 localStorage 백업으로 복원 후 Firebase에 재업로드
     if (fromFb.length === 0) {
       try {
         const local = JSON.parse(localStorage.getItem('exp_data') || '[]');
@@ -1713,8 +1724,13 @@ document.addEventListener('DOMContentLoaded', () => {
     experiments = fromFb;
     localStorage.setItem('exp_data', JSON.stringify(experiments));
     render();
+  }, err => {
+    setSyncStatus(false, 'Firebase 오류: ' + err.message);
+    console.error('experiments listener error:', err);
   });
+
   initEquipment();
+
   fbDb.ref('certificates').on('value', snapshot => {
     try {
       const val = snapshot.val();
@@ -1725,7 +1741,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fromFb = localCerts;
         try { fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));} catch(e){}
       }
-      // 구조만 저장 (이미지는 IDB에 별도 보관)
       certificates = fromFb.map(c => ({
         ...c,
         rows: (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{})).map(r=>({...r,img:''}))
@@ -1733,10 +1748,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
       try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
       renderCertList();
-      // 기존 IDB 이미지를 Firebase DB로 1회 마이그레이션
       if (!window.__fbImgMigrationDone) migrateImagesToFirebaseDB();
     } catch(e) { console.error('cert listener error:', e); }
-  });
+  }, err => { console.error('cert listener error:', err); });
 });
 
 // ─── RENDER KANBAN ───
