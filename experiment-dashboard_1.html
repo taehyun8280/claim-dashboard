@@ -1618,13 +1618,8 @@ function handleNotePaste(e, el) {
 
 // Firebase DB에서 cert 이미지 로드 (배열/객체 모두 처리)
 function fbLoadCertImgs(no) {
-  return new Promise(resolve => {
-    fbDb.ref('cert_imgs/' + no).once('value', snap => {
-      const val = snap.val();
-      if (!val) { resolve([]); return; }
-      resolve(Array.isArray(val) ? val : Object.values(val));
-    });
-  });
+  // Firebase cert_imgs는 권한 없음 - 즉시 빈 배열 반환
+  return Promise.resolve([]);
 }
 
 // 기존 IDB 이미지 → Firebase DB 일괄 마이그레이션
@@ -2608,6 +2603,25 @@ function renderCertList(filter='') {
         if (pc > 1) { for (let pi = 0; pi < pc; pi++) keys.push(c.no+'_'+i+'_'+pi); }
         else keys.push(c.no+'_'+i);
       }
+      // 인라인 이미지 먼저 확인 (localStorage rows에 저장된 경우)
+      const inlineFound = [];
+      rows.forEach((r, i) => {
+        const pc = r.photoCount || 1;
+        if (pc > 1) {
+          for (let pi = 1; pi <= pc; pi++) {
+            const img = r['img'+pi] || (pi===1 ? r.img : '');
+            if (img) { const k = c.no+'_'+i+'_'+(pi-1); window.__listImgCache[k]=img; inlineFound.push({img,key:k}); }
+          }
+        } else if (r.img) {
+          const k = c.no+'_'+i; window.__listImgCache[k]=r.img; inlineFound.push({img:r.img,key:k});
+        }
+      });
+      if (inlineFound.length) {
+        cell.innerHTML = inlineFound.map(({img,key}) =>
+          `<img src="${img}" style="height:48px;max-width:80px;object-fit:contain;border-radius:4px;border:1px solid var(--border);cursor:zoom-in;margin:2px;" onclick="event.stopPropagation();openImgModal(window.__listImgCache['${key}'])">`
+        ).join('');
+        return;
+      }
       Promise.all(keys.map(k => idbGet(k))).then(imgs => {
         const idbFound = imgs.map((img,idx) => ({img,key:keys[idx]})).filter(x => x.img);
         if (!idbFound.length) return;
@@ -2746,7 +2760,8 @@ async function loadCert(no) {
         });
       } else if (allLoadDrops[0]) {
         const d = allLoadDrops[0];
-        if (fbRow.img) { setImgDrop(d, fbRow.img); }
+        const inlineImg = r.img || r.img1 || '';
+        if (inlineImg) { setImgDrop(d, inlineImg); }
         else idbGet(no + '_' + i).then(img => { if (img) setImgDrop(d, img); });
       }
     });
