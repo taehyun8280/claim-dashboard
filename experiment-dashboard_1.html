@@ -1650,7 +1650,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Firebase 실시간 동기화 리스너 ──
   fbDb.ref('experiments').on('value', snapshot => {
     const val = snapshot.val();
-    experiments = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+    let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+    // Firebase가 비어있으면 localStorage 백업으로 복원 후 Firebase에 재업로드
+    if (fromFb.length === 0) {
+      try {
+        const local = JSON.parse(localStorage.getItem('exp_data') || '[]');
+        if (local.length > 0) {
+          fromFb = local;
+          fbDb.ref('experiments').set(local).catch(()=>{});
+        }
+      } catch(e) {}
+    }
+    experiments = fromFb;
     localStorage.setItem('exp_data', JSON.stringify(experiments));
     render();
   });
