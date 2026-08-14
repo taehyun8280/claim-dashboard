@@ -860,6 +860,13 @@
       </button>
     </div>
   </div>
+  <!-- 데이터 백업/복원 버튼 -->
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px;">
+    <button onclick="exportData()" style="padding:5px 14px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">⬇ 데이터 내보내기</button>
+    <label style="padding:5px 14px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
+      ⬆ 데이터 가져오기<input type="file" accept=".json" style="display:none;" onchange="importData(this)">
+    </label>
+  </div>
   <!-- STATS inside banner -->
   <div class="hero-stats">
     <div class="hero-stat-card">
@@ -1431,6 +1438,44 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.database();
+
+function exportData() {
+  const data = { experiments, certificates: certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:'',img1:'',img2:'',img3:'',img4:'',img5:'',img6:''}))})) };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'experiment_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('데이터를 내보냈습니다.');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const expArr = data.experiments || (Array.isArray(data) ? data : null);
+      if (!expArr) { showToast('올바른 백업 파일이 아닙니다.', true); return; }
+      if (!confirm(`시험 데이터 ${expArr.length}건을 복원하시겠습니까? 현재 데이터를 덮어씁니다.`)) return;
+      experiments = expArr;
+      fbDb.ref('experiments').set(experiments);
+      localStorage.setItem('exp_data', JSON.stringify(experiments));
+      if (data.certificates) {
+        certificates = data.certificates;
+        fbDb.ref('certificates').set(certificates);
+        localStorage.setItem('cert_data', JSON.stringify(certificates));
+      }
+      render();
+      showToast(`데이터 ${expArr.length}건 복원 완료!`);
+    } catch(err) { showToast('파일 읽기 오류: ' + err.message, true); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
 
 function fbSaveExperiments() {
   fbDb.ref('experiments').set(experiments);
