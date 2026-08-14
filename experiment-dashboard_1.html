@@ -860,13 +860,6 @@
       </button>
     </div>
   </div>
-  <!-- 데이터 백업/복원 버튼 -->
-  <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:10px;">
-    <button onclick="exportData()" style="padding:5px 14px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">⬇ 데이터 내보내기</button>
-    <label style="padding:5px 14px;font-size:12px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
-      ⬆ 데이터 가져오기<input type="file" accept=".json" style="display:none;" onchange="importData(this)">
-    </label>
-  </div>
   <!-- STATS inside banner -->
   <div class="hero-stats">
     <div class="hero-stat-card">
@@ -1691,13 +1684,8 @@ function fbSaveCertificates(allowEmpty = false) {
     console.warn('fbSaveCertificates: certificates 비어있어 저장 건너뜀');
     return;
   }
-  // cert_data: 이미지 제외 슬림 버전만 localStorage에 저장
-  const _stripImgs = r => { const s={...r,img:''}; for(let pi=1;pi<=10;pi++) delete s['img'+pi]; return s; };
-  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(_stripImgs)}));
-  try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
-  // Firebase에도 슬림 버전
-  fbDb.ref('certificates').set(slim)
-    .catch(err => { console.error('Firebase 저장 오류:', err); showToast('Firebase 저장 실패: ' + err.message); });
+  // 이미지 포함해서 localStorage에 저장
+  try { localStorage.setItem('cert_data', JSON.stringify(certificates)); } catch(e) {}
 }
 
 // ─── STATE ───
@@ -1726,51 +1714,12 @@ document.addEventListener('DOMContentLoaded', () => {
   mcInit('cf-item');
   mcInit('cf-spec');
 
-  // ── localStorage로 즉시 렌더 (Firebase 응답 전 공백 방지) ──
+  // ── localStorage에서 즉시 로드 ──
+  try { experiments = JSON.parse(localStorage.getItem('exp_data') || '[]'); } catch(e) { experiments = []; }
+  try { certificates = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) { certificates = []; }
   render();
   renderCertList();
-
-  const setSyncStatus = (ok, msg) => {
-    console.log(ok ? '[sync] ' + msg : '[sync error] ' + msg);
-  };
-
-  // ── Firebase 실시간 동기화 리스너 ──
-  fbDb.ref('experiments').on('value', snapshot => {
-    const val = snapshot.val();
-    let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-    if (fromFb.length === 0) {
-      try {
-        const local = JSON.parse(localStorage.getItem('exp_data') || '[]');
-        if (local.length > 0) { fromFb = local; fbDb.ref('experiments').set(local).catch(()=>{}); }
-      } catch(e) {}
-    }
-    experiments = fromFb;
-    localStorage.setItem('exp_data', JSON.stringify(experiments));
-    render();
-  }, err => { console.error('experiments listener error:', err); });
-
   initEquipment();
-
-  fbDb.ref('certificates').on('value', snapshot => {
-    try {
-      const val = snapshot.val();
-      let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-      let localCerts = [];
-      try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
-      if (fromFb.length === 0 && localCerts.length > 0) {
-        fromFb = localCerts;
-        try { fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));} catch(e){}
-      }
-      certificates = fromFb.map(c => ({
-        ...c,
-        rows: (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{})).map(r=>({...r,img:''}))
-      }));
-      const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
-      try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
-      renderCertList();
-      if (!window.__fbImgMigrationDone) migrateImagesToFirebaseDB();
-    } catch(e) { console.error('cert listener error:', e); }
-  }, err => { console.error('cert listener error:', err); });
 });
 
 // ─── RENDER KANBAN ───
