@@ -1442,38 +1442,69 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.database();
 
-function exportData() {
-  const data = { experiments, certificates: certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:'',img1:'',img2:'',img3:'',img4:'',img5:'',img6:''}))})) };
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+async function exportData() {
+  showToast('이미지 포함 내보내기 중...');
+  // 인라인 이미지 포함 (이미지 필드 유지)
+  const certsWithInlineImg = certificates.map(c => ({...c, rows: (c.rows||[]).map(r => ({...r}))}));
+  // IDB 이미지 추가
+  const idbImgMap = {};
+  try {
+    await _idbReady;
+    await new Promise(resolve => {
+      const tx = _idb.transaction('imgs', 'readonly');
+      const req = tx.objectStore('imgs').openCursor();
+      req.onsuccess = e => {
+        const cursor = e.target.result;
+        if (cursor) { idbImgMap[cursor.key] = cursor.value; cursor.continue(); }
+        else resolve();
+      };
+      req.onerror = resolve;
+    });
+  } catch(e) { console.warn('IDB read fail', e); }
+  const data = { experiments, certificates: certsWithInlineImg, idbImages: idbImgMap };
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'experiment_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'experiment_backup_full_' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
   URL.revokeObjectURL(url);
-  showToast('데이터를 내보냈습니다.');
+  showToast('전체 데이터(이미지 포함) 내보내기 완료!');
 }
 
 function importData(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const data = JSON.parse(e.target.result);
       const expArr = data.experiments || (Array.isArray(data) ? data : null);
       if (!expArr) { showToast('올바른 백업 파일이 아닙니다.', true); return; }
       if (!confirm(`시험 데이터 ${expArr.length}건을 복원하시겠습니까? 현재 데이터를 덮어씁니다.`)) return;
       experiments = expArr;
-      fbDb.ref('experiments').set(experiments);
+      try { fbDb.ref('experiments').set(experiments); } catch(e){}
       localStorage.setItem('exp_data', JSON.stringify(experiments));
       if (data.certificates) {
         certificates = data.certificates;
-        fbDb.ref('certificates').set(certificates);
+        try { fbDb.ref('certificates').set(certificates); } catch(e){}
         localStorage.setItem('cert_data', JSON.stringify(certificates));
       }
+      // IDB 이미지 복원
+      if (data.idbImages && Object.keys(data.idbImages).length > 0) {
+        try {
+          await _idbReady;
+          const tx = _idb.transaction('imgs', 'readwrite');
+          const store = tx.objectStore('imgs');
+          for (const [k, v] of Object.entries(data.idbImages)) { store.put(v, k); }
+          await new Promise(r => { tx.oncomplete = r; tx.onerror = r; });
+          showToast(`데이터 복원 완료! (이미지 ${Object.keys(data.idbImages).length}건 포함)`);
+        } catch(e) { showToast(`데이터 복원 완료! (이미지 IDB 오류: ${e.message})`); }
+      } else {
+        showToast(`데이터 ${expArr.length}건 복원 완료!`);
+      }
       render();
-      showToast(`데이터 ${expArr.length}건 복원 완료!`);
+      renderCertList();
     } catch(err) { showToast('파일 읽기 오류: ' + err.message, true); }
     input.value = '';
   };
