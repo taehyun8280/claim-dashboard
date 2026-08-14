@@ -834,6 +834,7 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -1434,6 +1435,8 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.database();
+const fbAuth = firebase.auth();
+fbAuth.signInAnonymously().catch(e => console.warn('익명 로그인 실패:', e.message));
 
 async function exportData() {
   showToast('이미지 포함 내보내기 중...');
@@ -1618,8 +1621,12 @@ function handleNotePaste(e, el) {
 
 // Firebase DB에서 cert 이미지 로드 (배열/객체 모두 처리)
 function fbLoadCertImgs(no) {
-  // Firebase cert_imgs는 권한 없음 - 즉시 빈 배열 반환
-  return Promise.resolve([]);
+  return new Promise(resolve => {
+    fbDb.ref('cert_imgs/' + no).once('value',
+      snap => { const val=snap.val(); resolve(val ? (Array.isArray(val)?val:Object.values(val)) : []); },
+      err => { console.warn('cert_imgs 로드 실패:', err.message); resolve([]); }
+    );
+  });
 }
 
 // 기존 IDB 이미지 → Firebase DB 일괄 마이그레이션
