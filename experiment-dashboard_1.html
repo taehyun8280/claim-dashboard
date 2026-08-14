@@ -834,7 +834,6 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -1442,18 +1441,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.database();
-const fbAuth = firebase.auth();
-
-// 익명 로그인 후 Firebase 데이터 리스너 시작 (규칙에 auth!=null인 경우 대응)
-let _fbReady = false;
-function _startFbListeners() {
-  if (_fbReady) return;
-  _fbReady = true;
-  document.dispatchEvent(new Event('fb-ready'));
-}
-fbAuth.signInAnonymously()
-  .then(_startFbListeners)
-  .catch(() => _startFbListeners()); // 익명 인증 실패해도 진행
 
 function exportData() {
   const data = { experiments, certificates: certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:'',img1:'',img2:'',img3:'',img4:'',img5:'',img6:''}))})) };
@@ -1716,57 +1703,43 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(ok ? '[sync] ' + msg : '[sync error] ' + msg);
   };
 
-  function startFbListeners() {
-    // ── Firebase 연결 상태 감시 ──
-    fbDb.ref('.info/connected').on('value', snap => {
-      setSyncStatus(snap.val(), snap.val() ? '서버 연결됨 (실시간 동기화 중)' : '오프라인 - 로컬 데이터 사용 중');
-    });
+  // ── Firebase 실시간 동기화 리스너 ──
+  fbDb.ref('experiments').on('value', snapshot => {
+    const val = snapshot.val();
+    let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
+    if (fromFb.length === 0) {
+      try {
+        const local = JSON.parse(localStorage.getItem('exp_data') || '[]');
+        if (local.length > 0) { fromFb = local; fbDb.ref('experiments').set(local).catch(()=>{}); }
+      } catch(e) {}
+    }
+    experiments = fromFb;
+    localStorage.setItem('exp_data', JSON.stringify(experiments));
+    render();
+  }, err => { console.error('experiments listener error:', err); });
 
-    // ── Firebase 실시간 동기화 리스너 ──
-    fbDb.ref('experiments').on('value', snapshot => {
+  initEquipment();
+
+  fbDb.ref('certificates').on('value', snapshot => {
+    try {
       const val = snapshot.val();
       let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-      if (fromFb.length === 0) {
-        try {
-          const local = JSON.parse(localStorage.getItem('exp_data') || '[]');
-          if (local.length > 0) { fromFb = local; fbDb.ref('experiments').set(local).catch(()=>{}); }
-        } catch(e) {}
+      let localCerts = [];
+      try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
+      if (fromFb.length === 0 && localCerts.length > 0) {
+        fromFb = localCerts;
+        try { fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));} catch(e){}
       }
-      experiments = fromFb;
-      localStorage.setItem('exp_data', JSON.stringify(experiments));
-      render();
-    }, err => {
-      setSyncStatus(false, 'Firebase 오류: ' + err.message);
-      console.error('experiments listener error:', err);
-    });
-
-    initEquipment();
-
-    fbDb.ref('certificates').on('value', snapshot => {
-      try {
-        const val = snapshot.val();
-        let fromFb = val ? (Array.isArray(val) ? val : Object.values(val)).filter(Boolean) : [];
-        let localCerts = [];
-        try { localCerts = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) {}
-        if (fromFb.length === 0 && localCerts.length > 0) {
-          fromFb = localCerts;
-          try { fbDb.ref('certificates').set(localCerts.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))})));} catch(e){}
-        }
-        certificates = fromFb.map(c => ({
-          ...c,
-          rows: (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{})).map(r=>({...r,img:''}))
-        }));
-        const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
-        try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
-        renderCertList();
-        if (!window.__fbImgMigrationDone) migrateImagesToFirebaseDB();
-      } catch(e) { console.error('cert listener error:', e); }
-    }, err => { console.error('cert listener error:', err); });
-  }
-
-  // 익명 인증 완료 후 리스너 시작 (이미 완료됐으면 바로 시작)
-  if (_fbReady) { startFbListeners(); }
-  else { document.addEventListener('fb-ready', startFbListeners, { once: true }); }
+      certificates = fromFb.map(c => ({
+        ...c,
+        rows: (Array.isArray(c.rows) ? c.rows : Object.values(c.rows||{})).map(r=>({...r,img:''}))
+      }));
+      const slim = certificates.map(c=>({...c,rows:(c.rows||[]).map(r=>({...r,img:''}))}));
+      try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
+      renderCertList();
+      if (!window.__fbImgMigrationDone) migrateImagesToFirebaseDB();
+    } catch(e) { console.error('cert listener error:', e); }
+  }, err => { console.error('cert listener error:', err); });
 });
 
 // ─── RENDER KANBAN ───
