@@ -1692,6 +1692,10 @@ document.addEventListener('DOMContentLoaded', () => {
   mcInit('cf-item');
   mcInit('cf-spec');
 
+  // ── localStorage로 즉시 렌더 (Firebase 응답 전 공백 방지) ──
+  render();
+  renderCertList();
+
   // ── Firebase 실시간 동기화 리스너 ──
   fbDb.ref('experiments').on('value', snapshot => {
     const val = snapshot.val();
