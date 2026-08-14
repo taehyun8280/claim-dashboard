@@ -892,7 +892,7 @@
     </div>
   </div>
   <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-    <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.7);">⏳ 서버 연결 중...</span>
+    <span id="sync-status" style="font-size:11px;color:rgba(255,255,255,.5);"></span>
   </div>
 </div>
 
@@ -1713,8 +1713,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCertList();
 
   const setSyncStatus = (ok, msg) => {
-    const el = document.getElementById('sync-status');
-    if (el) { el.textContent = ok ? '✅ ' + msg : '⚠️ ' + msg; el.style.color = ok ? 'rgba(255,255,255,.85)' : '#fca5a5'; }
+    console.log(ok ? '[sync] ' + msg : '[sync error] ' + msg);
   };
 
   function startFbListeners() {
