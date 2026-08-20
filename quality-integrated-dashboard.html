@@ -891,12 +891,16 @@
     });
     return row;
   }
-  function listBlock(items){
+  function listBlock(items, onClick){
     var ul = document.createElement('ul');
     ul.className = 'modal-list';
-    items.forEach(function(it){
+    items.forEach(function(it, i){
       var li = document.createElement('li');
       li.innerHTML = '<span>'+it[0]+'</span><span style="color:var(--text-muted)">'+it[1]+'</span>';
+      if(onClick){
+        li.style.cursor = 'pointer';
+        li.addEventListener('click', function(idx){ return function(){ onClick(idx); }; }(i));
+      }
       ul.appendChild(li);
     });
     return ul;
@@ -1057,13 +1061,55 @@
       var sorted = rowsForWeek.slice().sort(function(a,b){ return b.date - a.date; });
       modalBody.appendChild(listBlock(sorted.map(function(r){
         return [(r.date.getMonth()+1)+'/'+r.date.getDate()+' · '+r.type+' · '+(r.customer || '미상'), r.pending ? '미결' : '완료'];
-      })));
+      }), function(idx){ openClaimItemDetail(sorted[idx], i); }));
     } else {
       modalBody.appendChild(listBlock([['해당 주에 접수된 클레임이 없습니다','-']]));
     }
 
     modalBody.appendChild(gotoBtn('claims', '고객클레임 탭에서 실제 대시보드 보기 ↗'));
     modalOverlay.classList.add('open');
+  }
+  function openClaimItemDetail(row, weekIndex){
+    modalEyebrow.textContent = '고객클레임 · 개별 접수 상세';
+    modalTitle.textContent = (row.date.getMonth()+1)+'/'+row.date.getDate()+' · '+(row.customer || '미상');
+    modalBody.innerHTML = '';
+
+    var back = document.createElement('button');
+    back.className = 'chip-btn';
+    back.style.marginBottom = '10px';
+    back.style.alignSelf = 'flex-start';
+    back.textContent = '← 주간 목록으로';
+    back.addEventListener('click', function(){ openClaimsWeekModal(weekIndex); });
+    modalBody.appendChild(back);
+
+    modalBody.appendChild(statRow([
+      {label:'처리상태', value: row.pending ? '미결' : '완료'},
+      {label:'수량', value:(row.qty || '-') + (row.qty ? '개' : '')},
+      {label:'금액', value: row.amount ? row.amount.toLocaleString('ko-KR')+'원' : '-'}
+    ]));
+
+    var fields = [
+      ['유형', row.type],
+      ['하자내역', row.defect],
+      ['부품코드', row.partCode],
+      ['색상', row.color],
+      ['생산로트', row.lot],
+      ['원인처', row.cause],
+      ['포장처', row.packager],
+      ['패널티', row.penalty]
+    ].filter(function(f){ return f[1]; });
+    modalBody.appendChild(listBlock(fields));
+
+    if(row.photoLink){
+      var link = document.createElement('a');
+      link.href = row.photoLink;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'chip-btn';
+      link.style.alignSelf = 'flex-start';
+      link.textContent = '사진 보기 ↗';
+      modalBody.appendChild(link);
+    }
   }
   function closeModal(){
     modalOverlay.classList.remove('open');
@@ -1211,6 +1257,15 @@
         var idxPending = header.indexOf('미결구분');
         var idxCustomer = header.indexOf('고객명');
         var idxAmount = header.indexOf('금액');
+        var idxPartCode = header.indexOf('부품코드');
+        var idxColor = header.indexOf('색상');
+        var idxLot = header.indexOf('생산로트');
+        var idxCause = header.indexOf('원인처');
+        var idxPackager = header.indexOf('포장처');
+        var idxDefect = header.indexOf('하자내역');
+        var idxQty = header.indexOf('수량');
+        var idxPenalty = header.indexOf('패널티');
+        var idxPhoto = header.indexOf('사진링크');
         if(idxDate === -1) throw new Error('컬럼을 찾을 수 없음');
 
         var byMonth = {};
@@ -1234,7 +1289,18 @@
             byWeek[wk]++;
             var amt = idxAmount !== -1 ? (parseFloat((r[idxAmount]||'0').replace(/[^0-9.-]/g,'')) || 0) : 0;
             byWeekLoss[wk] += amt + 60000;
-            byWeekRows[wk].push({date:d, type:type, pending:(r[idxPending]||'').trim(), customer:(r[idxCustomer]||'').trim(), amount:amt});
+            byWeekRows[wk].push({
+              date:d, type:type, pending:(r[idxPending]||'').trim(), customer:(r[idxCustomer]||'').trim(), amount:amt,
+              partCode: idxPartCode !== -1 ? (r[idxPartCode]||'').trim() : '',
+              color: idxColor !== -1 ? (r[idxColor]||'').trim() : '',
+              lot: idxLot !== -1 ? (r[idxLot]||'').trim() : '',
+              cause: idxCause !== -1 ? (r[idxCause]||'').trim() : '',
+              packager: idxPackager !== -1 ? (r[idxPackager]||'').trim() : '',
+              defect: idxDefect !== -1 ? (r[idxDefect]||'').trim() : '',
+              qty: idxQty !== -1 ? (r[idxQty]||'').trim() : '',
+              penalty: idxPenalty !== -1 ? (r[idxPenalty]||'').trim() : '',
+              photoLink: idxPhoto !== -1 ? (r[idxPhoto]||'').trim() : ''
+            });
           }
           if(mk === thisMonthKey){
             typeCount[type] = (typeCount[type] || 0) + 1;
