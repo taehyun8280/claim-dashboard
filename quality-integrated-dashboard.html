@@ -1,0 +1,1349 @@
+<meta charset="UTF-8">
+<title>품질 통합 대시보드 — 퍼시스 충주공장 품질보증팀</title>
+<style>
+  :root{
+    --bg:#F3F5F9;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF1F7;
+    --border:#DCE2EC;
+    --text:#171E2B;
+    --text-muted:#5D6879;
+    --accent:#2C5AA0;
+    --accent-strong:#1E4380;
+    --accent-soft:#E4ECF9;
+    --good:#1E8E5C;
+    --good-soft:#E3F5EC;
+    --warn:#B5790A;
+    --warn-soft:#FCF0DA;
+    --critical:#C23B34;
+    --critical-soft:#FBE7E5;
+    --eval:#6E4FA3;
+    --eval-soft:#EFE9FA;
+    --exp:#0F7A6C;
+    --exp-soft:#E1F5F1;
+    --neutral-soft:#EAEDF2;
+    --series-2:#7C97C9;
+    --series-3:#9469A8;
+    --shadow: 0 1px 2px rgba(23,30,43,0.04), 0 10px 24px rgba(23,30,43,0.07);
+    --radius: 10px;
+    --font-ui: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', sans-serif;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1420;
+    --surface:#151D2C;
+    --surface-alt:#1B2434;
+    --border:#2A3450;
+    --text:#E8ECF5;
+    --text-muted:#93A0B8;
+    --accent:#6E9CE8;
+    --accent-strong:#8FB2EE;
+    --accent-soft:#1D2C48;
+    --good:#3FBE86;
+    --good-soft:#123324;
+    --warn:#E2A93E;
+    --warn-soft:#382A11;
+    --critical:#E36A5F;
+    --critical-soft:#3A1917;
+    --eval:#B79BE0;
+    --eval-soft:#291F3D;
+    --exp:#4FD1C5;
+    --exp-soft:#0F2E2A;
+    --neutral-soft:#212B3E;
+    --series-2:#6D8CC7;
+    --series-3:#B189C4;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 26px rgba(0,0,0,0.4);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1420; --surface:#151D2C; --surface-alt:#1B2434; --border:#2A3450;
+      --text:#E8ECF5; --text-muted:#93A0B8; --accent:#6E9CE8; --accent-strong:#8FB2EE;
+      --accent-soft:#1D2C48; --good:#3FBE86; --good-soft:#123324; --warn:#E2A93E;
+      --warn-soft:#382A11; --critical:#E36A5F; --critical-soft:#3A1917; --neutral-soft:#212B3E;
+      --eval:#B79BE0; --eval-soft:#291F3D; --exp:#4FD1C5; --exp-soft:#0F2E2A;
+      --series-2:#6D8CC7; --series-3:#B189C4;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 26px rgba(0,0,0,0.4);
+    }
+  }
+  *{box-sizing:border-box;}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  body{margin:0;font-family:var(--font-ui);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+
+  /* shell */
+  .shell{display:flex;min-height:100vh;align-items:stretch;}
+  .sidebar{width:222px;flex-shrink:0;background:#FFFFFF;color:#5B6472;display:flex;flex-direction:column;padding:20px 12px;gap:4px;border-right:1px solid #E7EAF0;}
+  .sidebar-brand{display:flex;flex-direction:column;padding:4px 10px 18px;border-bottom:1px solid #E7EAF0;margin-bottom:10px;}
+  .sidebar-brand-name{color:#12203D;font-size:19px;font-weight:800;letter-spacing:0.05em;white-space:nowrap;}
+  .sidebar-brand-sub{font-size:11.5px;color:#5B6472;margin-top:5px;white-space:nowrap;}
+  .sidebar-brand-team{font-size:11.5px;color:#5B6472;font-weight:600;margin-top:8px;white-space:nowrap;}
+  .sidebar-nav{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:#5B6472;font-size:13.5px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:inherit;text-align:left;width:100%;box-shadow:inset 0 0 0 0 transparent;transition:box-shadow .12s, background .12s, color .12s;}
+  .nav-item:hover{background:#F1F4F9;color:#12203D;}
+  .nav-item.active{background:#E7F0FF;color:#2C5AA0;box-shadow:inset 3px 0 0 0 var(--nav-accent,#2C5AA0);}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;display:flex;color:var(--nav-accent, currentColor);}
+  .nav-icon svg{width:100%;height:100%;}
+
+  .main{flex:1;min-width:0;padding:22px 28px 50px;}
+  .main-inner{max-width:none;}
+  .panel-hub{margin:0 -28px -50px;}
+  .hub-flush{display:flex;flex-direction:column;}
+  .hub-topbar-flush{padding:12px 28px;border-bottom:1px solid var(--border);background:var(--surface);margin-bottom:0;}
+  .hub-frame-wrap-flush{border:none;border-radius:0;background:var(--surface);}
+  .hub-frame-wrap-flush iframe{height:calc(100vh - 150px);min-height:640px;border-radius:0;}
+
+  .main-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap;}
+  .section-title{font-size:21px;font-weight:700;letter-spacing:-0.01em;text-wrap:balance;}
+  .section-desc{font-size:12.5px;color:var(--text-muted);margin-top:4px;}
+  .header-meta{display:flex;align-items:center;gap:10px;}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-strong);}
+  .live-pulse{background:var(--good-soft);color:var(--good);}
+  .pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex-shrink:0;animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 color-mix(in srgb, var(--good) 45%, transparent);}50%{opacity:.7;box-shadow:0 0 0 4px color-mix(in srgb, var(--good) 20%, transparent);}}
+  @media (prefers-reduced-motion: reduce){ .pulse-dot{animation:none;} }
+  .datechip{font-size:12px;color:var(--text-muted);background:var(--surface-alt);border:1px solid var(--border);padding:5px 10px;border-radius:999px;font-variant-numeric:tabular-nums;}
+
+  /* kpi strip */
+  .overview-inner{max-width:1360px;}
+
+  .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;position:relative;}
+  .kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(23,30,43,0.12), 0 1px 3px rgba(23,30,43,0.08);}
+  .kpi-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .kpi-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .kpi-label-row{display:flex;align-items:center;gap:8px;min-width:0;}
+  .kpi-icon-chip{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .kpi-icon-chip svg{width:14px;height:14px;}
+  .tint-process{background:var(--warn-soft);color:var(--warn);}
+  .tint-claims{background:var(--critical-soft);color:var(--critical);}
+  .tint-eval{background:var(--eval-soft);color:var(--eval);}
+  .tint-export{background:var(--exp-soft);color:var(--exp);}
+  .tint-index{background:var(--accent-soft);color:var(--accent-strong);}
+  .kpi-label{font-size:12.5px;color:var(--text-muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .kpi-value-row{display:flex;align-items:baseline;gap:8px;}
+  .kpi-value{font-size:25px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;}
+  .kpi-unit{font-size:12.5px;color:var(--text-muted);}
+  .delta{font-size:11.5px;font-weight:700;padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .delta.good{color:var(--good);background:var(--good-soft);}
+  .delta.bad{color:var(--critical);background:var(--critical-soft);}
+  .kpi-spark{width:100%;height:30px;}
+  .weekstat-row{display:flex;gap:24px;margin-bottom:12px;flex-wrap:wrap;}
+  .weekstat-label{font-size:11.5px;color:var(--text-muted);margin-bottom:3px;}
+  .weekstat-num{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;}
+  .weekstat-unit{font-size:12px;color:var(--text-muted);margin-left:2px;font-weight:600;}
+  .kpi-bar-track{height:4px;border-radius:2px;background:var(--neutral-soft);overflow:hidden;margin:-2px 0 2px;}
+  .kpi-bar-fill{height:100%;border-radius:2px;transition:width .3s ease;}
+  .kpi-bottom-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .kpi-foot{font-size:11px;color:var(--text-muted);}
+  .kpi-hint{font-size:10.5px;color:var(--accent-strong);opacity:0;transition:opacity .12s;white-space:nowrap;flex-shrink:0;}
+  .kpi-card:hover .kpi-hint, .kpi-card:focus-visible .kpi-hint{opacity:1;}
+  .live-tag{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:999px;letter-spacing:.02em;flex-shrink:0;}
+  .live-tag.sample{background:var(--neutral-soft);color:var(--text-muted);}
+  .live-tag.live{background:var(--good-soft);color:var(--good);}
+  .live-tag.checking{background:var(--warn-soft);color:var(--warn);}
+
+  /* section layout */
+  .panel{display:none;}
+  .panel.active{display:block;animation:fade .18s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(2px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){ .panel.active{animation:none;} }
+
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:16px 18px;}
+  .card + .card{margin-top:14px;}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;}
+  .card-title{font-size:14px;font-weight:700;}
+  .card-sub{font-size:12px;color:var(--text-muted);}
+  .legend{display:flex;gap:12px;font-size:11.5px;color:var(--text-muted);flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:5px;}
+  .legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;}
+  .chart-wrap{width:100%;overflow-x:auto;}
+  .chart-wrap svg{width:100%;height:auto;display:block;}
+
+  .mini-card{cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;}
+  .mini-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(23,30,43,0.12), 0 1px 3px rgba(23,30,43,0.08);}
+  .mini-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* alerts list */
+  .alert-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+  .alert-item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:8px;background:var(--surface-alt);}
+  .stripe{width:4px;align-self:stretch;border-radius:3px;flex-shrink:0;}
+  .stripe.critical{background:var(--critical);}
+  .stripe.warn{background:var(--warn);}
+  .stripe.good{background:var(--good);}
+  .alert-body{flex:1;min-width:0;}
+  .alert-tag{font-size:11px;font-weight:700;color:var(--accent-strong);}
+  .alert-text{font-size:13px;margin-top:1px;}
+  .alert-time{font-size:11px;color:var(--text-muted);white-space:nowrap;padding-top:1px;}
+  .alert-top-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .sev-pill{font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap;}
+  .sev-pill.critical{background:var(--critical-soft);color:var(--critical);}
+  .sev-pill.warn{background:var(--warn-soft);color:var(--warn);}
+  .sev-pill.good{background:var(--good-soft);color:var(--good);}
+
+  /* heatmap */
+  .heatmap-summary{background:var(--surface-alt);color:var(--text-muted);font-weight:600;}
+  .heatmap-wrap{overflow-x:auto;}
+  .heatmap-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .heatmap-table th{color:var(--text-muted);font-weight:600;font-size:11px;padding:6px;text-align:center;}
+  .heatmap-table td{padding:5px;text-align:center;}
+  .heatmap-table th:first-child, .heatmap-table td:first-child{text-align:left;font-weight:700;color:var(--text);padding-left:4px;white-space:nowrap;}
+  .heatmap-cell{border-radius:6px;font-weight:700;font-variant-numeric:tabular-nums;padding:6px 4px;display:block;}
+  .heatmap-cell.normal{background:var(--good-soft);color:var(--good);}
+  .heatmap-cell.warn{background:var(--warn-soft);color:var(--warn);}
+  .heatmap-cell.bad{background:var(--critical-soft);color:var(--critical);}
+
+  /* project progress bars */
+  .project-bar-list{display:flex;flex-direction:column;gap:10px;}
+  .project-bar-item .project-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+  .project-bar-item .project-bar-name{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;}
+  .project-bar-item .project-bar-pct{color:var(--text-muted);flex-shrink:0;font-variant-numeric:tabular-nums;}
+  .project-bar-track{height:6px;border-radius:3px;background:var(--neutral-soft);overflow:hidden;}
+  .project-bar-fill{height:100%;border-radius:3px;background:var(--eval);}
+
+  /* pills */
+  .pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+  .pill-critical{background:var(--critical-soft);color:var(--critical);}
+  .pill-warn{background:var(--warn-soft);color:var(--warn);}
+  .pill-good{background:var(--good-soft);color:var(--good);}
+  .pill-neutral{background:var(--neutral-soft);color:var(--text-muted);}
+
+  /* hub cards (per-dashboard launcher + live embed) */
+  .chip-btn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-size:12px;font-weight:600;padding:7px 13px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .chip-btn:hover{color:var(--text);border-color:var(--accent);}
+  .chip-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .chip-btn.primary:hover{background:var(--accent-strong);color:#fff;}
+  .search-input{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;}
+  .search-input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .hub-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .hub-status{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--text-muted);}
+  .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .status-dot.good{background:var(--good);box-shadow:0 0 0 3px var(--good-soft);}
+  .status-dot.warn{background:var(--warn);box-shadow:0 0 0 3px var(--warn-soft);}
+  .status-dot.neutral{background:var(--text-muted);box-shadow:0 0 0 3px var(--neutral-soft);}
+  .hub-actions{display:flex;gap:6px;}
+  .icon-btn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+  .icon-btn:hover{color:var(--text);border-color:var(--accent);}
+  .icon-btn.ghost{padding:6px 9px;}
+  .hub-config{display:none;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .hub-config.open{display:flex;}
+  .hub-frame-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface-alt);}
+  .hub-frame-wrap iframe{width:100%;height:calc(100vh - 190px);min-height:600px;border:0;display:block;background:var(--surface);}
+  .hub-empty{display:flex;align-items:center;justify-content:center;min-height:220px;color:var(--text-muted);font-size:13px;text-align:center;padding:24px;line-height:1.7;}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,14,22,0.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal-overlay.open{display:flex;}
+  .modal-card{background:var(--surface);border-radius:14px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 24px 64px rgba(10,14,22,0.35);border:1px solid var(--border);}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);border-radius:14px 14px 0 0;}
+  .modal-eyebrow{font-size:11.5px;color:var(--text-muted);font-weight:600;margin-bottom:3px;}
+  .modal-title{font-size:17px;font-weight:700;margin:0;}
+  .modal-close{appearance:none;border:none;background:var(--surface-alt);width:28px;height:28px;border-radius:8px;color:var(--text-muted);font-size:15px;cursor:pointer;flex-shrink:0;line-height:1;}
+  .modal-close:hover{color:var(--text);}
+  .modal-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:14px;}
+  .modal-stat-row{display:flex;gap:16px;flex-wrap:wrap;}
+  .modal-stat{flex:1;min-width:110px;}
+  .modal-stat-label{font-size:11.5px;color:var(--text-muted);}
+  .modal-stat-value{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;}
+  .modal-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .modal-list li{font-size:12.5px;padding:8px 10px;background:var(--surface-alt);border-radius:8px;display:flex;justify-content:space-between;gap:10px;}
+  .modal-note{font-size:11.5px;color:var(--text-muted);}
+
+  @media (max-width:1080px){
+    .kpi-strip{grid-template-columns:repeat(3,1fr);}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+  }
+  @media (max-width:640px){
+    .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:860px){
+    .shell{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;align-items:center;padding:10px 14px;overflow-x:auto;gap:14px;}
+    .sidebar-brand{padding:0;flex-shrink:0;border-bottom:none;margin-bottom:0;}
+    .sidebar-nav{flex-direction:row;}
+    .nav-item{white-space:nowrap;}
+    .main{padding:18px 16px 40px;}
+    .panel-hub{margin:0 -16px -40px;}
+    .hub-topbar-flush{padding:10px 16px;}
+  }
+</style>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-name">FURSYS</div>
+      <div class="sidebar-brand-sub">품질 통합 대시보드</div>
+      <div class="sidebar-brand-team">충주공장 품질보증팀</div>
+    </div>
+    <nav class="sidebar-nav" role="tablist" id="sidebarNav">
+      <button class="nav-item active" data-tab="overview" role="tab" style="--nav-accent:#6E9CE8;"><span class="nav-icon" data-icon="grid"></span>종합현황</button>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <div class="main-inner">
+      <h2 class="sr-only">퍼시스 충주공장 품질보증팀 품질 통합 대시보드 — 공정부적합, 고객클레임, 품평프로젝트, 수출건 대시보드를 하나의 허브 페이지로 통합한 초안입니다. 왼쪽 사이드바로 화면을 전환하고, 종합현황의 카드를 클릭하면 상세 현황이 나옵니다.</h2>
+
+      <div class="main-header">
+        <div>
+          <div class="section-title" id="sectionTitle">종합현황</div>
+          <div class="section-desc" id="sectionDesc">공정부적합 · 고객클레임 · 품평프로젝트 · 수출건 통합 요약 (샘플 데이터)</div>
+        </div>
+        <div class="header-meta">
+          <span class="badge live-pulse"><span class="pulse-dot"></span>실시간 연동 중</span>
+          <span class="badge">FURSYS 품질보증팀</span>
+          <span class="datechip" id="headerDateChip">2026.07.15 (수)</span>
+        </div>
+      </div>
+
+      <!-- ===== Overview panel ===== -->
+      <section class="panel active" id="panel-overview">
+        <div class="overview-inner">
+
+        <div class="kpi-strip">
+          <div class="kpi-card" data-detail="processdefect" tabindex="0">
+            <div class="kpi-top">
+              <div class="kpi-label-row"><span class="kpi-icon-chip tint-process" data-icon="alert"></span><span class="kpi-label">공정부적합률</span><span class="live-tag sample">샘플</span></div>
+              <span class="delta good">▼ 0.3%p</span>
+            </div>
+            <div class="kpi-value-row"><span class="kpi-value">2.1</span><span class="kpi-unit">%</span></div>
+            <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:42%;background:var(--warn)"></div></div>
+            <svg class="kpi-spark" data-spark="processdefect"></svg>
+            <div class="kpi-bottom-row"><span class="kpi-foot">전월 2.4% → 이번달 2.1%</span><span class="kpi-hint">자세히 ›</span></div>
+          </div>
+          <div class="kpi-card" data-detail="claims" tabindex="0">
+            <div class="kpi-top">
+              <div class="kpi-label-row"><span class="kpi-icon-chip tint-claims" data-icon="message"></span><span class="kpi-label">이번달 고객클레임</span><span class="live-tag checking" id="claimsLiveTag">연동중</span></div>
+              <span class="delta good" id="claimsKpiDelta">▼ 20%</span>
+            </div>
+            <div class="kpi-value-row"><span class="kpi-value" id="claimsKpiValue">16</span><span class="kpi-unit">건</span></div>
+            <div class="kpi-bar-track"><div class="kpi-bar-fill" id="claimsKpiBar" style="width:11%;background:var(--critical)"></div></div>
+            <svg class="kpi-spark" data-spark="claims"></svg>
+            <div class="kpi-bottom-row"><span class="kpi-foot" id="claimsKpiFoot">전월 20건 → 이번달 16건</span><span class="kpi-hint">자세히 ›</span></div>
+          </div>
+          <div class="kpi-card" data-detail="eval" tabindex="0">
+            <div class="kpi-top">
+              <div class="kpi-label-row"><span class="kpi-icon-chip tint-eval" data-icon="clipboard"></span><span class="kpi-label">품평프로젝트 진행률</span><span class="live-tag sample">샘플</span></div>
+              <span class="delta good">▲ 4건 진행중</span>
+            </div>
+            <div class="kpi-value-row"><span class="kpi-value">74</span><span class="kpi-unit">% 평균</span></div>
+            <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:74%;background:var(--eval)"></div></div>
+            <svg class="kpi-spark" data-spark="eval"></svg>
+            <div class="kpi-bottom-row"><span class="kpi-foot">진행중 6건 · 이번달 합격 3건</span><span class="kpi-hint">자세히 ›</span></div>
+          </div>
+          <div class="kpi-card" data-detail="export" tabindex="0">
+            <div class="kpi-top">
+              <div class="kpi-label-row"><span class="kpi-icon-chip tint-export" data-icon="truck"></span><span class="kpi-label">수출 포장강화율</span><span class="live-tag checking" id="exportLiveTag">연동중</span></div>
+              <span class="delta good" id="exportKpiDelta">▲ 1%p</span>
+            </div>
+            <div class="kpi-value-row"><span class="kpi-value" id="exportKpiValue">96</span><span class="kpi-unit">%</span></div>
+            <div class="kpi-bar-track"><div class="kpi-bar-fill" id="exportKpiBar" style="width:96%;background:var(--exp)"></div></div>
+            <svg class="kpi-spark" data-spark="export"></svg>
+            <div class="kpi-bottom-row"><span class="kpi-foot" id="exportKpiFoot">목표 95% 대비 +1%p</span><span class="kpi-hint">자세히 ›</span></div>
+          </div>
+          <div class="kpi-card" data-detail="index" tabindex="0">
+            <div class="kpi-top">
+              <div class="kpi-label-row"><span class="kpi-icon-chip tint-index" data-icon="gauge"></span><span class="kpi-label">종합 품질 지수</span></div>
+              <span class="delta good">▲ 1.2</span>
+            </div>
+            <div class="kpi-value-row"><span class="kpi-value">88.4</span><span class="kpi-unit">점 / 100</span></div>
+            <div class="kpi-bar-track"><div class="kpi-bar-fill" style="width:88.4%;background:var(--accent)"></div></div>
+            <svg class="kpi-spark" data-spark="index"></svg>
+            <div class="kpi-bottom-row"><span class="kpi-foot">4개 지표 가중 합산</span><span class="kpi-hint">자세히 ›</span></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card" data-detail="claims" tabindex="0">
+            <div class="card-head">
+              <div><div class="card-title">고객클레임 주별 건수</div><div class="card-sub">최근 8주 · 접수 건수 · 손실금액(제품가+건당 6만원)</div></div>
+              <span class="live-tag checking" id="claimsChartLiveTag">연동중</span>
+            </div>
+            <div class="weekstat-row">
+              <div><div class="weekstat-label">이번주 접수건수</div><div class="weekstat-num" id="claimsWeekCount">-</div></div>
+              <div><div class="weekstat-label">이번주 손실금액</div><div class="weekstat-num" id="claimsWeekLoss">-</div><span class="weekstat-unit">원</span></div>
+            </div>
+            <div class="chart-wrap"><svg id="chartClaimsWeekly" viewBox="0 0 640 220"></svg></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div><div class="card-title">공정부적합 주간 발생 수량 · 손실금액 (샘플)</div><div class="card-sub">최근 8주 · 막대 위 숫자는 수량 / 손실금액(만원)</div></div>
+            </div>
+            <div class="chart-wrap"><svg id="chartProcessWeekly" viewBox="0 0 640 220"></svg></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div><div class="card-title">설비점검 계획 현황</div><div class="card-sub">충주공장 주요설비 점검 계획</div></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <span class="badge" id="dailyCheckBadge" hidden></span>
+                <span class="live-tag checking" id="equipLiveTag">연동중</span>
+              </div>
+            </div>
+            <div id="equipSummaryRow" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"></div>
+            <ul class="alert-list" id="equipTopList"></ul>
+            <button class="chip-btn" id="equipGotoBtn" style="margin-top:10px;">설비점검 탭에서 전체 보기 ↗</button>
+          </div>
+          <div class="card" data-detail="eval" tabindex="0">
+            <div class="card-head">
+              <div><div class="card-title">주요 품평/프로젝트 일정 (샘플)</div><div class="card-sub">진행중 · 착수 예정</div></div>
+            </div>
+            <ul class="alert-list" id="evalScheduleList"></ul>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <div id="hubPanelsContainer"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow" id="modalEyebrow">상세 현황</div>
+        <h3 class="modal-title" id="modalTitle">-</h3>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="닫기">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  function cssVar(name){ return getComputedStyle(root).getPropertyValue(name).trim(); }
+  function svgns(tag, attrs){
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for(var k in attrs){ el.setAttribute(k, attrs[k]); }
+    return el;
+  }
+
+  /* ---------- Icons ---------- */
+  var ICONS = {
+    grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
+    alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L22 20 H2 Z"/><line x1="12" y1="9.5" x2="12" y2="14.5"/><circle cx="12" cy="17.3" r="0.9" fill="currentColor" stroke="none"/></svg>',
+    message:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 H20 V16 H9 L5 20 V16 H4 Z"/></svg>',
+    clipboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3.2h6v3H9z"/><path d="M8.5 13l2.2 2.2L15.5 10.4"/></svg>',
+    truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="12" height="8" rx="1"/><path d="M14 11h4l3 3v2h-7z"/><circle cx="6.5" cy="18.3" r="1.6"/><circle cx="17.5" cy="18.3" r="1.6"/></svg>',
+    gauge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15a8 8 0 0 1 16 0"/><line x1="12" y1="15" x2="15.5" y2="10.8"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/></svg>',
+    gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2.6M12 17.9v2.6M20.5 12h-2.6M6.1 12H3.5M17.7 6.3l-1.8 1.8M8.1 15.9l-1.8 1.8M17.7 17.7l-1.8-1.8M8.1 8.1L6.3 6.3"/></svg>',
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 20c0-3.4 2.5-6 5.5-6s5.5 2.6 5.5 6"/><circle cx="17" cy="9.2" r="2.4"/><path d="M14.8 14.3c2.5.5 4.2 2.7 4.2 5.7"/></svg>',
+    checkcircle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.2l2.4 2.4 5-5.2"/></svg>',
+    cycle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M17 3v4.4h-4.4"/><path d="M7 21v-4.4h4.4"/></svg>',
+    flask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3h4"/><path d="M10.5 3v5.5L5.8 18a1.4 1.4 0 0 0 1.2 2h10a1.4 1.4 0 0 0 1.2-2l-4.7-9.5V3"/><path d="M8.2 14.5h7.6"/></svg>',
+    scale:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="19"/><line x1="4.5" y1="7" x2="19.5" y2="7"/><path d="M4.5 7l-2.3 5a2.6 2.6 0 0 0 4.6 0z"/><path d="M19.5 7l-2.3 5a2.6 2.6 0 0 0 4.6 0z"/><line x1="9" y1="21" x2="15" y2="21"/></svg>'
+  };
+  function applyIcons(root2){
+    (root2||document).querySelectorAll('[data-icon]').forEach(function(el){
+      el.innerHTML = ICONS[el.dataset.icon] || '';
+    });
+  }
+  applyIcons();
+
+  /* ---------- Section meta ---------- */
+  var SECTION_META = {
+    overview:{title:'종합현황', desc:'공정부적합 · 고객클레임 · 품평프로젝트 · 수출건 통합 요약 (샘플 데이터)'}
+  };
+
+  function formatDate(d){
+    var days = ['일','월','화','수','목','금','토'];
+    var pad = function(n){ return n < 10 ? '0'+n : ''+n; };
+    return d.getFullYear()+'.'+pad(d.getMonth()+1)+'.'+pad(d.getDate())+' ('+days[d.getDay()]+')';
+  }
+  function formatDateTime(d){
+    var pad = function(n){ return n < 10 ? '0'+n : ''+n; };
+    return formatDate(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+  function tickClock(){
+    var now = new Date();
+    document.getElementById('headerDateChip').textContent = formatDateTime(now);
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  /* ---------- Nav ---------- */
+  function switchSection(tab){
+    document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === tab); });
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+    document.getElementById('panel-' + tab).classList.add('active');
+    var meta = SECTION_META[tab];
+    document.getElementById('sectionTitle').textContent = meta.title;
+    document.getElementById('sectionDesc').textContent = meta.desc;
+  }
+  document.querySelector('.nav-item[data-tab="overview"]').addEventListener('click', function(){ switchSection('overview'); });
+
+  /* ---------- Sample data (overview tab only) ---------- */
+  function last12Months(){
+    var now = new Date();
+    var out = [];
+    for(var i=11; i>=0; i--){
+      var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      out.push(String(d.getFullYear()).slice(2)+'.'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1));
+    }
+    return out;
+  }
+  var months = last12Months();
+  var processDefectRate = [3.1,2.9,3.4,3.6,3.2,2.8,2.6,2.7,2.5,2.3,2.4,2.1];
+  var claimsMonthly = [18,22,15,25,30,28,19,21,17,24,20,16];
+  var evalPassRate  = [82,85,80,78,88,90,86,84,89,91,93,92];
+  var exportRate    = [95,93,97,90,88,92,96,94,98,95,97,96];
+  var evalReworkMonthly  = [4,5,3,6,7,5,4,3,4,3,2,2];
+
+  var claimTypes = [
+    {label:'도장 불량', value:34},
+    {label:'조립 불량', value:22},
+    {label:'마감 불량', value:18},
+    {label:'부자재 불량', value:11}
+  ];
+
+  var evalStatusCount = [
+    {label:'합격', value:3, color:'good'},{label:'진행중', value:6, color:'accent'},{label:'재평가', value:2, color:'warn'},{label:'보류', value:1, color:'critical'}
+  ];
+
+  var exportStatusCount = [
+    {label:'강화완료', value:5},
+    {label:'강화진행', value:4},
+    {label:'포장대기', value:3}
+  ];
+
+  var processDefectTypes = [
+    {label:'쪽떨어짐', value:38},
+    {label:'이물질', value:26},
+    {label:'도장 불량', value:21},
+    {label:'치수 불량', value:15}
+  ];
+
+  var evalProjects = {
+    inProgress: [
+      {name:'임원의자 신모델 2차 품평', stage:'재평가', progress:55, due:'08.05'},
+      {name:'시스템책상 1200 내구성 평가', stage:'2차 시험', progress:70, due:'08.12'},
+      {name:'소파 3인용 프레임 내구성', stage:'2차 시험', progress:65, due:'08.19'}
+    ],
+    upcoming: [
+      {name:'수납장 C타입 품평', stage:'착수 예정', progress:5, due:'08.25'},
+      {name:'파티션 저소음 마감재 평가', stage:'자재 입고 대기', progress:10, due:'09.02'}
+    ]
+  };
+
+  function last8Weeks(){
+    var now = new Date();
+    var out = [];
+    for(var i=7; i>=0; i--){
+      var d = new Date(now.getTime() - i*7*24*60*60*1000);
+      out.push((d.getMonth()+1)+'/'+d.getDate());
+    }
+    return out;
+  }
+  var processWeekly = {
+    weeks: last8Weeks(),
+    qty: [138,145,162,129,171,158,140,152],
+    loss: [412,455,503,388,530,481,420,468]
+  };
+
+  function startOfWeek(d){
+    var day = d.getDay();
+    var diff = (day===0?-6:1) - day;
+    var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate()+diff);
+    monday.setHours(0,0,0,0);
+    return monday;
+  }
+  function weekKey(d){
+    var s = startOfWeek(d);
+    return s.getFullYear()+'-'+(s.getMonth()+1)+'-'+s.getDate();
+  }
+  function last8WeekStarts(){
+    var thisWeekStart = startOfWeek(new Date());
+    var out = [];
+    for(var i=7; i>=0; i--){
+      out.push(new Date(thisWeekStart.getTime() - i*7*24*60*60*1000));
+    }
+    return out;
+  }
+  var weekKeyList = last8WeekStarts().map(weekKey);
+  var weekLabelList = last8WeekStarts().map(function(d){ return (d.getMonth()+1)+'/'+d.getDate(); });
+  var claimsWeekly = [11,14,9,16,13,10,15,12];
+  var claimsWeeklyLoss = [0,0,0,0,0,0,0,0];
+
+  var claimsLiveStats = { thisMonth:16, prevMonth:20, completionRate:'81%', pendingCount:'3건', recent:[['도장 불량 · A상사','접수'],['마감 불량 · 한빛오피스','처리중'],['조립 불량 · A상사','처리중']] };
+  var exportLiveStats = { thisMonth:12, completionRate:96, dueRate:'98%', recent:[['EXP-2607-014 · CH-2201','강화진행'],['EXP-2607-011 · CH-1090','포장대기'],['EXP-2607-007 · DK-3105','포장대기']] };
+  var claimsThisMonthRows = [];
+  var exportThisMonthRows = [];
+
+  /* ---------- Chart helpers ---------- */
+  function niceMax(v){ var m = Math.ceil(v/10)*10; return m === 0 ? 10 : m; }
+
+  function drawGroupedBars(svgId, opts){
+    var svg = document.getElementById(svgId);
+    svg.innerHTML = '';
+    var vb = svg.viewBox.baseVal;
+    var W = vb.width, H = vb.height;
+    var padL = 34, padR = 10, padT = 14, padB = 26;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = opts.labels.length;
+    var seriesCount = opts.series.length;
+    var maxV = 0;
+    opts.series.forEach(function(s){ s.data.forEach(function(v){ if(v>maxV) maxV=v; }); });
+    maxV = niceMax(maxV * 1.15);
+    var groupW = plotW / n;
+    var barGap = 3;
+    var barW = (groupW - barGap*(seriesCount+1)) / seriesCount;
+
+    var steps = 4;
+    for(var g=0; g<=steps; g++){
+      var yVal = maxV * g/steps;
+      var y = padT + plotH - (yVal/maxV)*plotH;
+      svg.appendChild(svgns('line', {x1:padL, x2:W-padR, y1:y, y2:y, stroke:cssVar('--border'), 'stroke-width':1}));
+      var t = svgns('text', {x:padL-6, y:y+3, 'text-anchor':'end', 'font-size':9, fill:cssVar('--text-muted')});
+      t.textContent = Math.round(yVal);
+      svg.appendChild(t);
+    }
+
+    opts.labels.forEach(function(lab, i){
+      var gx = padL + i*groupW;
+      opts.series.forEach(function(s, si){
+        var v = s.data[i];
+        var bh = (v/maxV)*plotH;
+        var bx = gx + barGap + si*(barW+barGap);
+        var by = padT + plotH - bh;
+        svg.appendChild(svgns('rect', {x:bx, y:by, width:barW, height:Math.max(bh,0), rx:2, fill:s.color}));
+        if(opts.showValues){
+          var vt = svgns('text', {x:bx+barW/2, y:by-4, 'text-anchor':'middle', 'font-size':10, 'font-weight':700, fill:cssVar('--text')});
+          vt.textContent = v;
+          svg.appendChild(vt);
+        }
+      });
+      var lx = gx + groupW/2;
+      var lt = svgns('text', {x:lx, y:H-8, 'text-anchor':'middle', 'font-size':9, fill:cssVar('--text-muted')});
+      lt.textContent = lab;
+      svg.appendChild(lt);
+    });
+  }
+
+  function drawSpark(svg, data, color){
+    svg.innerHTML = '';
+    var W = 120, H = 30;
+    svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+    var max = Math.max.apply(null, data), min = Math.min.apply(null, data);
+    var range = (max-min) || 1;
+    var stepX = W/(data.length-1);
+    var pts = data.map(function(v,i){ return [i*stepX, H-4-((v-min)/range)*(H-8)]; });
+    var lp = 'M'+pts.map(function(p){return p[0]+','+p[1];}).join(' L');
+    var ap = lp + ' L'+pts[pts.length-1][0]+','+H+' L0,'+H+' Z';
+    svg.appendChild(svgns('path', {d:ap, fill:color, 'fill-opacity':0.14, stroke:'none'}));
+    svg.appendChild(svgns('path', {d:lp, fill:'none', stroke:color, 'stroke-width':1.6, 'stroke-linecap':'round', 'stroke-linejoin':'round'}));
+    var last = pts[pts.length-1];
+    svg.appendChild(svgns('circle', {cx:last[0], cy:last[1], r:2.6, fill:color}));
+  }
+
+  function renderClaimTypeBar(el, items, colorVar){
+    el.innerHTML = '';
+    var vb = el.viewBox.baseVal;
+    var W = vb.width, H = vb.height;
+    var padL = W*0.23, padR = 10, padT = 10, padB = 10;
+    var rowH = (H-padT-padB)/items.length;
+    var max = items[0].value*1.15;
+    var barColor = cssVar(colorVar || '--critical');
+    items.forEach(function(it,i){
+      var y = padT+i*rowH+rowH*0.25, bh=rowH*0.5;
+      var bw = (it.value/max)*(W-padL-padR);
+      el.appendChild(svgns('rect', {x:padL,y:y,width:W-padL-padR,height:bh,rx:3,fill:cssVar('--neutral-soft')}));
+      el.appendChild(svgns('rect', {x:padL,y:y,width:bw,height:bh,rx:3,fill:barColor}));
+      var lt = svgns('text', {x:padL-6,y:y+bh/2+3,'text-anchor':'end','font-size':10,fill:cssVar('--text')});
+      lt.textContent = it.label; el.appendChild(lt);
+      var vt = svgns('text', {x:padL+bw+6,y:y+bh/2+3,'font-size':10,'font-weight':700,fill:cssVar('--text')});
+      vt.textContent = it.value; el.appendChild(vt);
+    });
+  }
+
+  function renderEvalDonutChart(el, items){
+    el.innerHTML = '';
+    var vb = el.viewBox.baseVal;
+    var W = vb.width, H = vb.height;
+    var r = H*0.34, rInner = r*0.56, cx = r+16, cy = H/2;
+    var colorMap = { good:cssVar('--good'), accent:cssVar('--eval'), warn:cssVar('--warn'), critical:cssVar('--critical') };
+    var total = items.reduce(function(a,b){return a+b.value;},0);
+    var start=-Math.PI/2;
+    items.forEach(function(it){
+      var frac=it.value/total, end=start+frac*Math.PI*2;
+      var x1=cx+r*Math.cos(start), y1=cy+r*Math.sin(start);
+      var x2=cx+r*Math.cos(end), y2=cy+r*Math.sin(end);
+      var xi1=cx+rInner*Math.cos(end), yi1=cy+rInner*Math.sin(end);
+      var xi2=cx+rInner*Math.cos(start), yi2=cy+rInner*Math.sin(start);
+      var large=frac>0.5?1:0;
+      var d='M'+x1+','+y1+' A'+r+','+r+' 0 '+large+' 1 '+x2+','+y2+' L'+xi1+','+yi1+' A'+rInner+','+rInner+' 0 '+large+' 0 '+xi2+','+yi2+' Z';
+      el.appendChild(svgns('path',{d:d, fill:colorMap[it.color]}));
+      start=end;
+    });
+    items.forEach(function(it,i){
+      var ly = cy - (items.length-1)*14 + i*28;
+      el.appendChild(svgns('rect',{x:cx+r+18,y:ly-9,width:9,height:9,rx:2,fill:colorMap[it.color]}));
+      var lt=svgns('text',{x:cx+r+32,y:ly,'font-size':10.5,fill:cssVar('--text')});
+      lt.textContent = it.label+' '+it.value+'건'; el.appendChild(lt);
+    });
+  }
+
+  function renderAll(){
+    drawGroupedBars('chartClaimsWeekly', {
+      labels: weekLabelList,
+      series: [{data: claimsWeekly, color: cssVar('--critical')}],
+      showValues: true
+    });
+    drawSpark(document.querySelector('[data-spark="processdefect"]'), processDefectRate, cssVar('--warn'));
+    drawSpark(document.querySelector('[data-spark="claims"]'), claimsMonthly, cssVar('--critical'));
+    drawSpark(document.querySelector('[data-spark="eval"]'), evalPassRate, cssVar('--eval'));
+    drawSpark(document.querySelector('[data-spark="export"]'), exportRate, cssVar('--exp'));
+    drawSpark(document.querySelector('[data-spark="index"]'), [80,81,79,80,82,84,83,85,86,87,87.2,88.4], cssVar('--accent'));
+    renderProcessWeeklyChart();
+  }
+
+  function renderProcessWeeklyChart(){
+    var svg = document.getElementById('chartProcessWeekly');
+    svg.innerHTML = '';
+    var vb = svg.viewBox.baseVal;
+    var W = vb.width, H = vb.height;
+    var padL = 30, padR = 10, padT = 26, padB = 26;
+    var plotW = W-padL-padR, plotH = H-padT-padB;
+    var n = processWeekly.weeks.length;
+    var maxQty = niceMax(Math.max.apply(null, processWeekly.qty)*1.35);
+    var groupW = plotW/n;
+    var barW = groupW*0.5;
+    for(var g=0; g<=4; g++){
+      var yVal = maxQty*g/4;
+      var y = padT+plotH-(yVal/maxQty)*plotH;
+      svg.appendChild(svgns('line', {x1:padL, x2:W-padR, y1:y, y2:y, stroke:cssVar('--border'), 'stroke-width':1}));
+      var t = svgns('text', {x:padL-6, y:y+3, 'text-anchor':'end', 'font-size':9, fill:cssVar('--text-muted')});
+      t.textContent = Math.round(yVal); svg.appendChild(t);
+    }
+    processWeekly.weeks.forEach(function(wk,i){
+      var qty = processWeekly.qty[i], loss = processWeekly.loss[i];
+      var bh = (qty/maxQty)*plotH;
+      var bx = padL+i*groupW+(groupW-barW)/2;
+      var by = padT+plotH-bh;
+      svg.appendChild(svgns('rect', {x:bx, y:by, width:barW, height:bh, rx:3, fill:cssVar('--warn')}));
+      var lbl = svgns('text', {x:bx+barW/2, y:by-6, 'text-anchor':'middle', 'font-size':9, 'font-weight':700, fill:cssVar('--text')});
+      lbl.textContent = qty+'개'; svg.appendChild(lbl);
+      var lbl2 = svgns('text', {x:bx+barW/2, y:by-17, 'text-anchor':'middle', 'font-size':8.5, fill:cssVar('--text-muted')});
+      lbl2.textContent = loss+'만원'; svg.appendChild(lbl2);
+      var lt = svgns('text', {x:bx+barW/2, y:H-8, 'text-anchor':'middle', 'font-size':9, fill:cssVar('--text-muted')});
+      lt.textContent = wk; svg.appendChild(lt);
+    });
+  }
+
+  function renderEvalSchedule(){
+    var ul = document.getElementById('evalScheduleList');
+    if(!ul) return;
+    var items = evalProjects.inProgress.map(function(p){ return {p:p, sev:'warn'}; })
+      .concat(evalProjects.upcoming.map(function(p){ return {p:p, sev:'good'}; }));
+    ul.innerHTML = items.map(function(it){
+      var p = it.p;
+      return '<li class="alert-item"><span class="stripe '+it.sev+'"></span><div class="alert-body">' +
+        '<div class="alert-top-row"><span class="alert-tag">'+p.name+'</span></div>' +
+        '<div class="alert-text">'+p.stage+' · 진행률 '+p.progress+'%</div></div>' +
+        '<span class="alert-time">'+p.due+' 목표</span></li>';
+    }).join('');
+  }
+
+  /* ---------- Hub cards: URL config (localStorage) + iframe embed ---------- */
+  function setupHub(key, cfg){
+    var input = document.getElementById(cfg.inputId);
+    var saveBtn = document.getElementById(cfg.saveId);
+    var openBtn = document.getElementById(cfg.openId);
+    var refreshBtn = document.getElementById(cfg.refreshId);
+    var configToggle = document.getElementById(cfg.configToggleId);
+    var configRow = document.getElementById(cfg.configId);
+    var wrap = document.getElementById(cfg.wrapId);
+    var dot = document.getElementById(cfg.dotId);
+    var statusText = document.getElementById(cfg.statusTextId);
+    var storageKey = 'quality_hub_url_' + key;
+
+    function storedUrl(){
+      var v = localStorage.getItem(storageKey);
+      return v === null ? (cfg.defaultUrl || '') : v;
+    }
+    function reloadIframe(){
+      var iframe = wrap.querySelector('iframe');
+      if(!iframe) return;
+      try{ iframe.contentWindow.location.reload(); }
+      catch(e){ var src = iframe.src; iframe.src = 'about:blank'; requestAnimationFrame(function(){ iframe.src = src; }); }
+    }
+    function toIframeSrc(url){
+      if(!cfg.streamlitEmbed) return url;
+      return url + (url.indexOf('?') === -1 ? '?' : '&') + 'embed=true';
+    }
+    function render(url){
+      if(url){
+        wrap.innerHTML = '';
+        var iframe = document.createElement('iframe');
+        iframe.src = toIframeSrc(url);
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer-when-downgrade';
+        wrap.appendChild(iframe);
+        dot.className = 'status-dot good';
+        statusText.textContent = 'LIVE · ' + cfg.sourceLabel;
+        configRow.classList.remove('open');
+      } else {
+        wrap.innerHTML = cfg.emptyHtml;
+        dot.className = 'status-dot ' + cfg.emptyDotClass;
+        statusText.textContent = cfg.emptyStatusText;
+        configRow.classList.add('open');
+      }
+    }
+    var url = storedUrl();
+    input.value = url;
+    render(url);
+    saveBtn.addEventListener('click', function(){
+      var v = input.value.trim();
+      localStorage.setItem(storageKey, v);
+      render(v);
+    });
+    openBtn.addEventListener('click', function(){
+      var v = input.value.trim() || storedUrl();
+      if(v){ window.open(v, '_blank', 'noopener'); }
+    });
+    refreshBtn.addEventListener('click', reloadIframe);
+    configToggle.addEventListener('click', function(){ configRow.classList.toggle('open'); });
+    return { getUrl: storedUrl };
+  }
+
+  /* ---------- Hub dashboards: sidebar nav + full-bleed panels ---------- */
+  var HUB_DASHBOARDS = [
+    {key:'eval', label:'품평 / 프로젝트 관리', desc:'신제품 · 기존제품 품평 프로젝트 진행 현황', icon:'clipboard', accent:'#B79BE0', sourceLabel:'Streamlit', defaultUrl:'https://wydut85g37kltja5kidhmo.streamlit.app/', streamlitEmbed:true},
+    {key:'export', label:'수출 표준품 포장강화', desc:'수출 표준품 포장강화 대시보드 — 실시간 구글시트 연동', icon:'truck', accent:'#4FD1C5', sourceLabel:'구글시트', defaultUrl:'https://hunkibae-dotcom.github.io/dashbord-1/%EC%88%98%EC%B6%9C%ED%8F%AC%EC%9E%A5%EA%B0%95%ED%99%94_%EB%8C%80%EC%8B%9C%EB%B3%B4%EB%93%9C.html'},
+    {key:'claims', label:'고객클레임', desc:'고객으로부터 접수된 클레임 처리 현황', icon:'message', accent:'#E36A5F', sourceLabel:'GitHub Pages', defaultUrl:'https://geunhu-min.github.io/Quality-Customer-Complaint-Management/'},
+    {key:'processdefect', label:'공정부적합', desc:'생산 공정 단계에서 발생한 부적합 현황', icon:'alert', accent:'#E2A93E', sourceLabel:'Google Apps Script', defaultUrl:'https://script.google.com/a/macros/fursys.com/s/AKfycbyM6GxfYzyIBqLd3zPiPLfXBUtJ3xHJ9vHwhKUksHwTlt7D7MNJfWypKpji0J0Cwenq/exec'},
+    {key:'equipment', label:'주요설비 점검 계획', desc:'충주공장 주요설비 점검 계획', icon:'gear', accent:'#6E9CE8', sourceLabel:'GitHub Pages', defaultUrl:'https://backns0303-prog.github.io/quality-dashboard/%EC%B6%A9%EC%A3%BC%EA%B3%B5%EC%9E%A5%20%EC%A3%BC%EC%9A%94%EC%84%A4%EB%B9%84%20%EC%A0%90%EA%B2%80.html'},
+    {key:'roster', label:'품질보증팀 인원 현황', desc:'충주공장 품질보증팀 인원현황', icon:'users', accent:'#93A0B8', sourceLabel:'GitHub Pages', defaultUrl:'https://hyuk6188.github.io/qa-team-people-management/'},
+    {key:'exportinsp', label:'수출건 일일 검사 현황', desc:'수출건 일일 검사현황 대시보드', icon:'truck', accent:'#4FD1C5', sourceLabel:'GitHub Pages', defaultUrl:'https://taehyun8280.github.io/claim-dashboard/export_inspection_dashboard.html?v=e4368f3'},
+    {key:'dailycheck', label:'일일 품질점검 현황', desc:'포장검사 일일 품질점검 현황', icon:'checkcircle', accent:'#E2A93E', sourceLabel:'GitHub Pages', defaultUrl:'https://hyuk6188.github.io/packaging-line-quality-inspection/?v=36050f5'},
+    {key:'blade', label:'날물 교체관리 현황', desc:'날물(칼날) 교체관리 대시보드', icon:'cycle', accent:'#D85A30', sourceLabel:'Streamlit', defaultUrl:'https://6nvuy99pssrflkalijieob.streamlit.app/', streamlitEmbed:true},
+    {key:'experiment', label:'실험 관리 현황', desc:'실험 관리 대시보드', icon:'flask', accent:'#5DCAA5', sourceLabel:'GitHub Pages', defaultUrl:'https://taehyun8280.github.io/claim-dashboard/experiment-dashboard_1.html'},
+    {key:'cbm', label:'CBM 및 중량', desc:'포장박스 CBM 및 중량 관리', icon:'scale', accent:'#85B7EB', sourceLabel:'GitHub Pages', defaultUrl:'https://hyuk6188.github.io/cbm-weight-management/cbm_dashboard_exec.html?v=63f7203'}
+  ];
+
+  var sidebarNav = document.getElementById('sidebarNav');
+  var hubPanelsContainer = document.getElementById('hubPanelsContainer');
+
+  HUB_DASHBOARDS.forEach(function(cfg){
+    SECTION_META[cfg.key] = {title: cfg.label, desc: cfg.desc};
+
+    var btn = document.createElement('button');
+    btn.className = 'nav-item';
+    btn.dataset.tab = cfg.key;
+    btn.setAttribute('role','tab');
+    btn.style.setProperty('--nav-accent', cfg.accent);
+    btn.innerHTML = '<span class="nav-icon" data-icon="'+cfg.icon+'"></span>'+cfg.label;
+    btn.addEventListener('click', function(){ switchSection(cfg.key); });
+    sidebarNav.appendChild(btn);
+    applyIcons(btn);
+
+    var section = document.createElement('section');
+    section.className = 'panel panel-hub';
+    section.id = 'panel-' + cfg.key;
+    section.innerHTML =
+      '<div class="hub-flush">' +
+        '<div class="hub-topbar hub-topbar-flush">' +
+          '<div class="hub-status"><span class="status-dot good" id="'+cfg.key+'Dot"></span><span id="'+cfg.key+'StatusText">LIVE · '+cfg.sourceLabel+'</span></div>' +
+          '<div class="hub-actions">' +
+            '<button class="icon-btn" id="'+cfg.key+'Refresh">⟳ 새로고침</button>' +
+            '<button class="icon-btn" id="'+cfg.key+'UrlOpen">새 창에서 열기 ↗</button>' +
+            '<button class="icon-btn ghost" id="'+cfg.key+'ConfigToggle" aria-label="주소 설정">⚙</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hub-config" id="'+cfg.key+'Config" style="padding:12px 24px 0;">' +
+          '<input type="text" id="'+cfg.key+'UrlInput" class="search-input" style="flex:1;min-width:260px;" placeholder="'+cfg.label+' 대시보드 주소">' +
+          '<button class="chip-btn primary" id="'+cfg.key+'UrlSave">저장하고 불러오기</button>' +
+        '</div>' +
+        '<div class="hub-frame-wrap hub-frame-wrap-flush" id="'+cfg.key+'FrameWrap"></div>' +
+      '</div>';
+    hubPanelsContainer.appendChild(section);
+
+    setupHub(cfg.key, {
+      inputId:cfg.key+'UrlInput', saveId:cfg.key+'UrlSave', openId:cfg.key+'UrlOpen',
+      refreshId:cfg.key+'Refresh', configToggleId:cfg.key+'ConfigToggle', configId:cfg.key+'Config',
+      wrapId:cfg.key+'FrameWrap', dotId:cfg.key+'Dot', statusTextId:cfg.key+'StatusText',
+      sourceLabel: cfg.sourceLabel, defaultUrl: cfg.defaultUrl, streamlitEmbed: cfg.streamlitEmbed,
+      emptyHtml:'<div class="hub-empty">주소가 비어 있습니다. '+cfg.label+' 대시보드 주소를 입력해주세요.</div>',
+      emptyStatusText:'URL 미설정', emptyDotClass:'warn'
+    });
+  });
+
+  /* ---------- Detail modal ---------- */
+  var modalOverlay = document.getElementById('modalOverlay');
+  var modalTitle = document.getElementById('modalTitle');
+  var modalEyebrow = document.getElementById('modalEyebrow');
+  var modalBody = document.getElementById('modalBody');
+
+  function statRow(items){
+    var row = document.createElement('div');
+    row.className = 'modal-stat-row';
+    items.forEach(function(it){
+      var s = document.createElement('div');
+      s.className = 'modal-stat';
+      s.innerHTML = '<div class="modal-stat-label">'+it.label+'</div><div class="modal-stat-value">'+it.value+'</div>';
+      row.appendChild(s);
+    });
+    return row;
+  }
+  function listBlock(items){
+    var ul = document.createElement('ul');
+    ul.className = 'modal-list';
+    items.forEach(function(it){
+      var li = document.createElement('li');
+      li.innerHTML = '<span>'+it[0]+'</span><span style="color:var(--text-muted)">'+it[1]+'</span>';
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+  function gotoBtn(tab, label){
+    var b = document.createElement('button');
+    b.className = 'chip-btn primary';
+    b.style.alignSelf = 'flex-start';
+    b.textContent = label;
+    b.addEventListener('click', function(){ closeModal(); switchSection(tab); });
+    return b;
+  }
+  function chartSvg(viewBox){
+    var el = svgns('svg', {viewBox: viewBox});
+    el.style.width = '100%';
+    el.style.height = 'auto';
+    el.style.display = 'block';
+    return el;
+  }
+
+  var DETAILS = {
+    processdefect: function(){
+      modalEyebrow.textContent = '공정부적합 · 상세 현황';
+      modalTitle.textContent = '공정부적합률';
+      modalBody.appendChild(statRow([
+        {label:'이번달', value:'2.1%'},
+        {label:'목표', value:'2.5% 이하'},
+        {label:'전월대비', value:'-0.3%p'}
+      ]));
+      var svg = chartSvg('0 0 480 160');
+      modalBody.appendChild(svg);
+      renderClaimTypeBar(svg, processDefectTypes, '--warn');
+      var note = document.createElement('div');
+      note.className = 'modal-note';
+      note.textContent = '유형별 수치는 샘플입니다. 사내 계정 인증이 열리면 공정부적합 대시보드 원본 데이터로 자동 교체됩니다.';
+      modalBody.appendChild(note);
+      modalBody.appendChild(gotoBtn('processdefect', '공정부적합 탭에서 실제 대시보드 보기 ↗'));
+    },
+    claims: function(){
+      modalEyebrow.textContent = '고객클레임 · 상세 현황';
+      modalTitle.textContent = '고객클레임 현황';
+      modalBody.appendChild(statRow([
+        {label:'이번달', value:claimsLiveStats.thisMonth+'건'},
+        {label:'처리완료율', value:claimsLiveStats.completionRate},
+        {label:'미결 건수', value:claimsLiveStats.pendingCount}
+      ]));
+      var svg = chartSvg('0 0 480 170');
+      modalBody.appendChild(svg);
+      renderClaimTypeBar(svg, claimTypes);
+      modalBody.appendChild(listBlock(claimsLiveStats.recent));
+      modalBody.appendChild(gotoBtn('claims', '고객클레임 탭에서 실제 대시보드 보기 ↗'));
+    },
+    eval: function(){
+      modalEyebrow.textContent = '품평프로젝트 · 상세 현황';
+      modalTitle.textContent = '품평프로젝트 현황';
+      modalBody.appendChild(statRow([
+        {label:'진행중', value:'6건'},
+        {label:'이번달 합격', value:'3건'},
+        {label:'평균소요', value:'18일'}
+      ]));
+      var svg = chartSvg('0 0 320 170');
+      modalBody.appendChild(svg);
+      renderEvalDonutChart(svg, evalStatusCount);
+      var progressLabel = document.createElement('div');
+      progressLabel.className = 'modal-note';
+      progressLabel.style.fontWeight = '700';
+      progressLabel.textContent = '진행중인 프로젝트';
+      modalBody.appendChild(progressLabel);
+      modalBody.appendChild(listBlock(evalProjects.inProgress.map(function(p){ return [p.name, p.stage]; })));
+      var upcomingLabel = document.createElement('div');
+      upcomingLabel.className = 'modal-note';
+      upcomingLabel.style.fontWeight = '700';
+      upcomingLabel.textContent = '착수해야 할 프로젝트';
+      modalBody.appendChild(upcomingLabel);
+      modalBody.appendChild(listBlock(evalProjects.upcoming.map(function(p){ return [p.name, p.stage]; })));
+      var note = document.createElement('div');
+      note.className = 'modal-note';
+      note.textContent = '프로젝트명은 샘플입니다. Streamlit 앱에 공개 데이터 API가 열리면 자동 교체됩니다.';
+      modalBody.appendChild(note);
+      modalBody.appendChild(gotoBtn('eval', '품평프로젝트 탭에서 실제 대시보드 보기 ↗'));
+    },
+    export: function(){
+      modalEyebrow.textContent = '수출건 · 상세 현황';
+      modalTitle.textContent = '수출 포장강화 현황';
+      modalBody.appendChild(statRow([
+        {label:'이번달', value:exportLiveStats.thisMonth+'건'},
+        {label:'강화완료율', value:exportLiveStats.completionRate+'%'},
+        {label:'납기준수율', value:exportLiveStats.dueRate}
+      ]));
+      var svg = chartSvg('0 0 480 160');
+      modalBody.appendChild(svg);
+      renderClaimTypeBar(svg, exportStatusCount, '--exp');
+      modalBody.appendChild(listBlock(exportLiveStats.recent));
+      modalBody.appendChild(gotoBtn('export', '수출건 탭에서 실제 대시보드 보기 ↗'));
+    },
+    index: function(){
+      modalEyebrow.textContent = '종합 품질 지수 · 구성 방식';
+      modalTitle.textContent = '종합 품질 지수 88.4점';
+      modalBody.appendChild(statRow([
+        {label:'이번달', value:'88.4점'},
+        {label:'전월', value:'87.2점'},
+        {label:'목표', value:'85점 이상'}
+      ]));
+      modalBody.appendChild(listBlock([
+        ['공정부적합률 (역지표)','25%'],
+        ['고객클레임 (역지표)','25%'],
+        ['품평 합격률','25%'],
+        ['수출 포장강화율','25%']
+      ]));
+      var note = document.createElement('div');
+      note.className = 'modal-note';
+      note.textContent = '4개 지표를 0~100점으로 환산 후 동일 가중치로 합산한 예시입니다. 실제 가중치는 품질보증팀과 협의해 조정할 수 있습니다.';
+      modalBody.appendChild(note);
+    }
+  };
+
+  function openModal(key){
+    if(!DETAILS[key]) return;
+    modalBody.innerHTML = '';
+    DETAILS[key]();
+    modalOverlay.classList.add('open');
+  }
+  function closeModal(){
+    modalOverlay.classList.remove('open');
+  }
+  document.querySelectorAll('[data-detail]').forEach(function(el){
+    el.addEventListener('click', function(){ openModal(el.dataset.detail); });
+    el.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openModal(el.dataset.detail); }
+    });
+  });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', function(e){ if(e.target === modalOverlay) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeModal(); });
+
+  renderAll();
+  renderEvalSchedule();
+
+  var mo = new MutationObserver(function(){ renderAll(); });
+  mo.observe(root, {attributes:true, attributeFilter:['data-theme']});
+
+  /* ---------- Live data: 고객클레임(구글시트 CSV) · 수출포장강화(Apps Script JSON) ---------- */
+  var monthKeyList = months;
+
+  function monthKey(d){ return String(d.getFullYear()).slice(2)+'.'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1); }
+
+  function parseCsv(text){
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuotes = false;
+    for(var i=0; i<text.length; i++){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else { field += c; }
+      } else {
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ''; }
+        else if(c === '\n' || c === '\r'){
+          if(c === '\r' && text[i+1] === '\n') i++;
+          row.push(field); field = '';
+          rows.push(row); row = [];
+        } else { field += c; }
+      }
+    }
+    if(field.length || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length > 1 || r[0]; });
+  }
+
+  function setLiveTag(id, state, text){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.className = 'live-tag ' + state;
+    el.textContent = text;
+  }
+
+
+  function updateKpiCard(prefix, valueText, deltaText, deltaGood, footText){
+    var v = document.getElementById(prefix+'KpiValue');
+    var d = document.getElementById(prefix+'KpiDelta');
+    var f = document.getElementById(prefix+'KpiFoot');
+    if(v) v.textContent = valueText;
+    if(d){ d.textContent = deltaText; d.className = 'delta ' + (deltaGood ? 'good' : 'bad'); }
+    if(f) f.textContent = footText;
+  }
+
+  var CLAIMS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFYXeMShNStCI5zaJkYod1jzt2kZwvRpEbs58ONy7XTDxXKPvwnczeyNmoAWYXwifLhHy6vTBlGqw0/pub?output=csv';
+  var EXPORT_JSON_URL = 'https://script.google.com/macros/s/AKfycbzsmA9Cu7xJ5D3DeouBsWKt_ii0YM4U6GPnbWX_NhZughWWh93dTLE4_VNMuBElXqA/exec';
+  var DAILYCHECK_JSON_URL = 'https://script.google.com/macros/s/AKfycbxz1PXXxsYH6WQuhVj4ykhc22x1K3VNlc9GjgDbySggikl2oHPbNtoiyu3GCuGDXPhHVg/exec';
+
+  function fetchDailyCheckLive(){
+    fetch(DAILYCHECK_JSON_URL + '?_=' + Date.now())
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(data){
+        var rows = (data.state.plant1 || []).concat(data.state.plant2 || []);
+        var todayQty = rows.reduce(function(a,r){ return a+(r.tQty||0); }, 0);
+        var monthQty = rows.reduce(function(a,r){ return a+(r.mQty||0); }, 0);
+        var badge = document.getElementById('dailyCheckBadge');
+        if(badge){
+          badge.hidden = false;
+          badge.textContent = '오늘 검사량 ' + todayQty.toLocaleString() + '개 (' + rows.length + '개 라인)';
+          badge.title = '이번달 누적 ' + monthQty.toLocaleString() + '개';
+        }
+      })
+      .catch(function(err){
+        console.warn('일일품질점검 연동 실패:', err);
+      });
+  }
+
+  var EQUIPMENT_URL = 'https://backns0303-prog.github.io/quality-dashboard/%EC%B6%A9%EC%A3%BC%EA%B3%B5%EC%9E%A5%20%EC%A3%BC%EC%9A%94%EC%84%A4%EB%B9%84%20%EC%A0%90%EA%B2%80.html';
+  function fetchEquipmentLive(){
+    setLiveTag('equipLiveTag', 'checking', '연동중');
+    fetch(EQUIPMENT_URL + '?_=' + Date.now())
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+      .then(function(html){
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var script = doc.getElementById('inspection-data');
+        if(!script) throw new Error('데이터를 찾을 수 없음');
+        var items = JSON.parse(script.textContent);
+
+        var statusCount = {};
+        items.forEach(function(it){ statusCount[it.status] = (statusCount[it.status]||0)+1; });
+        var waiting = statusCount['대기'] || 0, inProgress = statusCount['진행'] || 0, done = statusCount['완료'] || 0;
+
+        var row = document.getElementById('equipSummaryRow');
+        row.innerHTML =
+          '<span class="pill pill-neutral">총 ' + items.length + '건</span>' +
+          '<span class="pill pill-warn">대기 ' + waiting + '</span>' +
+          '<span class="pill pill-neutral">진행 ' + inProgress + '</span>' +
+          '<span class="pill pill-good">완료 ' + done + '</span>';
+
+        var top = items.filter(function(it){ return it.priority === '상' && it.status !== '완료'; }).slice(0, 5);
+        var list = document.getElementById('equipTopList');
+        if(!top.length){
+          list.innerHTML = '<li class="alert-item"><div class="alert-body"><div class="alert-text">우선순위 "상" 대기 항목이 없습니다.</div></div></li>';
+        } else {
+          list.innerHTML = top.map(function(it){
+            return '<li class="alert-item"><span class="stripe warn"></span><div class="alert-body">' +
+              '<div class="alert-top-row"><span class="alert-tag">' + it.machine + '</span><span class="sev-pill warn">우선순위 상</span></div>' +
+              '<div class="alert-text">' + it.check + (it.symptom ? ' — ' + it.symptom : '') + '</div></div>' +
+              '<span class="alert-time">' + (it.owner || '') + '</span></li>';
+          }).join('');
+        }
+        setLiveTag('equipLiveTag', 'live', 'LIVE');
+      })
+      .catch(function(err){
+        setLiveTag('equipLiveTag', 'sample', '샘플');
+        console.warn('설비점검 계획 연동 실패:', err);
+        document.getElementById('equipTopList').innerHTML = '<li class="alert-item"><div class="alert-body"><div class="alert-text">실시간 연동에 실패했습니다.</div></div></li>';
+      });
+  }
+  document.getElementById('equipGotoBtn').addEventListener('click', function(){ switchSection('equipment'); });
+
+  function fetchClaimsLive(){
+    setLiveTag('claimsLiveTag', 'checking', '연동중');
+    fetch(CLAIMS_CSV_URL + '&_=' + Date.now())
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+      .then(function(text){
+        var rows = parseCsv(text);
+        var header = rows.shift();
+        var idxDate = header.indexOf('접수일자');
+        var idxType = header.indexOf('유형');
+        var idxPending = header.indexOf('미결구분');
+        var idxCustomer = header.indexOf('고객명');
+        var idxAmount = header.indexOf('금액');
+        if(idxDate === -1) throw new Error('컬럼을 찾을 수 없음');
+
+        var byMonth = {};
+        monthKeyList.forEach(function(m){ byMonth[m] = 0; });
+        var byWeek = {};
+        var byWeekLoss = {};
+        weekKeyList.forEach(function(w){ byWeek[w] = 0; byWeekLoss[w] = 0; });
+        var typeCount = {};
+        var thisMonthKey = monthKey(new Date());
+        var thisMonthRows = [];
+
+        rows.forEach(function(r){
+          var d = new Date(r[idxDate]);
+          if(isNaN(d.getTime())) return;
+          var mk = monthKey(d);
+          if(mk in byMonth) byMonth[mk]++;
+          var wk = weekKey(d);
+          if(wk in byWeek){
+            byWeek[wk]++;
+            var amt = idxAmount !== -1 ? (parseFloat((r[idxAmount]||'0').replace(/[^0-9.-]/g,'')) || 0) : 0;
+            byWeekLoss[wk] += amt + 60000;
+          }
+          var type = (r[idxType] || '미분류').trim() || '미분류';
+          if(mk === thisMonthKey){
+            typeCount[type] = (typeCount[type] || 0) + 1;
+            thisMonthRows.push({date:d, type:type, pending:(r[idxPending]||'').trim(), customer:(r[idxCustomer]||'').trim()});
+          }
+        });
+
+        claimsMonthly.length = 0;
+        monthKeyList.forEach(function(m){ claimsMonthly.push(byMonth[m] || 0); });
+        claimsWeekly.length = 0;
+        weekKeyList.forEach(function(w){ claimsWeekly.push(byWeek[w] || 0); });
+        claimsWeeklyLoss.length = 0;
+        weekKeyList.forEach(function(w){ claimsWeeklyLoss.push(Math.round(byWeekLoss[w] || 0)); });
+
+        var curCount = claimsWeekly[claimsWeekly.length-1] || 0;
+        var curLoss = claimsWeeklyLoss[claimsWeeklyLoss.length-1] || 0;
+        var wcEl = document.getElementById('claimsWeekCount');
+        var wlEl = document.getElementById('claimsWeekLoss');
+        if(wcEl) wcEl.textContent = curCount + '건';
+        if(wlEl) wlEl.textContent = curLoss.toLocaleString('ko-KR');
+
+        var sortedTypes = Object.keys(typeCount).map(function(t){ return {label:t, value:typeCount[t]}; })
+          .sort(function(a,b){ return b.value - a.value; }).slice(0, 4);
+        if(sortedTypes.length){
+          claimTypes.length = 0;
+          sortedTypes.forEach(function(t){ claimTypes.push(t); });
+        }
+
+        var thisMonthCount = thisMonthRows.length;
+        var prevMonthKey = monthKeyList[monthKeyList.length-2];
+        var prevMonthCount = byMonth[prevMonthKey] || 0;
+        var pendingRows = thisMonthRows.filter(function(r){ return r.pending; });
+        var completionRate = thisMonthCount ? Math.round((thisMonthCount - pendingRows.length) / thisMonthCount * 100) : 0;
+        var delta = prevMonthCount ? Math.round((thisMonthCount - prevMonthCount) / prevMonthCount * 100) : 0;
+
+        claimsLiveStats.thisMonth = thisMonthCount;
+        claimsLiveStats.prevMonth = prevMonthCount;
+        claimsLiveStats.completionRate = completionRate + '%';
+        claimsLiveStats.pendingCount = pendingRows.length + '건';
+        claimsLiveStats.recent = thisMonthRows.slice(-3).reverse().map(function(r){
+          return [r.type + ' · ' + (r.customer || '미상'), r.pending ? '미결' : '완료'];
+        });
+        if(!claimsLiveStats.recent.length) claimsLiveStats.recent = [['이번달 접수 건 없음', '-']];
+        claimsThisMonthRows = thisMonthRows;
+
+        updateKpiCard('claims', String(thisMonthCount),
+          (delta <= 0 ? '▼ ' : '▲ ') + Math.abs(delta) + '%', delta <= 0,
+          '전월 ' + prevMonthCount + '건 → 이번달 ' + thisMonthCount + '건');
+        var claimsBar = document.getElementById('claimsKpiBar');
+        if(claimsBar) claimsBar.style.width = Math.min(100, Math.round(thisMonthCount/150*100)) + '%';
+        setLiveTag('claimsLiveTag', 'live', 'LIVE');
+        setLiveTag('claimsChartLiveTag', 'live', 'LIVE');
+        renderAll();
+      })
+      .catch(function(err){
+        setLiveTag('claimsLiveTag', 'sample', '샘플');
+        setLiveTag('claimsChartLiveTag', 'sample', '샘플');
+        console.warn('고객클레임 실시간 연동 실패:', err);
+      });
+  }
+
+  function fetchExportLive(){
+    setLiveTag('exportLiveTag', 'checking', '연동중');
+    fetch(EXPORT_JSON_URL + '?_=' + Date.now())
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(payload){
+        var sheetKey = Object.keys(payload)[0];
+        var table = payload[sheetKey];
+        var header = table[0];
+        var dataRows = table.slice(1);
+        var idxDue = header.indexOf('전산상 납기');
+        var idxShip = header.indexOf('상차일');
+        var idxStatus = header.indexOf('진행');
+        var idxName = header.indexOf('수주건명');
+        var idxCode = header.indexOf('품목코드');
+        if(idxDue === -1 || idxStatus === -1) throw new Error('컬럼을 찾을 수 없음');
+
+        var byMonth = {};
+        var byMonthTotal = {};
+        monthKeyList.forEach(function(m){ byMonth[m] = 0; byMonthTotal[m] = 0; });
+        var thisMonthKey = monthKey(new Date());
+        var thisMonthRows = [];
+        var onTimeCount = 0, shippedCount = 0;
+
+        dataRows.forEach(function(r){
+          var d = new Date(r[idxDue]);
+          if(isNaN(d.getTime())) return;
+          var mk = monthKey(d);
+          var done = String(r[idxStatus] || '').indexOf('완료') !== -1;
+          if(mk in byMonthTotal){
+            byMonthTotal[mk]++;
+            if(done) byMonth[mk]++;
+          }
+          if(mk === thisMonthKey){
+            thisMonthRows.push({name:r[idxName], code:r[idxCode], status:r[idxStatus], done:done, due:d});
+            var shipDate = idxShip !== -1 ? new Date(r[idxShip]) : null;
+            if(shipDate && !isNaN(shipDate.getTime())){
+              shippedCount++;
+              if(shipDate.getTime() <= d.getTime()) onTimeCount++;
+            }
+          }
+        });
+
+        exportRate.length = 0;
+        monthKeyList.forEach(function(m){
+          var total = byMonthTotal[m];
+          exportRate.push(total ? Math.round(byMonth[m] / total * 100) : 0);
+        });
+
+        var statusCount = {};
+        thisMonthRows.forEach(function(r){
+          var s = (r.status || '미분류').trim() || '미분류';
+          statusCount[s] = (statusCount[s] || 0) + 1;
+        });
+        var sortedStatus = Object.keys(statusCount).map(function(s){ return {label:s, value:statusCount[s]}; })
+          .sort(function(a,b){ return b.value - a.value; }).slice(0, 4);
+        if(sortedStatus.length){
+          exportStatusCount.length = 0;
+          sortedStatus.forEach(function(s){ exportStatusCount.push(s); });
+        }
+
+        var thisMonthTotal = thisMonthRows.length;
+        var thisMonthDone = thisMonthRows.filter(function(r){ return r.done; }).length;
+        var completionRate = thisMonthTotal ? Math.round(thisMonthDone / thisMonthTotal * 100) : 0;
+        var prevRate = exportRate.length > 1 ? exportRate[exportRate.length-2] : completionRate;
+        var deltaP = completionRate - prevRate;
+
+        exportLiveStats.thisMonth = thisMonthTotal;
+        exportLiveStats.completionRate = completionRate;
+        exportLiveStats.dueRate = shippedCount ? Math.round(onTimeCount / shippedCount * 100) + '%' : '상차 전';
+        exportLiveStats.recent = thisMonthRows.slice(-3).reverse().map(function(r){
+          return [(r.name||'') + ' · ' + (r.code||''), r.status || '-'];
+        });
+        if(!exportLiveStats.recent.length) exportLiveStats.recent = [['이번달 등록 건 없음', '-']];
+        exportThisMonthRows = thisMonthRows;
+
+        updateKpiCard('export', String(completionRate),
+          (deltaP >= 0 ? '▲ ' : '▼ ') + Math.abs(deltaP) + '%p', deltaP >= 0,
+          '목표 95% 대비 ' + (completionRate-95 >= 0 ? '+' : '') + (completionRate-95) + '%p');
+        var exportBar = document.getElementById('exportKpiBar');
+        if(exportBar) exportBar.style.width = Math.min(100, completionRate) + '%';
+        setLiveTag('exportLiveTag', 'live', 'LIVE');
+        renderAll();
+      })
+      .catch(function(err){
+        setLiveTag('exportLiveTag', 'sample', '샘플');
+        console.warn('수출포장강화 실시간 연동 실패:', err);
+      });
+  }
+
+  /* ---------- Executive summary banner (plain-language, for non-QA teams) ---------- */
+
+  fetchClaimsLive();
+  fetchExportLive();
+  fetchDailyCheckLive();
+  fetchEquipmentLive();
+  setInterval(fetchClaimsLive, 30*60*1000);
+  setInterval(fetchExportLive, 30*60*1000);
+  setInterval(fetchDailyCheckLive, 30*60*1000);
+  setInterval(fetchEquipmentLive, 30*60*1000);
+})();
+</script>
