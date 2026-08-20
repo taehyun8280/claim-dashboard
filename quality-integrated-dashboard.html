@@ -545,27 +545,22 @@
     loss: [412,455,503,388,530,481,420,468]
   };
 
-  function startOfWeek(d){
-    var day = d.getDay();
-    var diff = (day===0?-6:1) - day;
-    var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate()+diff);
-    monday.setHours(0,0,0,0);
-    return monday;
-  }
-  function weekKey(d){
-    var s = startOfWeek(d);
-    return s.getFullYear()+'-'+(s.getMonth()+1)+'-'+s.getDate();
-  }
-  function last8WeekStarts(){
-    var thisWeekStart = startOfWeek(new Date());
+  function monthWeekNum(d){ return Math.ceil(d.getDate()/7); }
+  function weeksInMonth(y, m){ return Math.ceil(new Date(y, m+1, 0).getDate()/7); }
+  function weekKey(d){ return d.getFullYear()+'-'+d.getMonth()+'-'+monthWeekNum(d); }
+  function last8MonthWeeks(){
+    var now = new Date();
+    var y = now.getFullYear(), m = now.getMonth(), w = monthWeekNum(now);
     var out = [];
-    for(var i=7; i>=0; i--){
-      out.push(new Date(thisWeekStart.getTime() - i*7*24*60*60*1000));
+    for(var i=0; i<8; i++){
+      out.unshift({y:y, m:m, w:w});
+      w--;
+      if(w < 1){ m--; if(m < 0){ m = 11; y--; } w = weeksInMonth(y, m); }
     }
     return out;
   }
-  var weekKeyList = last8WeekStarts().map(weekKey);
-  var weekLabelList = last8WeekStarts().map(function(d){ return (d.getMonth()+1)+'/'+d.getDate(); });
+  var weekKeyList = last8MonthWeeks().map(function(o){ return o.y+'-'+o.m+'-'+o.w; });
+  var weekLabelList = last8MonthWeeks().map(function(o){ return (o.m+1)+'월'+o.w+'주'; });
   var claimsWeekly = [11,14,9,16,13,10,15,12];
   var claimsWeeklyLoss = [0,0,0,0,0,0,0,0];
 
