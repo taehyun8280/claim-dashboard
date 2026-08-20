@@ -353,9 +353,9 @@
         </div>
 
         <div class="grid-2">
-          <div class="card" data-detail="claims" tabindex="0">
+          <div class="card">
             <div class="card-head">
-              <div><div class="card-title">고객클레임 주별 건수</div><div class="card-sub">최근 8주 · 접수 건수 · 손실금액(제품가+건당 6만원)</div></div>
+              <div><div class="card-title">고객클레임 주별 건수</div><div class="card-sub">최근 8주 · 막대를 클릭하면 해당 주 상세내역 · 손실금액(제품가+건당 6만원)</div></div>
               <span class="live-tag checking" id="claimsChartLiveTag">연동중</span>
             </div>
             <div class="weekstat-row">
@@ -563,6 +563,7 @@
   var weekLabelList = last8MonthWeeks().map(function(o){ return (o.m+1)+'월'+o.w+'주'; });
   var claimsWeekly = [11,14,9,16,13,10,15,12];
   var claimsWeeklyLoss = [0,0,0,0,0,0,0,0];
+  var claimsWeekRows = {};
 
   var claimsLiveStats = { thisMonth:16, prevMonth:20, completionRate:'81%', pendingCount:'3건', recent:[['도장 불량 · A상사','접수'],['마감 불량 · 한빛오피스','처리중'],['조립 불량 · A상사','처리중']] };
   var exportLiveStats = { thisMonth:12, completionRate:96, dueRate:'98%', recent:[['EXP-2607-014 · CH-2201','강화진행'],['EXP-2607-011 · CH-1090','포장대기'],['EXP-2607-007 · DK-3105','포장대기']] };
@@ -605,11 +606,16 @@
         var bh = (v/maxV)*plotH;
         var bx = gx + barGap + si*(barW+barGap);
         var by = padT + plotH - bh;
-        svg.appendChild(svgns('rect', {x:bx, y:by, width:barW, height:Math.max(bh,0), rx:2, fill:s.color}));
+        var barRect = svgns('rect', {x:bx, y:by, width:barW, height:Math.max(bh,0), rx:2, fill:s.color});
+        svg.appendChild(barRect);
         if(opts.showValues){
           var vt = svgns('text', {x:bx+barW/2, y:by-4, 'text-anchor':'middle', 'font-size':10, 'font-weight':700, fill:cssVar('--text')});
           vt.textContent = v;
           svg.appendChild(vt);
+        }
+        if(opts.onBarClick){
+          barRect.style.cursor = 'pointer';
+          barRect.addEventListener('click', function(idx){ return function(){ opts.onBarClick(idx); }; }(i));
         }
       });
       var lx = gx + groupW/2;
@@ -686,7 +692,8 @@
     drawGroupedBars('chartClaimsWeekly', {
       labels: weekLabelList,
       series: [{data: claimsWeekly, color: cssVar('--critical')}],
-      showValues: true
+      showValues: true,
+      onBarClick: openClaimsWeekModal
     });
     drawSpark(document.querySelector('[data-spark="processdefect"]'), processDefectRate, cssVar('--warn'));
     drawSpark(document.querySelector('[data-spark="claims"]'), claimsMonthly, cssVar('--critical'));
@@ -1012,6 +1019,52 @@
     DETAILS[key]();
     modalOverlay.classList.add('open');
   }
+  function openClaimsWeekModal(i){
+    var label = weekLabelList[i];
+    var key = weekKeyList[i];
+    var rowsForWeek = claimsWeekRows[key] || [];
+    var count = claimsWeekly[i] || 0;
+    var loss = claimsWeeklyLoss[i] || 0;
+    var pendingCount = rowsForWeek.filter(function(r){ return r.pending; }).length;
+    var completionRate = count ? Math.round((count - pendingCount) / count * 100) : 0;
+
+    modalEyebrow.textContent = '고객클레임 · ' + label + ' 상세';
+    modalTitle.textContent = label + ' 접수 현황';
+    modalBody.innerHTML = '';
+    modalBody.appendChild(statRow([
+      {label:'접수건수', value:count+'건'},
+      {label:'손실금액', value:loss.toLocaleString('ko-KR')+'원'},
+      {label:'처리완료율', value:completionRate+'%'}
+    ]));
+
+    var typeCount = {};
+    rowsForWeek.forEach(function(r){ typeCount[r.type] = (typeCount[r.type] || 0) + 1; });
+    var typeItems = Object.keys(typeCount).map(function(t){ return {label:t, value:typeCount[t]}; })
+      .sort(function(a,b){ return b.value - a.value; });
+    if(typeItems.length){
+      var svg = chartSvg('0 0 480 ' + Math.max(90, typeItems.length*40));
+      modalBody.appendChild(svg);
+      renderClaimTypeBar(svg, typeItems);
+    }
+
+    var detailLabel = document.createElement('div');
+    detailLabel.className = 'modal-note';
+    detailLabel.style.fontWeight = '700';
+    detailLabel.textContent = '접수 내역 (' + rowsForWeek.length + '건)';
+    modalBody.appendChild(detailLabel);
+
+    if(rowsForWeek.length){
+      var sorted = rowsForWeek.slice().sort(function(a,b){ return b.date - a.date; });
+      modalBody.appendChild(listBlock(sorted.map(function(r){
+        return [(r.date.getMonth()+1)+'/'+r.date.getDate()+' · '+r.type+' · '+(r.customer || '미상'), r.pending ? '미결' : '완료'];
+      })));
+    } else {
+      modalBody.appendChild(listBlock([['해당 주에 접수된 클레임이 없습니다','-']]));
+    }
+
+    modalBody.appendChild(gotoBtn('claims', '고객클레임 탭에서 실제 대시보드 보기 ↗'));
+    modalOverlay.classList.add('open');
+  }
   function closeModal(){
     modalOverlay.classList.remove('open');
   }
@@ -1164,7 +1217,8 @@
         monthKeyList.forEach(function(m){ byMonth[m] = 0; });
         var byWeek = {};
         var byWeekLoss = {};
-        weekKeyList.forEach(function(w){ byWeek[w] = 0; byWeekLoss[w] = 0; });
+        var byWeekRows = {};
+        weekKeyList.forEach(function(w){ byWeek[w] = 0; byWeekLoss[w] = 0; byWeekRows[w] = []; });
         var typeCount = {};
         var thisMonthKey = monthKey(new Date());
         var thisMonthRows = [];
@@ -1174,13 +1228,14 @@
           if(isNaN(d.getTime())) return;
           var mk = monthKey(d);
           if(mk in byMonth) byMonth[mk]++;
+          var type = (r[idxType] || '미분류').trim() || '미분류';
           var wk = weekKey(d);
           if(wk in byWeek){
             byWeek[wk]++;
             var amt = idxAmount !== -1 ? (parseFloat((r[idxAmount]||'0').replace(/[^0-9.-]/g,'')) || 0) : 0;
             byWeekLoss[wk] += amt + 60000;
+            byWeekRows[wk].push({date:d, type:type, pending:(r[idxPending]||'').trim(), customer:(r[idxCustomer]||'').trim(), amount:amt});
           }
-          var type = (r[idxType] || '미분류').trim() || '미분류';
           if(mk === thisMonthKey){
             typeCount[type] = (typeCount[type] || 0) + 1;
             thisMonthRows.push({date:d, type:type, pending:(r[idxPending]||'').trim(), customer:(r[idxCustomer]||'').trim()});
@@ -1193,6 +1248,7 @@
         weekKeyList.forEach(function(w){ claimsWeekly.push(byWeek[w] || 0); });
         claimsWeeklyLoss.length = 0;
         weekKeyList.forEach(function(w){ claimsWeeklyLoss.push(Math.round(byWeekLoss[w] || 0)); });
+        claimsWeekRows = byWeekRows;
 
         var curCount = claimsWeekly[claimsWeekly.length-1] || 0;
         var curLoss = claimsWeeklyLoss[claimsWeeklyLoss.length-1] || 0;
