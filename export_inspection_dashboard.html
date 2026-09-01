@@ -364,7 +364,7 @@ body{font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo',sans-seri
         <thead>
           <tr>
             <th style="width:72px">구분</th>
-            <th>금일 품목</th><th>금일 수량</th>
+            <th id="in_lbl_today_item">금일 품목</th><th id="in_lbl_today_qty">금일 수량</th>
             <th id="in_lbl_month_item">7월 누적품목</th><th id="in_lbl_month_qty">7월 누적수량</th>
             <th>26년 누적품목</th><th>26년 누적수량</th>
           </tr>
@@ -531,6 +531,12 @@ const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV8';
   const m2=document.getElementById('in_lbl_month_qty');
   if(m1) m1.textContent=`${rptMonthNum}월 누적품목`;
   if(m2) m2.textContent=`${rptMonthNum}월 누적수량`;
+  const t1=document.getElementById('in_lbl_today_item');
+  const t2=document.getElementById('in_lbl_today_qty');
+  const rptLabel=`${rptMonthNum}월 ${rpt.getDate()}일 품목`;
+  const rptLabel2=`${rptMonthNum}월 ${rpt.getDate()}일 수량`;
+  if(t1) t1.textContent=rptLabel;
+  if(t2) t2.textContent=rptLabel2;
   const todayLabel=document.getElementById('kpi_today_lbl');
   if(todayLabel) todayLabel.textContent=`금일 (${monthNum}월 ${d.getDate()}일)`;
   renderAttach();
