@@ -513,6 +513,19 @@ const S_NAMES=['충주1','충주2','양지'];
 const S_FIELDS=['ti','tq','mi','mq','yi','yq'];
 const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV8';
 
+// 공휴일 목록 (YYYY-MM-DD) — 빨간날이면 하루 더 앞으로
+const HOLIDAYS=['2026-07-17'];
+function getReportDate(baseDate){
+  const d=new Date(baseDate);
+  const day=d.getDay();
+  const offset=day===1?3:1;
+  d.setDate(d.getDate()-offset);
+  while(HOLIDAYS.includes(d.toISOString().slice(0,10))){
+    d.setDate(d.getDate()-1);
+  }
+  return d;
+}
+
 (function(){
   const d=new Date();
   const pad=n=>String(n).padStart(2,'0');
@@ -817,19 +830,6 @@ document.getElementById('notePhotoInput').addEventListener('change',function(){
   r.readAsDataURL(this.files[0]);
   this.value='';
 });
-
-// 공휴일 목록 (YYYY-MM-DD) — 빨간날이면 하루 더 앞으로
-const HOLIDAYS=['2026-07-17'];
-function getReportDate(baseDate){
-  const d=new Date(baseDate);
-  const day=d.getDay();
-  const offset=day===1?3:1;
-  d.setDate(d.getDate()-offset);
-  while(HOLIDAYS.includes(d.toISOString().slice(0,10))){
-    d.setDate(d.getDate()-1);
-  }
-  return d;
-}
 
 function applyAll(){
   const v=id=>document.getElementById(id)?.value||'';
