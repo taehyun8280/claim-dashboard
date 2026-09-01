@@ -518,15 +518,19 @@ const INSPECTION_STORAGE_KEY='claimDashboardInspectionTotalsV8';
   const pad=n=>String(n).padStart(2,'0');
   const monthNum=d.getMonth()+1;
   document.getElementById('in_date').value=`${d.getFullYear()}-${pad(monthNum)}-${pad(d.getDate())}`;
-  window._lbl_month=`${monthNum}월 누적`;
+  // 월 누적 레이블과 월키는 보고서 날짜(getReportDate) 기준으로 계산
+  // 오늘이 9/1(화)이면 보고날짜=8/31(월) → 8월 누적, 9/2(수)이면 보고날짜=9/1 → 9월 누적
+  const rpt=getReportDate(d);
+  const rptMonthNum=rpt.getMonth()+1;
+  window._lbl_month=`${rptMonthNum}월 누적`;
   window._lbl_year=`${String(d.getFullYear()).slice(2)}년 누적`;
-  window._current_month_key=d.getFullYear()*100+monthNum;
+  window._current_month_key=d.getFullYear()*100+rptMonthNum;
   document.getElementById('pv_date').textContent=`${d.getFullYear()}년 ${monthNum}월 ${d.getDate()}일`;
-  document.getElementById('pv_lbl_month').textContent=`${monthNum}월 누적`;
+  document.getElementById('pv_lbl_month').textContent=`${rptMonthNum}월 누적`;
   const m1=document.getElementById('in_lbl_month_item');
   const m2=document.getElementById('in_lbl_month_qty');
-  if(m1) m1.textContent=`${monthNum}월 누적품목`;
-  if(m2) m2.textContent=`${monthNum}월 누적수량`;
+  if(m1) m1.textContent=`${rptMonthNum}월 누적품목`;
+  if(m2) m2.textContent=`${rptMonthNum}월 누적수량`;
   const todayLabel=document.getElementById('kpi_today_lbl');
   if(todayLabel) todayLabel.textContent=`금일 (${monthNum}월 ${d.getDate()}일)`;
   renderAttach();
