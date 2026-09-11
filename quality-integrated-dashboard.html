@@ -72,7 +72,7 @@
   .shell{display:flex;min-height:100vh;align-items:stretch;}
   .sidebar{width:222px;flex-shrink:0;background:#FFFFFF;color:#5B6472;display:flex;flex-direction:column;padding:20px 12px;gap:4px;border-right:1px solid #E7EAF0;}
   .sidebar-brand{display:flex;flex-direction:column;padding:4px 10px 18px;border-bottom:1px solid #E7EAF0;margin-bottom:10px;}
-  .sidebar-brand-name{color:#12203D;font-size:19px;font-weight:800;letter-spacing:0.05em;white-space:nowrap;}
+  .sidebar-brand-name{color:#12203D;font-size:22px;font-weight:900;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;letter-spacing:-0.02em;white-space:nowrap;}
   .sidebar-brand-sub{font-size:11.5px;color:#5B6472;margin-top:5px;white-space:nowrap;}
   .sidebar-brand-team{font-size:11.5px;color:#5B6472;font-weight:600;margin-top:8px;white-space:nowrap;}
   .sidebar-nav{display:flex;flex-direction:column;gap:2px;}
@@ -139,6 +139,7 @@
   .live-tag.sample{background:var(--neutral-soft);color:var(--text-muted);}
   .live-tag.live{background:var(--good-soft);color:var(--good);}
   .live-tag.checking{background:var(--warn-soft);color:var(--warn);}
+  .live-tag.manual{background:var(--accent-soft);color:var(--accent-strong);}
 
   /* section layout */
   .panel{display:none;}
@@ -366,7 +367,7 @@
           </div>
           <div class="card">
             <div class="card-head">
-              <div><div class="card-title">공정부적합 주간 발생 수량 · 손실금액 (샘플)</div><div class="card-sub">최근 8주 · 막대 위 숫자는 수량 / 손실금액(만원)</div></div>
+              <div><div class="card-title">공정부적합 주간 발생 수량 · 손실금액 (샘플)</div><div class="card-sub">최근 8주 · 막대를 클릭하면 상세내역 · 사내 계정 인증이 열리면 실시간으로 교체됩니다</div></div>
             </div>
             <div class="chart-wrap"><svg id="chartProcessWeekly" viewBox="0 0 640 220"></svg></div>
           </div>
@@ -387,9 +388,10 @@
           </div>
           <div class="card" data-detail="eval" tabindex="0">
             <div class="card-head">
-              <div><div class="card-title">주요 품평/프로젝트 일정 (샘플)</div><div class="card-sub">진행중 · 착수 예정</div></div>
+              <div><div class="card-title">품평/프로젝트 관리 현황</div><div class="card-sub">2026-09-11 확인 · Streamlit 앱은 공개 API가 없어 수동 반영</div></div>
+              <span class="live-tag manual">수동 확인</span>
             </div>
-            <ul class="alert-list" id="evalScheduleList"></ul>
+            <div class="weekstat-row" id="evalStatRow"></div>
           </div>
         </div>
         </div>
@@ -501,10 +503,6 @@
     {label:'부자재 불량', value:11}
   ];
 
-  var evalStatusCount = [
-    {label:'합격', value:3, color:'good'},{label:'진행중', value:6, color:'accent'},{label:'재평가', value:2, color:'warn'},{label:'보류', value:1, color:'critical'}
-  ];
-
   var exportStatusCount = [
     {label:'강화완료', value:5},
     {label:'강화진행', value:4},
@@ -518,16 +516,11 @@
     {label:'치수 불량', value:15}
   ];
 
-  var evalProjects = {
-    inProgress: [
-      {name:'임원의자 신모델 2차 품평', stage:'재평가', progress:55, due:'08.05'},
-      {name:'시스템책상 1200 내구성 평가', stage:'2차 시험', progress:70, due:'08.12'},
-      {name:'소파 3인용 프레임 내구성', stage:'2차 시험', progress:65, due:'08.19'}
-    ],
-    upcoming: [
-      {name:'수납장 C타입 품평', stage:'착수 예정', progress:5, due:'08.25'},
-      {name:'파티션 저소음 마감재 평가', stage:'자재 입고 대기', progress:10, due:'09.02'}
-    ]
+  var evalSnapshot = {
+    asOf: '2026-09-11 01:46 기준 · 품평/프로젝트 관리 대시보드에서 수동 확인',
+    weekOrders: {label:'26년 9월 2주 주요 수주건', count:7, items:402, boxes:2255},
+    monthOrders: {label:'26년 9월 주요 수주건', count:101, items:2165, boxes:12047},
+    dueSoon: {label:'납기 임박건 (D-3)', count:11, items:625, boxes:2955}
   };
 
   function last8Weeks(){
@@ -661,33 +654,6 @@
     });
   }
 
-  function renderEvalDonutChart(el, items){
-    el.innerHTML = '';
-    var vb = el.viewBox.baseVal;
-    var W = vb.width, H = vb.height;
-    var r = H*0.34, rInner = r*0.56, cx = r+16, cy = H/2;
-    var colorMap = { good:cssVar('--good'), accent:cssVar('--eval'), warn:cssVar('--warn'), critical:cssVar('--critical') };
-    var total = items.reduce(function(a,b){return a+b.value;},0);
-    var start=-Math.PI/2;
-    items.forEach(function(it){
-      var frac=it.value/total, end=start+frac*Math.PI*2;
-      var x1=cx+r*Math.cos(start), y1=cy+r*Math.sin(start);
-      var x2=cx+r*Math.cos(end), y2=cy+r*Math.sin(end);
-      var xi1=cx+rInner*Math.cos(end), yi1=cy+rInner*Math.sin(end);
-      var xi2=cx+rInner*Math.cos(start), yi2=cy+rInner*Math.sin(start);
-      var large=frac>0.5?1:0;
-      var d='M'+x1+','+y1+' A'+r+','+r+' 0 '+large+' 1 '+x2+','+y2+' L'+xi1+','+yi1+' A'+rInner+','+rInner+' 0 '+large+' 0 '+xi2+','+yi2+' Z';
-      el.appendChild(svgns('path',{d:d, fill:colorMap[it.color]}));
-      start=end;
-    });
-    items.forEach(function(it,i){
-      var ly = cy - (items.length-1)*14 + i*28;
-      el.appendChild(svgns('rect',{x:cx+r+18,y:ly-9,width:9,height:9,rx:2,fill:colorMap[it.color]}));
-      var lt=svgns('text',{x:cx+r+32,y:ly,'font-size':10.5,fill:cssVar('--text')});
-      lt.textContent = it.label+' '+it.value+'건'; el.appendChild(lt);
-    });
-  }
-
   function renderAll(){
     drawGroupedBars('chartClaimsWeekly', {
       labels: weekLabelList,
@@ -726,7 +692,10 @@
       var bh = (qty/maxQty)*plotH;
       var bx = padL+i*groupW+(groupW-barW)/2;
       var by = padT+plotH-bh;
-      svg.appendChild(svgns('rect', {x:bx, y:by, width:barW, height:bh, rx:3, fill:cssVar('--warn')}));
+      var barRect = svgns('rect', {x:bx, y:by, width:barW, height:bh, rx:3, fill:cssVar('--warn')});
+      barRect.style.cursor = 'pointer';
+      barRect.addEventListener('click', function(idx){ return function(){ openProcessWeekModal(idx); }; }(i));
+      svg.appendChild(barRect);
       var lbl = svgns('text', {x:bx+barW/2, y:by-6, 'text-anchor':'middle', 'font-size':9, 'font-weight':700, fill:cssVar('--text')});
       lbl.textContent = qty+'개'; svg.appendChild(lbl);
       var lbl2 = svgns('text', {x:bx+barW/2, y:by-17, 'text-anchor':'middle', 'font-size':8.5, fill:cssVar('--text-muted')});
@@ -737,17 +706,16 @@
   }
 
   function renderEvalSchedule(){
-    var ul = document.getElementById('evalScheduleList');
-    if(!ul) return;
-    var items = evalProjects.inProgress.map(function(p){ return {p:p, sev:'warn'}; })
-      .concat(evalProjects.upcoming.map(function(p){ return {p:p, sev:'good'}; }));
-    ul.innerHTML = items.map(function(it){
-      var p = it.p;
-      return '<li class="alert-item"><span class="stripe '+it.sev+'"></span><div class="alert-body">' +
-        '<div class="alert-top-row"><span class="alert-tag">'+p.name+'</span></div>' +
-        '<div class="alert-text">'+p.stage+' · 진행률 '+p.progress+'%</div></div>' +
-        '<span class="alert-time">'+p.due+' 목표</span></li>';
-    }).join('');
+    var row = document.getElementById('evalStatRow');
+    if(!row) return;
+    var s = evalSnapshot;
+    row.innerHTML =
+      '<div><div class="weekstat-label">'+s.weekOrders.label+'</div><div class="weekstat-num">'+s.weekOrders.count+'건</div>' +
+        '<div class="kpi-foot">'+s.weekOrders.items+'품목 · '+s.weekOrders.boxes+'박스</div></div>' +
+      '<div><div class="weekstat-label">'+s.monthOrders.label+'</div><div class="weekstat-num">'+s.monthOrders.count+'건</div>' +
+        '<div class="kpi-foot">'+s.monthOrders.items+'품목 · '+s.monthOrders.boxes+'박스</div></div>' +
+      '<div><div class="weekstat-label">'+s.dueSoon.label+'</div><div class="weekstat-num" style="color:var(--critical)">'+s.dueSoon.count+'건</div>' +
+        '<div class="kpi-foot">'+s.dueSoon.items+'품목 · '+s.dueSoon.boxes+'박스</div></div>';
   }
 
   /* ---------- Hub cards: URL config (localStorage) + iframe embed ---------- */
@@ -954,33 +922,24 @@
       modalBody.appendChild(gotoBtn('claims', '고객클레임 탭에서 실제 대시보드 보기 ↗'));
     },
     eval: function(){
-      modalEyebrow.textContent = '품평프로젝트 · 상세 현황';
-      modalTitle.textContent = '품평프로젝트 현황';
+      modalEyebrow.textContent = '품평/프로젝트 관리 · 상세 현황';
+      modalTitle.textContent = '품평/프로젝트 관리 현황';
+      var s = evalSnapshot;
       modalBody.appendChild(statRow([
-        {label:'진행중', value:'6건'},
-        {label:'이번달 합격', value:'3건'},
-        {label:'평균소요', value:'18일'}
+        {label:s.weekOrders.label, value:s.weekOrders.count+'건'},
+        {label:s.monthOrders.label, value:s.monthOrders.count+'건'},
+        {label:s.dueSoon.label, value:s.dueSoon.count+'건'}
       ]));
-      var svg = chartSvg('0 0 320 170');
-      modalBody.appendChild(svg);
-      renderEvalDonutChart(svg, evalStatusCount);
-      var progressLabel = document.createElement('div');
-      progressLabel.className = 'modal-note';
-      progressLabel.style.fontWeight = '700';
-      progressLabel.textContent = '진행중인 프로젝트';
-      modalBody.appendChild(progressLabel);
-      modalBody.appendChild(listBlock(evalProjects.inProgress.map(function(p){ return [p.name, p.stage]; })));
-      var upcomingLabel = document.createElement('div');
-      upcomingLabel.className = 'modal-note';
-      upcomingLabel.style.fontWeight = '700';
-      upcomingLabel.textContent = '착수해야 할 프로젝트';
-      modalBody.appendChild(upcomingLabel);
-      modalBody.appendChild(listBlock(evalProjects.upcoming.map(function(p){ return [p.name, p.stage]; })));
+      modalBody.appendChild(listBlock([
+        [s.weekOrders.label, s.weekOrders.items+'품목 · '+s.weekOrders.boxes+'박스'],
+        [s.monthOrders.label, s.monthOrders.items+'품목 · '+s.monthOrders.boxes+'박스'],
+        [s.dueSoon.label, s.dueSoon.items+'품목 · '+s.dueSoon.boxes+'박스']
+      ]));
       var note = document.createElement('div');
       note.className = 'modal-note';
-      note.textContent = '프로젝트명은 샘플입니다. Streamlit 앱에 공개 데이터 API가 열리면 자동 교체됩니다.';
+      note.textContent = s.asOf + '. Streamlit 앱은 외부에서 데이터를 자동으로 가져올 공개 API가 없어 실시간 연동은 불가능하고, 방문해서 확인한 값을 반영했습니다.';
       modalBody.appendChild(note);
-      modalBody.appendChild(gotoBtn('eval', '품평프로젝트 탭에서 실제 대시보드 보기 ↗'));
+      modalBody.appendChild(gotoBtn('eval', '품평/프로젝트 관리 탭에서 실제 대시보드 보기 ↗'));
     },
     export: function(){
       modalEyebrow.textContent = '수출건 · 상세 현황';
@@ -1110,6 +1069,31 @@
       link.textContent = '사진 보기 ↗';
       modalBody.appendChild(link);
     }
+  }
+  function openProcessWeekModal(i){
+    var label = processWeekly.weeks[i];
+    var qty = processWeekly.qty[i];
+    var loss = processWeekly.loss[i];
+
+    modalEyebrow.textContent = '공정부적합 · ' + label + ' 상세 (샘플)';
+    modalTitle.textContent = label + ' 발생 현황';
+    modalBody.innerHTML = '';
+    modalBody.appendChild(statRow([
+      {label:'발생 수량', value:qty+'개'},
+      {label:'손실금액', value:loss+'만원'},
+      {label:'개당 손실', value:Math.round(loss*10000/qty).toLocaleString('ko-KR')+'원'}
+    ]));
+
+    var svg = chartSvg('0 0 480 ' + Math.max(90, processDefectTypes.length*40));
+    modalBody.appendChild(svg);
+    renderClaimTypeBar(svg, processDefectTypes, '--warn');
+
+    var note = document.createElement('div');
+    note.className = 'modal-note';
+    note.textContent = '이 수치는 샘플입니다. 공정부적합 스크립트가 사내 계정으로만 접근 가능해 실시간 연동이 막혀 있어 유형별 분포는 참고용 평균치를 표시합니다.';
+    modalBody.appendChild(note);
+    modalBody.appendChild(gotoBtn('processdefect', '공정부적합 탭에서 실제 대시보드 보기 ↗'));
+    modalOverlay.classList.add('open');
   }
   function closeModal(){
     modalOverlay.classList.remove('open');
