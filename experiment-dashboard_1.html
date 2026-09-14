@@ -1532,21 +1532,30 @@ function initMqtt() {
       try {
         const payload = JSON.parse(msg.toString());
         if (!payload || !payload.ts) return;
-        const localTs = parseInt(localStorage.getItem('sync_ts') || '0');
-        if (payload.ts <= localTs) return; // 내 데이터가 더 최신
-        // 원격 데이터가 더 최신 → 덮어쓰기
+        let changed = false;
+        // 시험 데이터: ID 기준으로 병합 (어느 쪽도 잃지 않음)
         if (payload.exp && payload.exp.length > 0) {
-          experiments = payload.exp;
-          localStorage.setItem('exp_data', JSON.stringify(experiments));
-          render();
+          const map = {};
+          experiments.forEach(e => { if(e.id) map[e.id] = e; });
+          payload.exp.forEach(e => { if(e.id && !map[e.id]) { map[e.id] = e; changed = true; } });
+          if (changed) {
+            experiments = Object.values(map);
+            localStorage.setItem('exp_data', JSON.stringify(experiments));
+            render();
+          }
         }
+        // 성적서: no 기준으로 병합
         if (payload.cert && payload.cert.length > 0) {
-          certificates = payload.cert;
-          localStorage.setItem('cert_data', JSON.stringify(certificates));
-          renderCertList();
+          const cmap = {};
+          certificates.forEach(c => { if(c.no) cmap[c.no] = c; });
+          payload.cert.forEach(c => { if(c.no && !cmap[c.no]) { cmap[c.no] = c; changed = true; } });
+          if (changed) {
+            certificates = Object.values(cmap);
+            localStorage.setItem('cert_data', JSON.stringify(certificates));
+            renderCertList();
+          }
         }
-        localStorage.setItem('sync_ts', payload.ts);
-        showToast('다른 기기에서 데이터를 가져왔습니다.');
+        if (changed) showToast('다른 기기 데이터와 병합했습니다.');
       } catch(e) {}
     });
     _mqttClient.on('error', e => console.warn('[sync] 오류:', e.message));
