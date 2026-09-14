@@ -849,12 +849,6 @@
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
-      <div style="display:flex;gap:6px;margin-bottom:6px;">
-        <button onclick="exportData()" style="padding:4px 12px;font-size:11px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">⬇ 내보내기</button>
-        <label style="padding:4px 12px;font-size:11px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
-          ⬆ 가져오기<input type="file" accept=".json" style="display:none;" onchange="importData(this)">
-        </label>
-      </div>
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1428,6 +1422,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js"></script>
 <script>
 // ─── FIREBASE ───
 const firebaseConfig = {
@@ -1513,8 +1508,61 @@ function importData(input) {
   reader.readAsText(file);
 }
 
+// ── MQTT 실시간 동기화 ──
+const _mqttTopic = 'fursys-taehyun8280-dashboard';
+let _mqttClient = null;
+let _mqttReady = false;
+let _mqttSaveTimer = null;
+let _mqttIgnoreNext = false;
+
+function initMqtt() {
+  try {
+    _mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
+      clientId: 'dash_' + Math.random().toString(36).substr(2, 9),
+      keepalive: 30,
+      reconnectPeriod: 10000,
+      connectTimeout: 8000
+    });
+    _mqttClient.on('connect', () => {
+      _mqttReady = true;
+      console.log('[sync] 연결됨');
+      _mqttClient.subscribe(_mqttTopic + '/exp');
+      _mqttClient.subscribe(_mqttTopic + '/cert');
+    });
+    _mqttClient.on('message', (topic, msg) => {
+      if (_mqttIgnoreNext) { _mqttIgnoreNext = false; return; }
+      try {
+        const data = JSON.parse(msg.toString());
+        if (!Array.isArray(data) || data.length === 0) return;
+        if (topic.endsWith('/exp') && data.length > experiments.length) {
+          experiments = data;
+          localStorage.setItem('exp_data', JSON.stringify(experiments));
+          render();
+        } else if (topic.endsWith('/cert') && data.length > certificates.length) {
+          certificates = data;
+          localStorage.setItem('cert_data', JSON.stringify(certificates));
+          renderCertList();
+        }
+      } catch(e) {}
+    });
+    _mqttClient.on('error', e => console.warn('[sync] 오류:', e.message));
+  } catch(e) { console.warn('[sync] MQTT 초기화 실패:', e); }
+}
+
+function mqttPublish() {
+  if (!_mqttReady || !_mqttClient) return;
+  clearTimeout(_mqttSaveTimer);
+  _mqttSaveTimer = setTimeout(() => {
+    const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r => { const s={...r, img:''}; for(let i=1;i<=10;i++) delete s['img'+i]; return s; })}));
+    _mqttIgnoreNext = true;
+    _mqttClient.publish(_mqttTopic + '/exp', JSON.stringify(experiments), { retain: true, qos: 1 });
+    _mqttClient.publish(_mqttTopic + '/cert', JSON.stringify(slim), { retain: true, qos: 1 });
+  }, 1500);
+}
+
 function fbSaveExperiments() {
   localStorage.setItem('exp_data', JSON.stringify(experiments));
+  mqttPublish();
 }
 // ── IndexedDB: 이미지 전용 저장소 (용량 제한 없음) ──
 let _idb = null;
@@ -1688,10 +1736,9 @@ function idbDeleteCertImgs(no, rowCount) {
 
 function fbSaveCertificates(allowEmpty = false) {
   if (!allowEmpty && certificates.length === 0) return;
-  // 이미지 제외 슬림 버전으로 저장 (용량 절약)
   const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r => { const s={...r,img:''}; for(let i=1;i<=10;i++) delete s['img'+i]; return s; })}));
   try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
-  ghScheduleSave();
+  mqttPublish();
 }
 
 // ─── STATE ───
@@ -1726,6 +1773,7 @@ document.addEventListener('DOMContentLoaded', () => {
   render();
   renderCertList();
   initEquipment();
+  initMqtt();
 });
 
 // ─── RENDER KANBAN ───
