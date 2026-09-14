@@ -360,8 +360,8 @@
               <span class="live-tag checking" id="claimsChartLiveTag">연동중</span>
             </div>
             <div class="weekstat-row">
-              <div><div class="weekstat-label">이번주 접수건수</div><div class="weekstat-num" id="claimsWeekCount">-</div></div>
-              <div><div class="weekstat-label">이번주 손실금액</div><div class="weekstat-num" id="claimsWeekLoss">-</div><span class="weekstat-unit">원</span></div>
+              <div><div class="weekstat-label">이번달 접수건수</div><div class="weekstat-num" id="claimsMonthCountNum">-</div></div>
+              <div><div class="weekstat-label">이번달 손실금액</div><div class="weekstat-num" id="claimsMonthLossNum">-</div><span class="weekstat-unit">원</span></div>
             </div>
             <div class="chart-wrap"><svg id="chartClaimsWeekly" viewBox="0 0 640 220"></svg></div>
           </div>
@@ -1305,6 +1305,7 @@
         var typeCount = {};
         var thisMonthKey = monthKey(new Date());
         var thisMonthRows = [];
+        var thisMonthLoss = 0;
 
         rows.forEach(function(r){
           var d = new Date(r[idxDate]);
@@ -1312,10 +1313,11 @@
           var mk = monthKey(d);
           if(mk in byMonth) byMonth[mk]++;
           var type = (r[idxType] || '미분류').trim() || '미분류';
+          var amt = idxAmount !== -1 ? (parseFloat((r[idxAmount]||'0').replace(/[^0-9.-]/g,'')) || 0) : 0;
+          if(mk === thisMonthKey) thisMonthLoss += amt + 60000;
           var wk = weekKey(d);
           if(wk in byWeek){
             byWeek[wk]++;
-            var amt = idxAmount !== -1 ? (parseFloat((r[idxAmount]||'0').replace(/[^0-9.-]/g,'')) || 0) : 0;
             byWeekLoss[wk] += amt + 60000;
             byWeekRows[wk].push({
               date:d, type:type, pending:(r[idxPending]||'').trim(), customer:(r[idxCustomer]||'').trim(), amount:amt,
@@ -1344,12 +1346,10 @@
         weekKeyList.forEach(function(w){ claimsWeeklyLoss.push(Math.round(byWeekLoss[w] || 0)); });
         claimsWeekRows = byWeekRows;
 
-        var curCount = claimsWeekly[claimsWeekly.length-1] || 0;
-        var curLoss = claimsWeeklyLoss[claimsWeeklyLoss.length-1] || 0;
-        var wcEl = document.getElementById('claimsWeekCount');
-        var wlEl = document.getElementById('claimsWeekLoss');
-        if(wcEl) wcEl.textContent = curCount + '건';
-        if(wlEl) wlEl.textContent = curLoss.toLocaleString('ko-KR');
+        var mcEl = document.getElementById('claimsMonthCountNum');
+        var mlEl = document.getElementById('claimsMonthLossNum');
+        if(mcEl) mcEl.textContent = byMonth[thisMonthKey] + '건';
+        if(mlEl) mlEl.textContent = Math.round(thisMonthLoss).toLocaleString('ko-KR');
 
         var sortedTypes = Object.keys(typeCount).map(function(t){ return {label:t, value:typeCount[t]}; })
           .sort(function(a,b){ return b.value - a.value; }).slice(0, 4);
