@@ -1519,45 +1519,53 @@ function initMqtt() {
   try {
     _mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
       clientId: 'dash_' + Math.random().toString(36).substr(2, 9),
-      keepalive: 30,
-      reconnectPeriod: 10000,
-      connectTimeout: 8000
+      keepalive: 30, reconnectPeriod: 10000, connectTimeout: 8000
     });
     _mqttClient.on('connect', () => {
       _mqttReady = true;
       console.log('[sync] 연결됨');
-      _mqttClient.subscribe(_mqttTopic + '/exp');
-      _mqttClient.subscribe(_mqttTopic + '/cert');
+      _mqttClient.subscribe(_mqttTopic + '/data', { qos: 1 });
+      // 연결 즉시 현재 데이터 발행 (다른 기기가 수신)
+      setTimeout(() => mqttPublishNow(), 500);
     });
     _mqttClient.on('message', (topic, msg) => {
-      if (_mqttIgnoreNext) { _mqttIgnoreNext = false; return; }
       try {
-        const data = JSON.parse(msg.toString());
-        if (!Array.isArray(data) || data.length === 0) return;
-        if (topic.endsWith('/exp') && data.length > experiments.length) {
-          experiments = data;
+        const payload = JSON.parse(msg.toString());
+        if (!payload || !payload.ts) return;
+        const localTs = parseInt(localStorage.getItem('sync_ts') || '0');
+        if (payload.ts <= localTs) return; // 내 데이터가 더 최신
+        // 원격 데이터가 더 최신 → 덮어쓰기
+        if (payload.exp && payload.exp.length > 0) {
+          experiments = payload.exp;
           localStorage.setItem('exp_data', JSON.stringify(experiments));
           render();
-        } else if (topic.endsWith('/cert') && data.length > certificates.length) {
-          certificates = data;
+        }
+        if (payload.cert && payload.cert.length > 0) {
+          certificates = payload.cert;
           localStorage.setItem('cert_data', JSON.stringify(certificates));
           renderCertList();
         }
+        localStorage.setItem('sync_ts', payload.ts);
+        showToast('다른 기기에서 데이터를 가져왔습니다.');
       } catch(e) {}
     });
     _mqttClient.on('error', e => console.warn('[sync] 오류:', e.message));
   } catch(e) { console.warn('[sync] MQTT 초기화 실패:', e); }
 }
 
+function mqttPublishNow() {
+  if (!_mqttReady || !_mqttClient) return;
+  const ts = Date.now();
+  localStorage.setItem('sync_ts', ts);
+  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r => { const s={...r,img:''}; for(let i=1;i<=10;i++) delete s['img'+i]; return s; })}));
+  const payload = JSON.stringify({ ts, exp: experiments, cert: slim });
+  _mqttClient.publish(_mqttTopic + '/data', payload, { retain: true, qos: 1 });
+}
+
 function mqttPublish() {
   if (!_mqttReady || !_mqttClient) return;
   clearTimeout(_mqttSaveTimer);
-  _mqttSaveTimer = setTimeout(() => {
-    const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r => { const s={...r, img:''}; for(let i=1;i<=10;i++) delete s['img'+i]; return s; })}));
-    _mqttIgnoreNext = true;
-    _mqttClient.publish(_mqttTopic + '/exp', JSON.stringify(experiments), { retain: true, qos: 1 });
-    _mqttClient.publish(_mqttTopic + '/cert', JSON.stringify(slim), { retain: true, qos: 1 });
-  }, 1500);
+  _mqttSaveTimer = setTimeout(mqttPublishNow, 1500);
 }
 
 function fbSaveExperiments() {
