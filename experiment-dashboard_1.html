@@ -849,6 +849,12 @@
     </div>
     <div class="hero-right">
       <div class="hero-date" id="nowDate"></div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <button onclick="exportData()" style="padding:4px 12px;font-size:11px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">⬇ 내보내기</button>
+        <label style="padding:4px 12px;font-size:11px;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">
+          ⬆ 가져오기<input type="file" accept=".json" style="display:none;" onchange="importData(this)">
+        </label>
+      </div>
       <button class="hero-btn hero-btn-cert" onclick="clearCertForm();openCertPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1508,7 +1514,6 @@ function importData(input) {
 }
 
 function fbSaveExperiments() {
-  fbDb.ref('experiments').set(experiments);
   localStorage.setItem('exp_data', JSON.stringify(experiments));
 }
 // ── IndexedDB: 이미지 전용 저장소 (용량 제한 없음) ──
@@ -1682,12 +1687,11 @@ function idbDeleteCertImgs(no, rowCount) {
 }
 
 function fbSaveCertificates(allowEmpty = false) {
-  if (!allowEmpty && certificates.length === 0) {
-    console.warn('fbSaveCertificates: certificates 비어있어 저장 건너뜀');
-    return;
-  }
-  // 이미지 포함해서 localStorage에 저장
-  try { localStorage.setItem('cert_data', JSON.stringify(certificates)); } catch(e) {}
+  if (!allowEmpty && certificates.length === 0) return;
+  // 이미지 제외 슬림 버전으로 저장 (용량 절약)
+  const slim = certificates.map(c => ({...c, rows: (c.rows||[]).map(r => { const s={...r,img:''}; for(let i=1;i<=10;i++) delete s['img'+i]; return s; })}));
+  try { localStorage.setItem('cert_data', JSON.stringify(slim)); } catch(e) {}
+  ghScheduleSave();
 }
 
 // ─── STATE ───
@@ -1716,7 +1720,7 @@ document.addEventListener('DOMContentLoaded', () => {
   mcInit('cf-item');
   mcInit('cf-spec');
 
-  // ── localStorage에서 즉시 로드 ──
+  // ── localStorage로 즉시 렌더 ──
   try { experiments = JSON.parse(localStorage.getItem('exp_data') || '[]'); } catch(e) { experiments = []; }
   try { certificates = JSON.parse(localStorage.getItem('cert_data') || '[]'); } catch(e) { certificates = []; }
   render();
