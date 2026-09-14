@@ -538,22 +538,66 @@
     loss: [412,455,503,388,530,481,420,468]
   };
 
-  function monthWeekNum(d){ return Math.ceil(d.getDate()/7); }
-  function weeksInMonth(y, m){ return Math.ceil(new Date(y, m+1, 0).getDate()/7); }
-  function weekKey(d){ return d.getFullYear()+'-'+d.getMonth()+'-'+monthWeekNum(d); }
-  function last8MonthWeeks(){
-    var now = new Date();
-    var y = now.getFullYear(), m = now.getMonth(), w = monthWeekNum(now);
-    var out = [];
-    for(var i=0; i<8; i++){
-      out.unshift({y:y, m:m, w:w});
-      w--;
-      if(w < 1){ m--; if(m < 0){ m = 11; y--; } w = weeksInMonth(y, m); }
+  function mondayIndex(d){ return (d.getDay()+6)%7; }
+  function firstMondayOfMonth(y, m){
+    var day1 = new Date(y, m, 1);
+    var idx = mondayIndex(day1);
+    var offset = idx === 0 ? 0 : (7 - idx);
+    return new Date(y, m, 1 + offset);
+  }
+  function weekBoundariesForMonth(y, m){
+    var day1 = new Date(y, m, 1);
+    var firstMon = firstMondayOfMonth(y, m);
+    var leadDays = Math.round((firstMon - day1) / 86400000);
+    var weeks = [];
+    var cursor;
+    if(leadDays >= 4){
+      weeks.push({start: day1, end: new Date(y, m, leadDays)});
+      cursor = firstMon;
+    } else if(leadDays > 0){
+      var mergedEnd = new Date(firstMon.getFullYear(), firstMon.getMonth(), firstMon.getDate()+6);
+      weeks.push({start: day1, end: mergedEnd});
+      cursor = new Date(firstMon.getFullYear(), firstMon.getMonth(), firstMon.getDate()+7);
+    } else {
+      cursor = day1;
     }
+    var lastDay = new Date(y, m+1, 0);
+    while(cursor <= lastDay){
+      var weekEnd = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()+6);
+      if(weekEnd > lastDay) weekEnd = lastDay;
+      weeks.push({start: new Date(cursor), end: weekEnd});
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()+7);
+    }
+    return weeks;
+  }
+  function dayKey(d){ return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); }
+  function weekContaining(d){
+    var y = d.getFullYear(), m = d.getMonth();
+    var weeks = weekBoundariesForMonth(y, m);
+    var dk = dayKey(d);
+    for(var i=0; i<weeks.length; i++){
+      if(dk >= dayKey(weeks[i].start) && dk <= dayKey(weeks[i].end)) return {year:y, month:m, index:i+1, start:weeks[i].start, end:weeks[i].end};
+    }
+    return {year:y, month:m, index:1, start:d, end:d};
+  }
+  function prevWeek(wk){
+    var dayBefore = new Date(wk.start.getFullYear(), wk.start.getMonth(), wk.start.getDate()-1);
+    dayBefore.setHours(0,0,0,0);
+    return weekContaining(dayBefore);
+  }
+  function last8Weeks(){
+    var out = [];
+    var today = new Date(); today.setHours(0,0,0,0);
+    var cur = weekContaining(today);
+    for(var i=0; i<8; i++){ out.unshift(cur); cur = prevWeek(cur); }
     return out;
   }
-  var weekKeyList = last8MonthWeeks().map(function(o){ return o.y+'-'+o.m+'-'+o.w; });
-  var weekLabelList = last8MonthWeeks().map(function(o){ return (o.m+1)+'월'+o.w+'주'; });
+  function weekKey(d){
+    var wk = weekContaining(d);
+    return wk.year+'-'+wk.month+'-'+wk.index;
+  }
+  var weekKeyList = last8Weeks().map(function(wk){ return wk.year+'-'+wk.month+'-'+wk.index; });
+  var weekLabelList = last8Weeks().map(function(wk){ return (wk.month+1)+'월'+wk.index+'주'; });
   var claimsWeekly = [11,14,9,16,13,10,15,12];
   var claimsWeeklyLoss = [0,0,0,0,0,0,0,0];
   var claimsWeekRows = {};
