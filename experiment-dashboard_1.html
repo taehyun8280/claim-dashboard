@@ -1658,7 +1658,7 @@ async function fbSaveCertImgs(no, rows) {
     }
     return obj;
   });
-  await fbDb.ref('cert_imgs/' + no).set(imgRows);
+  try { await fbDb.ref('cert_imgs/' + no).set(imgRows); } catch(e) { /* Firebase 권한 없음 - 무시 */ }
 }
 
 function handleNotePaste(e, el) {
