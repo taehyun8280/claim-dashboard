@@ -375,17 +375,12 @@
         </div>
 
         <div class="grid-2">
-          <div class="card">
+          <div class="card" data-detail="cost" tabindex="0">
             <div class="card-head">
-              <div><div class="card-title">설비점검 계획 현황</div><div class="card-sub">충주공장 주요설비 점검 계획</div></div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <span class="badge" id="dailyCheckBadge" hidden></span>
-                <span class="live-tag checking" id="equipLiveTag">연동중</span>
-              </div>
+              <div><div class="card-title">품질비용</div><div class="card-sub">최근 8개월 · 고객클레임 손실금액(제품가+건당 6만원) 기준</div></div>
+              <span class="live-tag checking" id="costChartLiveTag">연동중</span>
             </div>
-            <div id="equipSummaryRow" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"></div>
-            <ul class="alert-list" id="equipTopList"></ul>
-            <button class="chip-btn" id="equipGotoBtn" style="margin-top:10px;">설비점검 탭에서 전체 보기 ↗</button>
+            <div class="chart-wrap"><svg id="chartCostMonthly" viewBox="0 0 640 220"></svg></div>
           </div>
           <div class="card" data-detail="eval" tabindex="0">
             <div class="card-head">
@@ -588,7 +583,7 @@
     dayBefore.setHours(0,0,0,0);
     return weekContaining(dayBefore);
   }
-  function last8Weeks(){
+  function last8CalendarWeeks(){
     var out = [];
     var today = new Date(); today.setHours(0,0,0,0);
     var cur = weekContaining(today);
@@ -599,8 +594,8 @@
     var wk = weekContaining(d);
     return wk.year+'-'+wk.month+'-'+wk.index;
   }
-  var weekKeyList = last8Weeks().map(function(wk){ return wk.year+'-'+wk.month+'-'+wk.index; });
-  var weekLabelList = last8Weeks().map(function(wk){ return (wk.month+1)+'월'+wk.index+'주'; });
+  var weekKeyList = last8CalendarWeeks().map(function(wk){ return wk.year+'-'+wk.month+'-'+wk.index; });
+  var weekLabelList = last8CalendarWeeks().map(function(wk){ return (wk.month+1)+'월'+wk.index+'주'; });
   var claimsWeekly = [11,14,9,16,13,10,15,12];
   var claimsWeeklyLoss = [0,0,0,0,0,0,0,0];
   var claimsWeekRows = {};
@@ -711,6 +706,11 @@
     drawSpark(document.querySelector('[data-spark="processdefect"]'), processDefectRate, cssVar('--warn'));
     drawSpark(document.querySelector('[data-spark="claims"]'), claimsMonthly, cssVar('--critical'));
     drawSpark(document.querySelector('[data-spark="cost"]'), costMonthly, cssVar('--accent'));
+    drawGroupedBars('chartCostMonthly', {
+      labels: months.slice(4),
+      series: [{data: costMonthly.slice(4), color: cssVar('--accent')}],
+      showValues: true
+    });
     drawSpark(document.querySelector('[data-spark="eval"]'), evalPassRate, cssVar('--eval'));
     drawSpark(document.querySelector('[data-spark="export"]'), exportRate, cssVar('--exp'));
     renderProcessWeeklyChart();
@@ -1237,50 +1237,6 @@
       });
   }
 
-  var EQUIPMENT_URL = 'https://backns0303-prog.github.io/quality-dashboard/%EC%B6%A9%EC%A3%BC%EA%B3%B5%EC%9E%A5%20%EC%A3%BC%EC%9A%94%EC%84%A4%EB%B9%84%20%EC%A0%90%EA%B2%80.html';
-  function fetchEquipmentLive(){
-    setLiveTag('equipLiveTag', 'checking', '연동중');
-    fetch(EQUIPMENT_URL + '?_=' + Date.now())
-      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-      .then(function(html){
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-        var script = doc.getElementById('inspection-data');
-        if(!script) throw new Error('데이터를 찾을 수 없음');
-        var items = JSON.parse(script.textContent);
-
-        var statusCount = {};
-        items.forEach(function(it){ statusCount[it.status] = (statusCount[it.status]||0)+1; });
-        var waiting = statusCount['대기'] || 0, inProgress = statusCount['진행'] || 0, done = statusCount['완료'] || 0;
-
-        var row = document.getElementById('equipSummaryRow');
-        row.innerHTML =
-          '<span class="pill pill-neutral">총 ' + items.length + '건</span>' +
-          '<span class="pill pill-warn">대기 ' + waiting + '</span>' +
-          '<span class="pill pill-neutral">진행 ' + inProgress + '</span>' +
-          '<span class="pill pill-good">완료 ' + done + '</span>';
-
-        var top = items.filter(function(it){ return it.priority === '상' && it.status !== '완료'; }).slice(0, 5);
-        var list = document.getElementById('equipTopList');
-        if(!top.length){
-          list.innerHTML = '<li class="alert-item"><div class="alert-body"><div class="alert-text">우선순위 "상" 대기 항목이 없습니다.</div></div></li>';
-        } else {
-          list.innerHTML = top.map(function(it){
-            return '<li class="alert-item"><span class="stripe warn"></span><div class="alert-body">' +
-              '<div class="alert-top-row"><span class="alert-tag">' + it.machine + '</span><span class="sev-pill warn">우선순위 상</span></div>' +
-              '<div class="alert-text">' + it.check + (it.symptom ? ' — ' + it.symptom : '') + '</div></div>' +
-              '<span class="alert-time">' + (it.owner || '') + '</span></li>';
-          }).join('');
-        }
-        setLiveTag('equipLiveTag', 'live', 'LIVE');
-      })
-      .catch(function(err){
-        setLiveTag('equipLiveTag', 'sample', '샘플');
-        console.warn('설비점검 계획 연동 실패:', err);
-        document.getElementById('equipTopList').innerHTML = '<li class="alert-item"><div class="alert-body"><div class="alert-text">실시간 연동에 실패했습니다.</div></div></li>';
-      });
-  }
-  document.getElementById('equipGotoBtn').addEventListener('click', function(){ switchSection('equipment'); });
-
   function fetchClaimsLive(){
     setLiveTag('claimsLiveTag', 'checking', '연동중');
     fetch(CLAIMS_CSV_URL + '&_=' + Date.now())
@@ -1382,6 +1338,7 @@
           costBarEl.style.width = Math.min(100, Math.round(thisMonthCostMan/maxCostMan*100)) + '%';
         }
         setLiveTag('costLiveTag', 'live', 'LIVE');
+        setLiveTag('costChartLiveTag', 'live', 'LIVE');
 
         var sortedTypes = Object.keys(typeCount).map(function(t){ return {label:t, value:typeCount[t]}; })
           .sort(function(a,b){ return b.value - a.value; }).slice(0, 4);
@@ -1420,6 +1377,7 @@
         setLiveTag('claimsLiveTag', 'sample', '샘플');
         setLiveTag('claimsChartLiveTag', 'sample', '샘플');
         setLiveTag('costLiveTag', 'sample', '샘플');
+        setLiveTag('costChartLiveTag', 'sample', '샘플');
         console.warn('고객클레임 실시간 연동 실패:', err);
       });
   }
@@ -1518,10 +1476,8 @@
   fetchClaimsLive();
   fetchExportLive();
   fetchDailyCheckLive();
-  fetchEquipmentLive();
   setInterval(fetchClaimsLive, 30*60*1000);
   setInterval(fetchExportLive, 30*60*1000);
   setInterval(fetchDailyCheckLive, 30*60*1000);
-  setInterval(fetchEquipmentLive, 30*60*1000);
 })();
 </script>
