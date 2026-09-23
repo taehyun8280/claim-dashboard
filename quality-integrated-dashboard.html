@@ -709,7 +709,9 @@
       labels: weekLabelList,
       series: [{data: claimsWeekly, color: cssVar('--critical')}],
       showValues: true,
-      onBarClick: openClaimsWeekModal
+      onBarClick: openClaimsWeekModal,
+      yMax: 100,
+      ySteps: 5
     });
     drawSpark(document.querySelector('[data-spark="processdefect"]'), processDefectRate, cssVar('--warn'));
     drawSpark(document.querySelector('[data-spark="claims"]'), claimsMonthly, cssVar('--critical'));
