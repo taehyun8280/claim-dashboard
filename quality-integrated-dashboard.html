@@ -613,18 +613,21 @@
     svg.innerHTML = '';
     var vb = svg.viewBox.baseVal;
     var W = vb.width, H = vb.height;
-    var padL = 34, padR = 10, padT = 14, padB = 26;
+    var padL = 34, padR = 10, padT = opts.yUnit ? 24 : 14, padB = 26;
     var plotW = W - padL - padR, plotH = H - padT - padB;
     var n = opts.labels.length;
     var seriesCount = opts.series.length;
-    var maxV = 0;
-    opts.series.forEach(function(s){ s.data.forEach(function(v){ if(v>maxV) maxV=v; }); });
-    maxV = niceMax(maxV * 1.15);
+    var maxV = opts.yMax;
+    if(!maxV){
+      maxV = 0;
+      opts.series.forEach(function(s){ s.data.forEach(function(v){ if(v>maxV) maxV=v; }); });
+      maxV = niceMax(maxV * 1.15);
+    }
     var groupW = plotW / n;
     var barGap = 3;
     var barW = (groupW - barGap*(seriesCount+1)) / seriesCount;
 
-    var steps = 4;
+    var steps = opts.ySteps || 4;
     for(var g=0; g<=steps; g++){
       var yVal = maxV * g/steps;
       var y = padT + plotH - (yVal/maxV)*plotH;
@@ -632,6 +635,11 @@
       var t = svgns('text', {x:padL-6, y:y+3, 'text-anchor':'end', 'font-size':9, fill:cssVar('--text-muted')});
       t.textContent = Math.round(yVal);
       svg.appendChild(t);
+    }
+    if(opts.yUnit){
+      var ut = svgns('text', {x:padL-6, y:12, 'text-anchor':'end', 'font-size':9, fill:cssVar('--text-muted')});
+      ut.textContent = opts.yUnit;
+      svg.appendChild(ut);
     }
 
     opts.labels.forEach(function(lab, i){
@@ -709,7 +717,10 @@
     drawGroupedBars('chartCostMonthly', {
       labels: months.slice(4),
       series: [{data: costMonthly.slice(4), color: cssVar('--accent')}],
-      showValues: true
+      showValues: true,
+      yMax: 5000,
+      ySteps: 5,
+      yUnit: '만원'
     });
     drawSpark(document.querySelector('[data-spark="eval"]'), evalPassRate, cssVar('--eval'));
     drawSpark(document.querySelector('[data-spark="export"]'), exportRate, cssVar('--exp'));
