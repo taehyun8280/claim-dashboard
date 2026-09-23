@@ -105,7 +105,7 @@
   /* kpi strip */
   .overview-inner{max-width:1360px;}
 
-  .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+  .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
   .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;position:relative;}
   .kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(23,30,43,0.12), 0 1px 3px rgba(23,30,43,0.08);}
   .kpi-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
@@ -117,7 +117,6 @@
   .tint-claims{background:var(--critical-soft);color:var(--critical);}
   .tint-cost{background:var(--accent-soft);color:var(--accent-strong);}
   .tint-eval{background:var(--eval-soft);color:var(--eval);}
-  .tint-export{background:var(--exp-soft);color:var(--exp);}
   .kpi-label{font-size:12.5px;color:var(--text-muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .kpi-value-row{display:flex;align-items:baseline;gap:8px;}
   .kpi-value{font-size:25px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;}
@@ -342,16 +341,6 @@
             <svg class="kpi-spark" data-spark="eval"></svg>
             <div class="kpi-bottom-row"><span class="kpi-foot">진행중 6건 · 이번달 합격 3건</span><span class="kpi-hint">자세히 ›</span></div>
           </div>
-          <div class="kpi-card" data-detail="export" tabindex="0">
-            <div class="kpi-top">
-              <div class="kpi-label-row"><span class="kpi-icon-chip tint-export" data-icon="truck"></span><span class="kpi-label">수출 포장강화율</span><span class="live-tag checking" id="exportLiveTag">연동중</span></div>
-              <span class="delta good" id="exportKpiDelta">▲ 1%p</span>
-            </div>
-            <div class="kpi-value-row"><span class="kpi-value" id="exportKpiValue">96</span><span class="kpi-unit">%</span></div>
-            <div class="kpi-bar-track"><div class="kpi-bar-fill" id="exportKpiBar" style="width:96%;background:var(--exp)"></div></div>
-            <svg class="kpi-spark" data-spark="export"></svg>
-            <div class="kpi-bottom-row"><span class="kpi-foot" id="exportKpiFoot">목표 95% 대비 +1%p</span><span class="kpi-hint">자세히 ›</span></div>
-          </div>
         </div>
 
         <div class="grid-2">
@@ -491,7 +480,6 @@
   var claimsMonthly = [18,22,15,25,30,28,19,21,17,24,20,16];
   var costMonthly = [1080,1320,900,1500,1800,1680,1140,1260,1020,1440,1200,960];
   var evalPassRate  = [82,85,80,78,88,90,86,84,89,91,93,92];
-  var exportRate    = [95,93,97,90,88,92,96,94,98,95,97,96];
   var evalReworkMonthly  = [4,5,3,6,7,5,4,3,4,3,2,2];
 
   var claimTypes = [
@@ -499,12 +487,6 @@
     {label:'조립 불량', value:22},
     {label:'마감 불량', value:18},
     {label:'부자재 불량', value:11}
-  ];
-
-  var exportStatusCount = [
-    {label:'강화완료', value:5},
-    {label:'강화진행', value:4},
-    {label:'포장대기', value:3}
   ];
 
   var processDefectTypes = [
@@ -601,9 +583,7 @@
   var claimsWeekRows = {};
 
   var claimsLiveStats = { thisMonth:16, prevMonth:20, completionRate:'81%', pendingCount:'3건', recent:[['도장 불량 · A상사','접수'],['마감 불량 · 한빛오피스','처리중'],['조립 불량 · A상사','처리중']] };
-  var exportLiveStats = { thisMonth:12, completionRate:96, dueRate:'98%', recent:[['EXP-2607-014 · CH-2201','강화진행'],['EXP-2607-011 · CH-1090','포장대기'],['EXP-2607-007 · DK-3105','포장대기']] };
   var claimsThisMonthRows = [];
-  var exportThisMonthRows = [];
 
   /* ---------- Chart helpers ---------- */
   function niceMax(v){ var m = Math.ceil(v/10)*10; return m === 0 ? 10 : m; }
@@ -725,7 +705,6 @@
       yUnit: '만원'
     });
     drawSpark(document.querySelector('[data-spark="eval"]'), evalPassRate, cssVar('--eval'));
-    drawSpark(document.querySelector('[data-spark="export"]'), exportRate, cssVar('--exp'));
     renderProcessWeeklyChart();
   }
 
@@ -1024,20 +1003,6 @@
       note.textContent = s.asOf + '. Streamlit 앱은 외부에서 데이터를 자동으로 가져올 공개 API가 없어 실시간 연동은 불가능하고, 방문해서 확인한 값을 반영했습니다.';
       modalBody.appendChild(note);
       modalBody.appendChild(gotoBtn('eval', '품평/프로젝트 관리 탭에서 실제 대시보드 보기 ↗'));
-    },
-    export: function(){
-      modalEyebrow.textContent = '수출건 · 상세 현황';
-      modalTitle.textContent = '수출 포장강화 현황';
-      modalBody.appendChild(statRow([
-        {label:'이번달', value:exportLiveStats.thisMonth+'건'},
-        {label:'강화완료율', value:exportLiveStats.completionRate+'%'},
-        {label:'납기준수율', value:exportLiveStats.dueRate}
-      ]));
-      var svg = chartSvg('0 0 480 160');
-      modalBody.appendChild(svg);
-      renderClaimTypeBar(svg, exportStatusCount, '--exp');
-      modalBody.appendChild(listBlock(exportLiveStats.recent));
-      modalBody.appendChild(gotoBtn('export', '수출건 탭에서 실제 대시보드 보기 ↗'));
     }
   };
 
@@ -1228,7 +1193,6 @@
   }
 
   var CLAIMS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFYXeMShNStCI5zaJkYod1jzt2kZwvRpEbs58ONy7XTDxXKPvwnczeyNmoAWYXwifLhHy6vTBlGqw0/pub?output=csv';
-  var EXPORT_JSON_URL = 'https://script.google.com/macros/s/AKfycbzsmA9Cu7xJ5D3DeouBsWKt_ii0YM4U6GPnbWX_NhZughWWh93dTLE4_VNMuBElXqA/exec';
   var DAILYCHECK_JSON_URL = 'https://script.google.com/macros/s/AKfycbxz1PXXxsYH6WQuhVj4ykhc22x1K3VNlc9GjgDbySggikl2oHPbNtoiyu3GCuGDXPhHVg/exec';
 
   function fetchDailyCheckLive(){
@@ -1395,102 +1359,11 @@
       });
   }
 
-  function fetchExportLive(){
-    setLiveTag('exportLiveTag', 'checking', '연동중');
-    fetch(EXPORT_JSON_URL + '?_=' + Date.now())
-      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-      .then(function(payload){
-        var sheetKey = Object.keys(payload)[0];
-        var table = payload[sheetKey];
-        var header = table[0];
-        var dataRows = table.slice(1);
-        var idxDue = header.indexOf('전산상 납기');
-        var idxShip = header.indexOf('상차일');
-        var idxStatus = header.indexOf('진행');
-        var idxName = header.indexOf('수주건명');
-        var idxCode = header.indexOf('품목코드');
-        if(idxDue === -1 || idxStatus === -1) throw new Error('컬럼을 찾을 수 없음');
-
-        var byMonth = {};
-        var byMonthTotal = {};
-        monthKeyList.forEach(function(m){ byMonth[m] = 0; byMonthTotal[m] = 0; });
-        var thisMonthKey = monthKey(new Date());
-        var thisMonthRows = [];
-        var onTimeCount = 0, shippedCount = 0;
-
-        dataRows.forEach(function(r){
-          var d = new Date(r[idxDue]);
-          if(isNaN(d.getTime())) return;
-          var mk = monthKey(d);
-          var done = String(r[idxStatus] || '').indexOf('완료') !== -1;
-          if(mk in byMonthTotal){
-            byMonthTotal[mk]++;
-            if(done) byMonth[mk]++;
-          }
-          if(mk === thisMonthKey){
-            thisMonthRows.push({name:r[idxName], code:r[idxCode], status:r[idxStatus], done:done, due:d});
-            var shipDate = idxShip !== -1 ? new Date(r[idxShip]) : null;
-            if(shipDate && !isNaN(shipDate.getTime())){
-              shippedCount++;
-              if(shipDate.getTime() <= d.getTime()) onTimeCount++;
-            }
-          }
-        });
-
-        exportRate.length = 0;
-        monthKeyList.forEach(function(m){
-          var total = byMonthTotal[m];
-          exportRate.push(total ? Math.round(byMonth[m] / total * 100) : 0);
-        });
-
-        var statusCount = {};
-        thisMonthRows.forEach(function(r){
-          var s = (r.status || '미분류').trim() || '미분류';
-          statusCount[s] = (statusCount[s] || 0) + 1;
-        });
-        var sortedStatus = Object.keys(statusCount).map(function(s){ return {label:s, value:statusCount[s]}; })
-          .sort(function(a,b){ return b.value - a.value; }).slice(0, 4);
-        if(sortedStatus.length){
-          exportStatusCount.length = 0;
-          sortedStatus.forEach(function(s){ exportStatusCount.push(s); });
-        }
-
-        var thisMonthTotal = thisMonthRows.length;
-        var thisMonthDone = thisMonthRows.filter(function(r){ return r.done; }).length;
-        var completionRate = thisMonthTotal ? Math.round(thisMonthDone / thisMonthTotal * 100) : 0;
-        var prevRate = exportRate.length > 1 ? exportRate[exportRate.length-2] : completionRate;
-        var deltaP = completionRate - prevRate;
-
-        exportLiveStats.thisMonth = thisMonthTotal;
-        exportLiveStats.completionRate = completionRate;
-        exportLiveStats.dueRate = shippedCount ? Math.round(onTimeCount / shippedCount * 100) + '%' : '상차 전';
-        exportLiveStats.recent = thisMonthRows.slice(-3).reverse().map(function(r){
-          return [(r.name||'') + ' · ' + (r.code||''), r.status || '-'];
-        });
-        if(!exportLiveStats.recent.length) exportLiveStats.recent = [['이번달 등록 건 없음', '-']];
-        exportThisMonthRows = thisMonthRows;
-
-        updateKpiCard('export', String(completionRate),
-          (deltaP >= 0 ? '▲ ' : '▼ ') + Math.abs(deltaP) + '%p', deltaP >= 0,
-          '목표 95% 대비 ' + (completionRate-95 >= 0 ? '+' : '') + (completionRate-95) + '%p');
-        var exportBar = document.getElementById('exportKpiBar');
-        if(exportBar) exportBar.style.width = Math.min(100, completionRate) + '%';
-        setLiveTag('exportLiveTag', 'live', 'LIVE');
-        renderAll();
-      })
-      .catch(function(err){
-        setLiveTag('exportLiveTag', 'sample', '샘플');
-        console.warn('수출포장강화 실시간 연동 실패:', err);
-      });
-  }
-
   /* ---------- Executive summary banner (plain-language, for non-QA teams) ---------- */
 
   fetchClaimsLive();
-  fetchExportLive();
   fetchDailyCheckLive();
   setInterval(fetchClaimsLive, 30*60*1000);
-  setInterval(fetchExportLive, 30*60*1000);
   setInterval(fetchDailyCheckLive, 30*60*1000);
 })();
 </script>
